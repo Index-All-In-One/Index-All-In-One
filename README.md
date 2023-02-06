@@ -1,4 +1,4 @@
-# Index-All-In-One: A personal unified search tool
+# Index-All-In-One: A Personal Unified Search Tool
 
 ## Project Description
 Digital properties of a person include disk files, notes, photos and chat history in cloud applications, etc. Such fragmentation causes problems when it comes to search. People need to use native searches in different applications, which is a waste of time and makes people distracted. Unifying the searches on all personal information like files, notes, codes, etc. can save time and keep the user focused on their real needs.
