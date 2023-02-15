@@ -35,7 +35,7 @@ class _GFGState extends State<GFG> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "GeeksForGeeks",
+          "Index All In One",
         ),
         actions: [
           IconButton(
