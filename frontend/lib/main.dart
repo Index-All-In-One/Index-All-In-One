@@ -57,6 +57,7 @@ class _GFGState extends State<GFG> {
 class CustomSearchDelegate extends SearchDelegate {
   // Demo list to show querying
   List<String> searchTerms = [
+    "A very loooooooooooooooooong file name",
     "Apple",
     "Banana",
     "Mango",
@@ -123,6 +124,7 @@ class CustomSearchDelegate extends SearchDelegate {
               Expanded(child: Text("Source")),
               Expanded(child: Text("Modified Time")),
               Expanded(child: Text("Document Type")),
+              Expanded(child: Text("Summary")),
             ]),
           );
         }
@@ -131,10 +133,25 @@ class CustomSearchDelegate extends SearchDelegate {
         var row = matchQuery[index - 1];
         return ListTile(
           title: Row(children: <Widget>[
-            Expanded(child: Text(row)),
+            Expanded(
+                child: Tooltip(
+              child: Text(
+                row,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              message: row,
+            )),
             Expanded(child: Text("<Source>")),
             Expanded(child: Text("<Modified Time>")),
-            Expanded(child: Text("<Document Type")),
+            Expanded(child: Text("<Document Type>")),
+            Expanded(
+                child: Text(
+              "With six children in tow, Catherine raced to the airport departing gate. This wasn't an easy task as the children had other priorities than to get to the gate. She knew that she was tight on time and the frustration came out as she yelled at the kids to keep up. They continued to test her, pretending not to listen and to move in directions that only slowed them down. They had no idea the wrath they were about to receive when Catherine made it to the gate only to be informed that they had all missed the plane.",
+              softWrap: false,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            )),
           ]),
         );
       },
