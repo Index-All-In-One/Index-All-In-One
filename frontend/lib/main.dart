@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+String baseUrl = 'http://127.0.0.1:5000';
 
 void main() {
   runApp(const MyApp());
@@ -115,79 +119,93 @@ class CustomSearchDelegate extends SearchDelegate {
     );
   }
 
+  Future<http.Response> sendSearchRequest(String query) async {
+    var url = Uri.parse('$baseUrl/search');
+
+    var response =
+        await http.post(url, body: {'keywords': query, 'foo': 'flutter'});
+    return response;
+  }
+
   // third overwrite to show query result
   @override
   Widget buildResults(BuildContext context) {
-    List<Map<String, String>> queryResults = [];
-    //TODO : add the logic to send request to backend and get result
-    for (var name in docNameList) {
-      if (name.toLowerCase().contains(query.toLowerCase())) {
-        queryResults.add({
-          "doc_name": name,
-          "doc_type": "<Document Type>",
-          "link": "<Link>",
-          "source": "<Source>",
-          "created_date": "<Created Date>",
-          "modified_date": "<Modified Date>",
-          "summary":
-              "With six children in tow, Catherine raced to the airport departing gate. This wasn't an easy task as the children had other priorities than to get to the gate. She knew that she was tight on time and the frustration came out as she yelled at the kids to keep up. They continued to test her, pretending not to listen and to move in directions that only slowed them down. They had no idea the wrath they were about to receive when Catherine made it to the gate only to be informed that they had all missed the plane.",
-          "file_size": "<File Size>"
-        });
-      }
-    }
-    return ListView.builder(
-      itemCount: queryResults.length + 1,
-      itemBuilder: (BuildContext context, int index) {
-        if (index == 0) {
-          // return the header
-          return ListTile(
-            title: Row(
-                children: documentFieldKeys
-                    .map((key) => Expanded(
-                          child: Text(documentFieldDisplayNames[key]!),
-                        ))
-                    .toList()),
+    return FutureBuilder(
+      future: sendSearchRequest(query),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.hasData) {
+          var response = snapshot.data;
+
+          List<dynamic> queryResults = [];
+          if (response.statusCode == 200) {
+            //TODO error handling for type conversion
+            queryResults = jsonDecode(response.body);
+          } else {
+            //TODO alert user
+            print("Search API return unsuccessful response");
+          }
+          return ListView.builder(
+            itemCount: queryResults.length + 1,
+            itemBuilder: (BuildContext context, int index) {
+              if (index == 0) {
+                // return the header
+                return ListTile(
+                  title: Row(
+                      children: documentFieldKeys
+                          .map((key) => Expanded(
+                                child: Text(documentFieldDisplayNames[key]!),
+                              ))
+                          .toList()),
+                );
+              }
+
+              //TODO type conversion error handling
+              Map<String, dynamic> singleQueryResult =
+                  queryResults[index - 1] as Map<String, dynamic>;
+              return ListTile(
+                title: Row(
+                    children: documentFieldKeys.map((key) {
+                  Expanded returnWidget;
+                  switch (key) {
+                    case 'doc_name':
+                      returnWidget = Expanded(
+                        child: Tooltip(
+                          message: singleQueryResult[key]!,
+                          child: Text(
+                            singleQueryResult[key]!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      );
+                      break;
+                    case 'summary':
+                      returnWidget = Expanded(
+                        child: Text(
+                          singleQueryResult[key]!,
+                          softWrap: false,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                      break;
+                    default:
+                      returnWidget = Expanded(
+                        child: Text(singleQueryResult[key]!),
+                      );
+                      break;
+                  }
+                  return returnWidget;
+                }).toList()),
+              );
+            },
+          );
+        } else {
+          // Data hasn't been received yet, show a progress indicator
+          return const Center(
+            child: CircularProgressIndicator(),
           );
         }
-
-        // return row
-        var singleQueryResult = queryResults[index - 1];
-        return ListTile(
-          title: Row(
-              children: documentFieldKeys.map((key) {
-            Expanded returnWidget;
-            switch (key) {
-              case 'doc_name':
-                returnWidget = Expanded(
-                  child: Tooltip(
-                    message: singleQueryResult[key]!,
-                    child: Text(
-                      singleQueryResult[key]!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                );
-                break;
-              case 'summary':
-                returnWidget = Expanded(
-                  child: Text(
-                    singleQueryResult[key]!,
-                    softWrap: false,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                );
-                break;
-              default:
-                returnWidget = Expanded(
-                  child: Text(singleQueryResult[key]!),
-                );
-                break;
-            }
-            return returnWidget;
-          }).toList()),
-        );
       },
     );
   }
