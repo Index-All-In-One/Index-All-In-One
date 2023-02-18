@@ -55,8 +55,10 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void onSearchFunction(String query) {
-    setState(() {
-      _searchResultsWidget = buildSearchResults(query);
-    });
+    if (query.isNotEmpty) {
+      setState(() {
+        _searchResultsWidget = buildSearchResults(query);
+      });
+    }
   }
 }
