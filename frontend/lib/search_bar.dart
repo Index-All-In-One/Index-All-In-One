@@ -12,12 +12,21 @@ class SearchBar extends StatefulWidget {
 
 class _SearchBarState extends State<SearchBar> {
   final _searchController = TextEditingController();
+  final _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TextField(
+        focusNode: _focusNode,
+        autofocus: true,
         controller: _searchController,
         decoration: InputDecoration(
           hintText: widget.hintText,
@@ -34,6 +43,9 @@ class _SearchBarState extends State<SearchBar> {
         onSubmitted: (String value) {
           widget.onSearch(value);
         },
+        // onTap: () {
+        //   showSearch(context: context, delegate: CustomSearchDelegate());
+        // },
       ),
     );
   }
