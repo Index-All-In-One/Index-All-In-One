@@ -1,4 +1,7 @@
 from flask import Flask, jsonify, request
+from opensearchpy import OpenSearch
+import pandas as pd
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -25,33 +28,52 @@ def add_cors_headers(response):
 
 @app.route('/search', methods=['POST'])
 def submit():
+    async def connect_OpenSearch():
+        client = await OpenSearch(
+        hosts = [{"host": "localhost", "port": 9200}],
+        http_auth = ("admin", "admin"),
+        use_ssl = True,
+        verify_certs = False,
+        ssl_assert_hostname = False,
+        ssl_show_warn = False,
+        )
+        return client
+
+    async def search_OpenSearch(client):
+        response = await client.search(
+            index='search_index',
+            body={
+                "query": {
+                    "match_all": {}
+                }
+            }
+        )
+        return response
     keywords = request.form.get('keywords')
     foo = request.form.get('foo')
     print(keywords)
     print(foo)
-    # do something with the data...
+
+
+    client = connect_OpenSearch()
+    response = search_OpenSearch(client)
+
+    docs = response['hits']['hits']
     search_results = []
-    doc_names = [
-        "A very loooooooooooooooooong file name",
-        "Apple",
-        "Banana",
-        "Mango",
-        "Pear",
-        "Watermelons",
-        "Blueberries",
-        "Pineapples",
-        "Strawberries"]
-    for doc_name in doc_names:
+    for doc in docs:
         search_results.append(
             {
-                "doc_name": doc_name,
-                "doc_type": "<Document Type>",
-                "link": "<Link>",
-                "source": "<Source>",
-                "created_date": "<Created Date>",
-                "modified_date": "<Modified Date>",
-                "summary":
-                    "With six children in tow, Catherine raced to the airport departing gate. This wasn't an easy task as the children had other priorities than to get to the gate. She knew that she was tight on time and the frustration came out as she yelled at the kids to keep up. They continued to test her, pretending not to listen and to move in directions that only slowed them down. They had no idea the wrath they were about to receive when Catherine made it to the gate only to be informed that they had all missed the plane.",
-                "file_size": "<File Size>"
+                "doc_name": doc['doc_name'],
+                "doc_type": doc['doc_type'],
+                "link": doc['link'],
+                "source": doc['source'],
+                "created_date": doc['created_date'],
+                "modified_date": doc['modified_date'],
+                "summary": doc['summary'],
+                "file_size": doc['file_size']
             })
+
     return jsonify(search_results)
+
+if __name__ == '__main__':
+    app.run()
