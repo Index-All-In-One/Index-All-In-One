@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:index_all_in_one/utils.dart';
-import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'globals.dart';
 
@@ -98,12 +96,9 @@ Widget buildSearchResults(String query) {
                     break;
                   case 'created_date':
                   case 'modified_date':
-                    DateTime time = DateTime.parse(singleQueryResult[key]!);
-                    var formatter = DateFormat('yyyy/MM/dd HH:mm');
-                    String formattedTime = formatter.format(time.toLocal());
                     returnWidget = Expanded(
                       child: Text(
-                        formattedTime,
+                        formatTimeMinute(singleQueryResult[key]!),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -114,29 +109,14 @@ Widget buildSearchResults(String query) {
                     returnWidget = Expanded(
                         child: Row(
                       children: [
-                        InkWell(
-                          onTap: () => launchUrl(Uri.parse(queryValue),
-                              webOnlyWindowName: '_blank'),
-                          child: Tooltip(
-                            message: queryValue,
-                            child: const Text(
-                              'link',
-                              style: TextStyle(
-                                color: Colors.blue,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ),
-                        ),
+                        LinkText(link: queryValue),
                         CopyLinkIcon(link: queryValue),
                       ],
                     ));
                     break;
                   default:
-                    final queryValue = singleQueryResult[key]!;
-                    final String queryValueString = (queryValue is int)
-                        ? queryValue.toString()
-                        : queryValue;
+                    String queryValueString =
+                        ifIntToString(singleQueryResult[key]!);
                     returnWidget = Expanded(
                       child: Tooltip(
                         message: queryValueString,
