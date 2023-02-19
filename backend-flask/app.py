@@ -1,9 +1,5 @@
 from flask import Flask, jsonify, request
-from opensearchpy import OpenSearch
-import pandas as pd
-from datetime import datetime
-
-INDEX_NAME = 'search_index'
+from search_funcs import *
 
 app = Flask(__name__)
 
@@ -31,53 +27,14 @@ def add_cors_headers(response):
 @app.route('/search', methods=['POST'])
 def submit():
 
-    def connect_OpenSearch():
-        client = OpenSearch(
-        hosts = [{"host": "localhost", "port": 9200}],
-        http_auth = ("admin", "admin"),
-        use_ssl = True,
-        verify_certs = False,
-        ssl_assert_hostname = False,
-        ssl_show_warn = False,
-        )
-        return client
-
-    def search_OpenSearch(client, keywords=None):
-        if not keywords or len(keywords) == 0:
-            response = client.search(
-                index=INDEX_NAME,
-                body={
-                    "query": {
-                        "match_all": {}
-                    }
-                }
-            )
-        # with a list of keywords, search for documents that match either of the keywords in the list.
-        else:
-            response = client.search(
-                index=INDEX_NAME,
-                body={
-                    "query": {
-                        "bool": {
-                            "should": [
-                                {"match": {"doc_name": keyword}} for keyword in keywords
-                            ]
-                        }
-                    }
-                }
-            )
-        return response
-
     # keywords is a list of strings
     keywords = request.form.get('keywords').split(' ')
 
+    # Connect with openSearch
     client = connect_OpenSearch()
-    # print(client.info())
     response = search_OpenSearch(client, keywords)
-    # print(response)
-
     docs = response['hits']['hits']
-    # print(docs)
+
     search_results = []
     for doc in docs:
         doc = doc['_source']
