@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:index_all_in_one/utils.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'globals.dart';
 
@@ -99,7 +101,6 @@ Widget buildSearchResults(String query) {
                     DateTime time = DateTime.parse(singleQueryResult[key]!);
                     var formatter = DateFormat('yyyy/MM/dd HH:mm');
                     String formattedTime = formatter.format(time.toLocal());
-                    print(formattedTime);
                     returnWidget = Expanded(
                       child: Text(
                         formattedTime,
@@ -107,6 +108,29 @@ Widget buildSearchResults(String query) {
                         overflow: TextOverflow.ellipsis,
                       ),
                     );
+                    break;
+                  case 'link':
+                    final queryValue = singleQueryResult[key]!;
+                    returnWidget = Expanded(
+                        child: Row(
+                      children: [
+                        InkWell(
+                          onTap: () => launchUrl(Uri.parse(queryValue),
+                              webOnlyWindowName: '_blank'),
+                          child: Tooltip(
+                            message: queryValue,
+                            child: const Text(
+                              'link',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ),
+                        CopyLinkIcon(link: queryValue),
+                      ],
+                    ));
                     break;
                   default:
                     final queryValue = singleQueryResult[key]!;
