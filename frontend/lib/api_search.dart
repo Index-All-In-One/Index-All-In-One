@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'globals.dart';
 
@@ -89,6 +90,20 @@ Widget buildSearchResults(String query) {
                         singleQueryResult[key]!,
                         softWrap: false,
                         maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                    break;
+                  case 'created_date':
+                  case 'modified_date':
+                    DateTime time = DateTime.parse(singleQueryResult[key]!);
+                    var formatter = DateFormat('yyyy/MM/dd HH:mm');
+                    String formattedTime = formatter.format(time.toLocal());
+                    print(formattedTime);
+                    returnWidget = Expanded(
+                      child: Text(
+                        formattedTime,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     );
