@@ -74,13 +74,9 @@ Widget buildSearchResults(String query) {
                 switch (key) {
                   case 'doc_name':
                     returnWidget = Expanded(
-                      child: Tooltip(
-                        message: singleQueryResult[key]!,
-                        child: Text(
-                          singleQueryResult[key]!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      child: TextWithHover(
+                        text: singleQueryResult[key]!,
+                        maxLines: 2,
                       ),
                     );
                     break;
@@ -96,13 +92,13 @@ Widget buildSearchResults(String query) {
                     break;
                   case 'created_date':
                   case 'modified_date':
+                    final formattedTime =
+                        formatTimeMinute(singleQueryResult[key]!);
                     returnWidget = Expanded(
-                      child: Text(
-                        formatTimeMinute(singleQueryResult[key]!),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
+                        child: TextWithHover(
+                      text: formattedTime,
+                      maxLines: 2,
+                    ));
                     break;
                   case 'link':
                     final queryValue = singleQueryResult[key]!;
@@ -118,14 +114,7 @@ Widget buildSearchResults(String query) {
                     String queryValueString =
                         ifIntToString(singleQueryResult[key]!);
                     returnWidget = Expanded(
-                      child: Tooltip(
-                        message: queryValueString,
-                        child: Text(
-                          queryValueString,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
+                      child: TextWithHover(text: queryValueString),
                     );
                     break;
                 }

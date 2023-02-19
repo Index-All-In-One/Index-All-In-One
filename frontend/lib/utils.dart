@@ -58,3 +58,30 @@ class LinkText extends StatelessWidget {
     );
   }
 }
+
+class TextWithHover extends StatelessWidget {
+  final String text;
+  final int maxLines;
+  final TextStyle? style;
+  final TextStyle? hoverStyle;
+
+  const TextWithHover({
+    super.key,
+    required this.text,
+    this.maxLines = 1,
+    this.style,
+    this.hoverStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: text,
+      child: Text(
+        text,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
