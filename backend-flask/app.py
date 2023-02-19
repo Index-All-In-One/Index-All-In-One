@@ -3,6 +3,8 @@ from opensearchpy import OpenSearch
 import pandas as pd
 from datetime import datetime
 
+INDEX_NAME = 'search_index'
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -28,8 +30,9 @@ def add_cors_headers(response):
 
 @app.route('/search', methods=['POST'])
 def submit():
-    async def connect_OpenSearch():
-        client = await OpenSearch(
+
+    def connect_OpenSearch():
+        client = OpenSearch(
         hosts = [{"host": "localhost", "port": 9200}],
         http_auth = ("admin", "admin"),
         use_ssl = True,
@@ -39,43 +42,56 @@ def submit():
         )
         return client
 
-    async def search_OpenSearch(client):
-        response = await client.search(
-            index='search_index',
-            body={
-                "query": {
-                    "match_all": {}
+    def search_OpenSearch(client, keywords=None):
+        if not keywords or len(keywords) == 0:
+            response = client.search(
+                index=INDEX_NAME,
+                body={
+                    "query": {
+                        "match_all": {}
+                    }
                 }
-            }
-        )
+            )
+        # with a list of keywords, search for documents that match either of the keywords in the list.
+        else:
+            response = client.search(
+                index=INDEX_NAME,
+                body={
+                    "query": {
+                        "bool": {
+                            "should": [
+                                {"match": {"doc_name": keyword}} for keyword in keywords
+                            ]
+                        }
+                    }
+                }
+            )
         return response
 
-    keywords = request.form.get('keywords')
-    foo = request.form.get('foo')
-    print(keywords)
-    print(foo)
+    # keywords is a list of strings
+    keywords = request.form.get('keywords').split(' ')
 
     client = connect_OpenSearch()
-    print(client.info())
-    response = search_OpenSearch(client)
-    print(response)
-    print()
-    print()
+    # print(client.info())
+    response = search_OpenSearch(client, keywords)
+    # print(response)
 
-    # docs = response['hits']['hits']
+    docs = response['hits']['hits']
+    # print(docs)
     search_results = []
-    # for doc in docs:
-    #     search_results.append(
-    #         {
-    #             "doc_name": doc['doc_name'],
-    #             "doc_type": doc['doc_type'],
-    #             "link": doc['link'],
-    #             "source": doc['source'],
-    #             "created_date": doc['created_date'],
-    #             "modified_date": doc['modified_date'],
-    #             "summary": doc['summary'],
-    #             "file_size": doc['file_size']
-    #         })
+    for doc in docs:
+        doc = doc['_source']
+        search_results.append(
+            {
+                "doc_name": doc['doc_name'],
+                "doc_type": doc['doc_type'],
+                "link": doc['link'],
+                "source": doc['source'],
+                "created_date": doc['created_date'],
+                "modified_date": doc['modified_date'],
+                "summary": doc['summary'],
+                "file_size": doc['file_size']
+            })
 
     return jsonify(search_results)
 
