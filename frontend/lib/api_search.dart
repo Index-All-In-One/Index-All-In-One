@@ -103,12 +103,13 @@ Widget buildSearchResults(String query) {
                   case 'link':
                     final queryValue = singleQueryResult[key]!;
                     returnWidget = Expanded(
-                        child: Row(
-                      children: [
-                        LinkText(link: queryValue),
-                        CopyLinkIcon(link: queryValue),
-                      ],
-                    ));
+                      child: Wrap(
+                        children: [
+                          LinkIconWithHover(link: queryValue),
+                          CopyLinkIcon(link: queryValue),
+                        ],
+                      ),
+                    );
                     break;
                   default:
                     String queryValueString =

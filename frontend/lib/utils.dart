@@ -23,6 +23,24 @@ class CopyLinkIcon extends StatelessWidget {
   }
 }
 
+class LinkIconWithHover extends StatelessWidget {
+  final String link;
+
+  const LinkIconWithHover({super.key, required this.link});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: link,
+      child: IconButton(
+        icon: const Icon(Icons.link),
+        onPressed: () =>
+            launchUrl(Uri.parse(link), webOnlyWindowName: '_blank'),
+      ),
+    );
+  }
+}
+
 String formatTimeMinute(String timeString) {
   DateTime time = DateTime.parse(timeString);
   var formatter = DateFormat('yyyy/MM/dd HH:mm');
