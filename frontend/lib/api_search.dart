@@ -94,8 +94,19 @@ Widget buildSearchResults(String query) {
                     );
                     break;
                   default:
+                    final queryValue = singleQueryResult[key]!;
+                    final String queryValueString = (queryValue is int)
+                        ? queryValue.toString()
+                        : queryValue;
                     returnWidget = Expanded(
-                      child: Text(singleQueryResult[key]!),
+                      child: Tooltip(
+                        message: queryValueString,
+                        child: Text(
+                          queryValueString,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     );
                     break;
                 }
