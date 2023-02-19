@@ -49,29 +49,33 @@ def submit():
             }
         )
         return response
+
     keywords = request.form.get('keywords')
     foo = request.form.get('foo')
     print(keywords)
     print(foo)
 
-
     client = connect_OpenSearch()
+    print(client.info())
     response = search_OpenSearch(client)
+    print(response)
+    print()
+    print()
 
-    docs = response['hits']['hits']
+    # docs = response['hits']['hits']
     search_results = []
-    for doc in docs:
-        search_results.append(
-            {
-                "doc_name": doc['doc_name'],
-                "doc_type": doc['doc_type'],
-                "link": doc['link'],
-                "source": doc['source'],
-                "created_date": doc['created_date'],
-                "modified_date": doc['modified_date'],
-                "summary": doc['summary'],
-                "file_size": doc['file_size']
-            })
+    # for doc in docs:
+    #     search_results.append(
+    #         {
+    #             "doc_name": doc['doc_name'],
+    #             "doc_type": doc['doc_type'],
+    #             "link": doc['link'],
+    #             "source": doc['source'],
+    #             "created_date": doc['created_date'],
+    #             "modified_date": doc['modified_date'],
+    #             "summary": doc['summary'],
+    #             "file_size": doc['file_size']
+    #         })
 
     return jsonify(search_results)
 
