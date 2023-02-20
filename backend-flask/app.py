@@ -52,5 +52,18 @@ def submit():
 
     return jsonify(search_results)
 
+@app.route('/delete/source', methods=['POST'])
+def delete_by_source():
+
+    # keywords is a list of strings
+    keywords = request.form.get('keywords').split(' ')
+
+    # Connect with openSearch
+    client = connect_OpenSearch()
+    response = delete_source(client, keywords)
+    docs = response['hits']['hits']
+    return None
+
+
 if __name__ == '__main__':
     app.run()
