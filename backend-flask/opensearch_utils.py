@@ -49,7 +49,6 @@ def delete_OpenSearch(client, field_values: dict, index_name='search_index'):
     Output:
         the delete result
     '''
-
     body = {
         "query": {
             "match": field_values
