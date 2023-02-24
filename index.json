@@ -1,0 +1,58 @@
+{
+"mappings": {
+    "properties": {
+        "doc_id": {
+            "type": "integer"
+          },
+        "doc_name": {
+            "type": "text",
+            "analyzer": "edge_ngram_analyzer"
+        },
+        "doc_type": {
+            "type": "text",
+            "analyzer": "standard"
+        },
+        "link": {
+            "type": "text",
+            "analyzer": "standard"
+        },
+        "source": {
+            "type": "text",
+            "analyzer": "standard"
+        },
+        "created_date": {
+            "type" : "date",
+            "format" : "strict_date_time_no_millis"
+        },
+        "modified_date": {
+            "type" : "date",
+            "format" : "strict_date_time_no_millis"
+        },
+        "summary": {
+            "type" : "text",
+            "analyzer": "standard"
+        },
+        "file_size": {
+            "type" : "integer"
+        }
+    }
+},
+"settings": {
+    "analysis": {
+        "analyzer": {
+            "edge_ngram_analyzer": {
+            "type": "custom",
+            "tokenizer": "standard",
+            "filter": ["lowercase", "edge_ngram_filter"]
+            }
+        },
+        "filter": {
+            "edge_ngram_filter": {
+            "type": "edge_ngram",
+            "min_gram": 2,
+            "max_gram": 10
+            }
+        }
+    }
+}
+}
