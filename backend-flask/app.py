@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
-from search_funcs import *
-
+from opensearch_utils import *
+import json
 app = Flask(__name__)
 
 @app.route('/')
@@ -51,6 +51,27 @@ def submit():
             })
 
     return jsonify(search_results)
+
+@app.route('/delete', methods=['POST'])
+def delete_by_source():
+    '''
+        use case: curl -X POST -d 'keywords={"key1": "value1", "key2": "value2", ...}' http://127.0.0.1:5000/delete
+    '''
+
+    # keywords is a list of strings
+    keywords = json.loads(request.form.get('keywords'))
+    print(keywords)
+    print(type(keywords))
+    matches = []
+    for item in keywords.items():
+        matches.append({"match": {item[0]: item[1]}})
+
+    print(matches)
+    # Connect with openSearch
+    client = connect_OpenSearch()
+    response = delete_OpenSearch(client, matches)
+    return jsonify(response)
+
 
 if __name__ == '__main__':
     app.run()
