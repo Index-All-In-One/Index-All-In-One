@@ -37,21 +37,21 @@ def search_OpenSearch(client, keywords, index_name='search_index'):
     )
     return response
 
-def delete_OpenSearch(client, field_values: dict, index_name='search_index'):
+def delete_OpenSearch(client, fields: dict, index_name='search_index'):
     '''
     Delete OpenSource client documents
     Sample Usage: delete documents from source source1 with doc_id 1: delete_OpenSearch(client, {"source": source1, "doc_id": 1})
 
     Input: 
         client: a connectd OpenSearch client
-        field_values: the delete field: value pairs
+        fields: the delete field: value pairs
         index_name: the name of an OpenSearch index
     Output:
         the delete result
     '''
     body = {
         "query": {
-            "match": field_values
+            "match": fields
         }
     }
     response = client.delete_by_query(index=index_name, body=body)

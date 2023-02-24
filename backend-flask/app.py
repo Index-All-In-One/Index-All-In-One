@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from search_funcs import *
+from opensearch_utils import *
 
 app = Flask(__name__)
 
@@ -52,17 +52,16 @@ def submit():
 
     return jsonify(search_results)
 
-@app.route('/delete/source', methods=['POST'])
+@app.route('/delete', methods=['POST'])
 def delete_by_source():
 
     # keywords is a list of strings
-    keywords = request.form.get('keywords').split(' ')
+    keywords = dict(request.form.get('keywords'))
 
     # Connect with openSearch
     client = connect_OpenSearch()
-    response = delete_source(client, keywords)
-    docs = response['hits']['hits']
-    return None
+    response = delete_OpenSearch(client, keywords)
+    return jsonify(response)
 
 
 if __name__ == '__main__':
