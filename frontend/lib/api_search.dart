@@ -61,7 +61,9 @@ Widget buildSearchResults(String query) {
                   child: Row(
                       children: documentFieldKeys
                           .map((key) => Expanded(
-                                child: Text(documentFieldDisplayNames[key]!),
+                                child: Center(
+                                    child:
+                                        Text(documentFieldDisplayNames[key]!)),
                               ))
                           .toList()),
                 ),
@@ -81,19 +83,23 @@ Widget buildSearchResults(String query) {
                   switch (key) {
                     case 'doc_name':
                       returnWidget = Expanded(
-                        child: TextWithHover(
-                          text: singleQueryResult[key]!,
-                          maxLines: 2,
+                        child: Center(
+                          child: TextWithHover(
+                            text: singleQueryResult[key]!,
+                            maxLines: 2,
+                          ),
                         ),
                       );
                       break;
                     case 'summary':
                       returnWidget = Expanded(
-                        child: Text(
-                          singleQueryResult[key]!,
-                          softWrap: false,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
+                        child: Center(
+                          child: Text(
+                            singleQueryResult[key]!,
+                            softWrap: false,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       );
                       break;
@@ -102,19 +108,23 @@ Widget buildSearchResults(String query) {
                       final formattedTime =
                           formatTimeMinute(singleQueryResult[key]!);
                       returnWidget = Expanded(
-                          child: TextWithHover(
-                        text: formattedTime,
-                        maxLines: 2,
+                          child: Center(
+                        child: TextWithHover(
+                          text: formattedTime,
+                          maxLines: 2,
+                        ),
                       ));
                       break;
                     case 'link':
                       final queryValue = singleQueryResult[key]!;
                       returnWidget = Expanded(
-                        child: Wrap(
-                          children: [
-                            LinkIconWithHover(link: queryValue),
-                            CopyLinkIcon(link: queryValue),
-                          ],
+                        child: Center(
+                          child: Wrap(
+                            children: [
+                              LinkIconWithHover(link: queryValue),
+                              CopyLinkIcon(link: queryValue),
+                            ],
+                          ),
                         ),
                       );
                       break;
@@ -122,7 +132,8 @@ Widget buildSearchResults(String query) {
                       String queryValueString =
                           ifIntToString(singleQueryResult[key]!);
                       returnWidget = Expanded(
-                        child: TextWithHover(text: queryValueString),
+                        child: Center(
+                            child: TextWithHover(text: queryValueString)),
                       );
                       break;
                   }
