@@ -55,12 +55,16 @@ Widget buildSearchResults(String query) {
             if (index == 0) {
               // return the header
               return ListTile(
-                title: Row(
-                    children: documentFieldKeys
-                        .map((key) => Expanded(
-                              child: Text(documentFieldDisplayNames[key]!),
-                            ))
-                        .toList()),
+                title: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  color: Colors.grey[200],
+                  child: Row(
+                      children: documentFieldKeys
+                          .map((key) => Expanded(
+                                child: Text(documentFieldDisplayNames[key]!),
+                              ))
+                          .toList()),
+                ),
               );
             }
 
@@ -68,59 +72,63 @@ Widget buildSearchResults(String query) {
             Map<String, dynamic> singleQueryResult =
                 queryResults[index - 1] as Map<String, dynamic>;
             return ListTile(
-              title: Row(
-                  children: documentFieldKeys.map((key) {
-                Expanded returnWidget;
-                switch (key) {
-                  case 'doc_name':
-                    returnWidget = Expanded(
-                      child: TextWithHover(
-                        text: singleQueryResult[key]!,
-                        maxLines: 2,
-                      ),
-                    );
-                    break;
-                  case 'summary':
-                    returnWidget = Expanded(
-                      child: Text(
-                        singleQueryResult[key]!,
-                        softWrap: false,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                    break;
-                  case 'created_date':
-                  case 'modified_date':
-                    final formattedTime =
-                        formatTimeMinute(singleQueryResult[key]!);
-                    returnWidget = Expanded(
+              title: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                color: Colors.grey[100],
+                child: Row(
+                    children: documentFieldKeys.map((key) {
+                  Expanded returnWidget;
+                  switch (key) {
+                    case 'doc_name':
+                      returnWidget = Expanded(
                         child: TextWithHover(
-                      text: formattedTime,
-                      maxLines: 2,
-                    ));
-                    break;
-                  case 'link':
-                    final queryValue = singleQueryResult[key]!;
-                    returnWidget = Expanded(
-                      child: Wrap(
-                        children: [
-                          LinkIconWithHover(link: queryValue),
-                          CopyLinkIcon(link: queryValue),
-                        ],
-                      ),
-                    );
-                    break;
-                  default:
-                    String queryValueString =
-                        ifIntToString(singleQueryResult[key]!);
-                    returnWidget = Expanded(
-                      child: TextWithHover(text: queryValueString),
-                    );
-                    break;
-                }
-                return returnWidget;
-              }).toList()),
+                          text: singleQueryResult[key]!,
+                          maxLines: 2,
+                        ),
+                      );
+                      break;
+                    case 'summary':
+                      returnWidget = Expanded(
+                        child: Text(
+                          singleQueryResult[key]!,
+                          softWrap: false,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                      break;
+                    case 'created_date':
+                    case 'modified_date':
+                      final formattedTime =
+                          formatTimeMinute(singleQueryResult[key]!);
+                      returnWidget = Expanded(
+                          child: TextWithHover(
+                        text: formattedTime,
+                        maxLines: 2,
+                      ));
+                      break;
+                    case 'link':
+                      final queryValue = singleQueryResult[key]!;
+                      returnWidget = Expanded(
+                        child: Wrap(
+                          children: [
+                            LinkIconWithHover(link: queryValue),
+                            CopyLinkIcon(link: queryValue),
+                          ],
+                        ),
+                      );
+                      break;
+                    default:
+                      String queryValueString =
+                          ifIntToString(singleQueryResult[key]!);
+                      returnWidget = Expanded(
+                        child: TextWithHover(text: queryValueString),
+                      );
+                      break;
+                  }
+                  return returnWidget;
+                }).toList()),
+              ),
             );
           },
         );
