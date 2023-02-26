@@ -2,6 +2,13 @@ import time
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from plugin_instance_model_worker import *
+import threading
+import uuid
+
+def plugin_instance_routine(plugin_name, plugin_instance_id, run_id, update_interval):
+    while True:
+        print("Routine: ", plugin_name, plugin_instance_id, run_id, update_interval)
+        time.sleep(update_interval)
 
 
 def PI_db_test(session):
@@ -15,8 +22,8 @@ def PI_db_test(session):
     request=session.execute(query).fetchone()
     print(request)
 
-def init_db():
-    engine = create_engine('sqlite:///instance/PI.db')
+def init_db(db_name):
+    engine = create_engine(f'sqlite:///instance/{db_name}')
     model.metadata.bind = engine
     model.metadata.create_all(engine)
     DBSession = sessionmaker(bind=engine)
@@ -35,9 +42,12 @@ def handle_request(session, request):
     if request is None:
         return
     if request.request_op == 'add':
-        print('Add plugin instance: ', request.plugin_name, request.update_interval)
+        print('Manager: Add plugin instance Request: ', request.plugin_name, request.update_interval)
+        run_id=str(uuid.uuid4())
+        routiine_thread = threading.Thread(target=plugin_instance_routine, args=(request.plugin_name, request.plugin_instance_id, run_id, request.update_interval))
+        routiine_thread.start()
     elif request.request_op == 'del':
-        print('Delete plugin instance: ', request.plugin_instance_id)
+        print('Manager: Delete plugin instance Request: ', request.plugin_instance_id)
     else:
         print('Unknown request: ', request.request_op)
 
@@ -48,9 +58,9 @@ def loop_for_request(session):
     while True:
         request = get_request(session)
         handle_request(session, request)
-        time.sleep(0.5)
+        time.sleep(0.3)
 
 if __name__ == "__main__":
-    session = init_db()
+    session = init_db("PI.db")
     start_plugin_instances(session)
     loop_for_request(session)
