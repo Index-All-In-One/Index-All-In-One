@@ -1,7 +1,14 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 from search_funcs import *
+from plugin_instance_db import *
+from plugin_instance_model import db, Request
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///PI.db'
+db.init_app(app)
+with app.app_context():
+    db.create_all()
+
 
 @app.route('/')
 def hello():
@@ -52,5 +59,36 @@ def submit():
 
     return jsonify(search_results)
 
+@app.route('/add_PI', methods=['GET'])
+def add_plugin_instance():
+    name = request.args.get('name')
+    interval = request.args.get('interval')
+
+    if name is None:
+        abort(400, 'Missing required parameter: name')
+    if interval is None:
+        abort(400, 'Missing required parameter: interval')
+
+    new_request = Request(request_op="add", plugin_name=name, update_interval=interval)
+    db.session.add(new_request)
+    db.session.commit()
+
+
+    return 'Add plugin instance successfully!'
+
+@app.route('/del_PI', methods=['GET'])
+def delete_plugin_instance():
+    id = request.args.get('id')
+
+    if id is None :
+        abort(400, 'Missing required parameter: id')
+
+    new_request = Request(request_op="del", plugin_instance_id=id)
+    db.session.add(new_request)
+    db.session.commit()
+
+    return 'Delete plugin instance successfully!'
+
 if __name__ == '__main__':
+
     app.run()
