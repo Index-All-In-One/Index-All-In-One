@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from plugin_instance_model_worker import *
 import threading
 import uuid
+from plugins.plugin_entry import dispatch_plugin
 
 def plugin_instance_routine(plugin_name, plugin_instance_id, run_id, update_interval):
     while True:
@@ -12,6 +13,7 @@ def plugin_instance_routine(plugin_name, plugin_instance_id, run_id, update_inte
             print('Routine: ', plugin_name, plugin_instance_id, run_id, update_interval, ' is terminated')
             break
         print("Routine: ", plugin_name, plugin_instance_id, run_id, update_interval, ' is running')
+        dispatch_plugin(plugin_name, [plugin_instance_id])
         time.sleep(update_interval)
 
 
