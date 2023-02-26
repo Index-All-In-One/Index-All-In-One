@@ -24,7 +24,7 @@ List<String> documentFieldKeys = [
 ];
 
 Map<String, String> documentFieldDisplayNames = {
-  "doc_name": "Name/Title",
+  "doc_name": "Name/Subject",
   "doc_type": "Type",
   "link": "Link",
   "source": "Source",
