@@ -43,11 +43,18 @@ def handle_request(session, request):
         return
     if request.request_op == 'add':
         print('Manager: Add plugin instance Request: ', request.plugin_name, request.update_interval)
+        plugin_instance_id=str(uuid.uuid4())
         run_id=str(uuid.uuid4())
-        routiine_thread = threading.Thread(target=plugin_instance_routine, args=(request.plugin_name, request.plugin_instance_id, run_id, request.update_interval))
+        # TODO: check and mod "all" table
+        running_plugin_instance = RunningPluginInstance(plugin_instance_id=plugin_instance_id, run_id=run_id)
+        routiine_thread = threading.Thread(target=plugin_instance_routine, args=(request.plugin_name, plugin_instance_id, run_id, request.update_interval))
+        session.add(running_plugin_instance)
+        session.commit()
         routiine_thread.start()
     elif request.request_op == 'del':
         print('Manager: Delete plugin instance Request: ', request.plugin_instance_id)
+        #TODO: delete from "all" table
+        session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == request.plugin_instance_id).delete()
     else:
         print('Unknown request: ', request.request_op)
 
