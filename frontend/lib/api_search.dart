@@ -128,6 +128,18 @@ Widget buildSearchResults(String query) {
                         ),
                       );
                       break;
+                    case 'file_size':
+                      final fileSizeInt = singleQueryResult[key]!;
+                      returnWidget = Expanded(
+                        child: Center(
+                          child: TextWithDifferentHover(
+                            hoverText: fileSizeInt.toString(),
+                            text: formatFileSize(fileSizeInt),
+                            maxLines: 2,
+                          ),
+                        ),
+                      );
+                      break;
                     default:
                       String queryValueString =
                           ifIntToString(singleQueryResult[key]!);

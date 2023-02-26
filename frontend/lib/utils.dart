@@ -54,6 +54,22 @@ String ifIntToString(queryValue) {
   return queryValueString;
 }
 
+String formatFileSize(int fileSizeInt) {
+  String fileSizeString;
+  final double fileSizeDouble = fileSizeInt.toDouble();
+  if (fileSizeInt < 1024) {
+    fileSizeString = '${fileSizeInt}B';
+  } else if (fileSizeInt < 1024 * 1024) {
+    fileSizeString = '${(fileSizeDouble / 1024).toStringAsFixed(1)}K';
+  } else if (fileSizeInt < 1024 * 1024 * 1024) {
+    fileSizeString = '${(fileSizeDouble / 1024 / 1024).toStringAsFixed(1)}M';
+  } else {
+    fileSizeString =
+        '${(fileSizeDouble / 1024 / 1024 / 1024).toStringAsFixed(1)}G';
+  }
+  return fileSizeString;
+}
+
 class LinkText extends StatelessWidget {
   final String link;
 
@@ -95,6 +111,35 @@ class TextWithHover extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: text,
+      child: Text(
+        text,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+class TextWithDifferentHover extends StatelessWidget {
+  final String hoverText;
+  final String text;
+  final int maxLines;
+  final TextStyle? style;
+  final TextStyle? hoverStyle;
+
+  const TextWithDifferentHover({
+    super.key,
+    required this.hoverText,
+    required this.text,
+    this.maxLines = 1,
+    this.style,
+    this.hoverStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: hoverText,
       child: Text(
         text,
         maxLines: maxLines,
