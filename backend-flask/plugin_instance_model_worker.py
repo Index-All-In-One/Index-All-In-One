@@ -1,7 +1,7 @@
 import sqlalchemy as sqlalchemy_db
 from sqlalchemy.ext.declarative import declarative_base
 
-model = declarative_base()
+model = sqlalchemy_db.orm.declarative_base()
 
 class Request(model):
     __tablename__ = 'request'
