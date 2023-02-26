@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request, abort
 from search_funcs import *
-from plugin_instance_db import *
-from plugin_instance_model_flask import *
+from plugin_management.model_flask import *
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///PI.db'

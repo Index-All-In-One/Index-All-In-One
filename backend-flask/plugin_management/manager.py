@@ -1,7 +1,7 @@
 import time
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
-from plugin_instance_model_worker import *
+from model_standalone import *
 import threading
 import uuid
 from plugins.plugin_entry import dispatch_plugin
@@ -34,6 +34,8 @@ def init_db(db_name):
     model.metadata.create_all(engine)
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
+    session.query(RunningPluginInstance).delete()
+    session.commit()
     return session
 
 def start_plugin_instances(session):

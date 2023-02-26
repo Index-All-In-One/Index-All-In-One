@@ -2,4 +2,5 @@
 !.gitignore
 !*.py
 !requirements.txt
-!plugins/
+!plugin_management/
+!plugin_management/*/
