@@ -28,8 +28,8 @@ Map<String, String> documentFieldDisplayNames = {
   "doc_type": "Type",
   "link": "Link",
   "source": "Source",
-  "created_date": "Created Date",
-  "modified_date": "Modified Date",
+  "created_date": "Creation Date",
+  "modified_date": "Modification Date",
   "summary": "Summary",
   "file_size": "Size",
 };
