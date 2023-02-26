@@ -7,7 +7,11 @@ import uuid
 
 def plugin_instance_routine(plugin_name, plugin_instance_id, run_id, update_interval):
     while True:
-        print("Routine: ", plugin_name, plugin_instance_id, run_id, update_interval)
+        running_instance = session.query(RunningPluginInstance).filter(RunningPluginInstance.run_id == run_id).first()
+        if running_instance is None:
+            print('Routine: ', plugin_name, plugin_instance_id, run_id, update_interval, ' is terminated')
+            break
+        print("Routine: ", plugin_name, plugin_instance_id, run_id, update_interval, ' is running')
         time.sleep(update_interval)
 
 
