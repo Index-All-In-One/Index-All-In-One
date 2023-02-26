@@ -50,9 +50,15 @@ Widget buildSearchResults(String query) {
           print("Search API return unsuccessful response");
         }
         return ListView.builder(
-          itemCount: queryResults.length + 1,
+          itemCount: queryResults.length + 2,
           itemBuilder: (BuildContext context, int index) {
             if (index == 0) {
+              // return the header
+              return ListTile(
+                title: Text("Find ${queryResults.length} result(s)"),
+              );
+            }
+            if (index == 1) {
               // return the header
               return ListTile(
                 title: Container(
@@ -72,7 +78,7 @@ Widget buildSearchResults(String query) {
 
             //TODO type conversion error handling
             Map<String, dynamic> singleQueryResult =
-                queryResults[index - 1] as Map<String, dynamic>;
+                queryResults[index - 2] as Map<String, dynamic>;
             return ListTile(
               title: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
