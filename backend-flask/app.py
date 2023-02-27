@@ -116,11 +116,11 @@ def list_account():
     for plugin_instance in all_PIs:
         all_accounts.append(
             {
-                "plugin_name": plugin_instance['plugin_name'],
-                "source_name": plugin_instance['source_name'],
-                "update_interval": plugin_instance['update_interval'],
-                "enabled": plugin_instance['enabled'],
-                "active": plugin_instance['active'],
+                "plugin_name": plugin_instance.plugin_name,
+                "source_name": plugin_instance.source_name,
+                "update_interval": plugin_instance.update_interval,
+                "enabled": plugin_instance.enabled,
+                "active": plugin_instance.active,
             })
     return jsonify(all_accounts)
 
