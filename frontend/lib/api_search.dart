@@ -68,8 +68,10 @@ Widget buildSearchResults(String query) {
                       children: documentFieldKeys
                           .map((key) => Expanded(
                                 child: Center(
-                                    child:
-                                        Text(documentFieldDisplayNames[key]!)),
+                                    child: TextWithHover(
+                                  text: documentFieldDisplayNames[key]!,
+                                  maxLines: 1,
+                                )),
                               ))
                           .toList()),
                 ),
