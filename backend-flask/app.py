@@ -65,6 +65,7 @@ def add_plugin_instance():
     plugin_name = request.args.get('plugin_name')
     source_name = request.args.get('source_name')
     interval = request.args.get('interval')
+    plugin_init_info = request.args.get('plugin_init_info')
 
     if plugin_name is None:
         abort(400, 'Missing required parameter: plugin_name')
@@ -72,13 +73,16 @@ def add_plugin_instance():
         abort(400, 'Missing required parameter: source_name')
     if interval is None:
         abort(400, 'Missing required parameter: interval')
+    if plugin_init_info is None:
+        abort(400, 'Missing required parameter: plugin_init_info')
 
     plugin_instance_id=str(uuid.uuid4())
     new_plugin_instance = PluginInstance(plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, source_name=source_name, update_interval=interval, enabled=True, active=False)
     sqlalchemy_db.session.add(new_plugin_instance)
     sqlalchemy_db.session.commit()
 
-    dispatch_plugin("plugin_management.", "init", plugin_name, [plugin_instance_id])
+    # TODO: handle plugin init failure
+    status = dispatch_plugin("plugin_management.", "init", plugin_name, [plugin_instance_id, plugin_init_info])
 
     new_request = Request(request_op="activate", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
     sqlalchemy_db.session.add(new_request)
