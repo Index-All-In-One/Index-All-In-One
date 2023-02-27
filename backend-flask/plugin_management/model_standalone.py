@@ -17,4 +17,14 @@ class RunningPluginInstance(model):
     plugin_instance_id = sqlalchemy_db.Column(sqlalchemy_db.String(50), nullable=True)
     run_id = sqlalchemy_db.Column(sqlalchemy_db.String(50), unique=True, nullable=True)
 
-__all__ = ['model', 'Request', 'RunningPluginInstance']
+class PluginInstance(model):
+    __tablename__ = 'plugin_instance'
+    id = sqlalchemy_db.Column(sqlalchemy_db.Integer, primary_key=True)
+    plugin_name = sqlalchemy_db.Column(sqlalchemy_db.String(120), nullable=False)
+    plugin_instance_id = sqlalchemy_db.Column(sqlalchemy_db.String(50), unique=True, nullable=False)
+    source_name = sqlalchemy_db.Column(sqlalchemy_db.String(120), nullable=False)
+    update_interval = sqlalchemy_db.Column(sqlalchemy_db.Integer, nullable=False)
+    enabled = sqlalchemy_db.Column(sqlalchemy_db.Boolean, nullable=False)
+    active = sqlalchemy_db.Column(sqlalchemy_db.Boolean, nullable=False)
+
+__all__ = ['model', 'Request', 'RunningPluginInstance', 'PluginInstance']
