@@ -46,8 +46,7 @@ Widget buildSearchResults(String query) {
           //TODO error handling for type conversion
           queryResults = jsonDecode(response.body);
         } else {
-          //TODO alert user
-          print("Search API return unsuccessful response");
+          showErrorAlert("Unable to search. Please try again later.", context);
         }
         return ListView.builder(
           itemCount: queryResults.length + 2,

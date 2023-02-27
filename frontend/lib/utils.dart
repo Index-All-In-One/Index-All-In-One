@@ -199,3 +199,12 @@ class PopUpIconButton extends StatelessWidget {
     );
   }
 }
+
+void showErrorAlert(String errorMesssage, BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return PopUpDialog(title: "Error", content: Text(errorMesssage));
+    },
+  );
+}
