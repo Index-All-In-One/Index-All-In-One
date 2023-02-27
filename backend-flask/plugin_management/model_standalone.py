@@ -24,7 +24,7 @@ class PluginInstance(model):
     plugin_instance_id = sqlalchemy_db.Column(sqlalchemy_db.String(50), unique=True, nullable=False)
     source_name = sqlalchemy_db.Column(sqlalchemy_db.String(120), nullable=False)
     update_interval = sqlalchemy_db.Column(sqlalchemy_db.Integer, nullable=False)
-    enabled = sqlalchemy_db.Column(sqlalchemy_db.Boolean, nullable=False)
-    active = sqlalchemy_db.Column(sqlalchemy_db.Boolean, nullable=False)
+    enabled = sqlalchemy_db.Column(sqlalchemy_db.Boolean, nullable=False, default=True)
+    active = sqlalchemy_db.Column(sqlalchemy_db.Boolean, nullable=False, default=False)
 
 __all__ = ['model', 'Request', 'RunningPluginInstance', 'PluginInstance']

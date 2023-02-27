@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, request, abort
+import uuid
 from search_funcs import *
 from plugin_management.model_flask import *
-from plugin_management.plugins.plugin_entry import dispatch_plugin_init, dispatch_plugin_del
+from plugin_management.plugins.plugin_entry import dispatch_plugin
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///PI.db'
@@ -61,15 +62,25 @@ def search():
 
 @app.route('/add_PI', methods=['GET'])
 def add_plugin_instance():
-    name = request.args.get('name')
+    plugin_name = request.args.get('plugin_name')
+    source_name = request.args.get('source_name')
     interval = request.args.get('interval')
 
-    if name is None:
-        abort(400, 'Missing required parameter: name')
+    if plugin_name is None:
+        abort(400, 'Missing required parameter: plugin_name')
+    if source_name is None:
+        abort(400, 'Missing required parameter: source_name')
     if interval is None:
         abort(400, 'Missing required parameter: interval')
 
-    new_request = Request(request_op="activate", plugin_name=name, update_interval=interval)
+    plugin_instance_id=str(uuid.uuid4())
+    new_plugin_instance = PluginInstance(plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, source_name=source_name, update_interval=interval, enabled=True, active=False)
+    sqlalchemy_db.session.add(new_plugin_instance)
+    sqlalchemy_db.session.commit()
+
+    dispatch_plugin("plugin_management.", "init", plugin_name, [plugin_instance_id])
+
+    new_request = Request(request_op="activate", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
     sqlalchemy_db.session.add(new_request)
     sqlalchemy_db.session.commit()
 
