@@ -15,7 +15,7 @@ List<String> accountsFieldKeys = [
   "plugin_name",
   "source_name",
   "update_interval",
-  "enable",
+  "enabled",
   "active",
 ];
 
@@ -23,7 +23,7 @@ Map<String, String> accountsFieldDisplayNames = {
   "plugin_name": "Application Name",
   "source_name": "Source Title",
   "update_interval": "Update Interval",
-  "enable": "Enable",
+  "enabled": "Enable",
   "active": "Active",
 };
 
