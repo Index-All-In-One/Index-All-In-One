@@ -88,14 +88,24 @@ def add_plugin_instance():
 
 @app.route('/del_PI', methods=['GET'])
 def delete_plugin_instance():
-    id = request.args.get('id')
+    plugin_instance_id = request.args.get('id')
 
-    if id is None :
+    if plugin_instance_id is None :
         abort(400, 'Missing required parameter: id')
 
-    new_request = Request(request_op="deactivate", plugin_instance_id=id)
-    sqlalchemy_db.session.add(new_request)
-    sqlalchemy_db.session.commit()
+    plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+    if plugin_instance is not None:
+        plugin_name = plugin_instance.plugin_name
+        sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).delete()
+        sqlalchemy_db.session.commit()
+
+        dispatch_plugin("plugin_management.", "del", plugin_name, [plugin_instance_id])
+
+        new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
+        sqlalchemy_db.session.add(new_request)
+        sqlalchemy_db.session.commit()
+    else:
+        return 'No such plugin instance!'
 
     return 'Delete plugin instance successfully!'
 

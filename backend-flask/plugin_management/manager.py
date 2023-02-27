@@ -52,22 +52,29 @@ def handle_request(DBSession, man_session, request):
         return
     if request.request_op == 'activate':
         print('Manager: Activate plugin instance Request: ', request.plugin_name, request.plugin_instance_id, request.update_interval)
+
         run_id=str(uuid.uuid4())
-        # TODO: check and mod "all" table
         plugin_instance = man_session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == request.plugin_instance_id).first()
-        print(plugin_instance.plugin_name, plugin_instance.plugin_instance_id, plugin_instance.source_name, plugin_instance.update_interval, plugin_instance.enabled, plugin_instance.active)
+
         if plugin_instance is not None:
             running_plugin_instance = RunningPluginInstance(plugin_instance_id=request.plugin_instance_id, run_id=run_id)
-            routine_thread = threading.Thread(target=plugin_instance_routine, args=(DBSession() ,request.plugin_name, request.plugin_instance_id, run_id, request.update_interval))
             man_session.add(running_plugin_instance)
             man_session.commit()
+
+            routine_thread = threading.Thread(target=plugin_instance_routine, args=(DBSession() ,request.plugin_name, request.plugin_instance_id, run_id, request.update_interval))
             routine_thread.start()
             plugin_instance.active = True
 
     elif request.request_op == 'deactivate':
         print('Manager: Delete plugin instance Request: ', request.plugin_instance_id)
-        #TODO: delete from "all" table
+
         man_session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == request.plugin_instance_id).delete()
+
+        plugin_instance = man_session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == request.plugin_instance_id).first()
+        if plugin_instance is not None:
+            plugin_instance.active = False
+            man_session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == request.plugin_instance_id).delete()
+
     elif request.request_op == 'change_interval':
         pass
     else:
