@@ -60,12 +60,12 @@ def search():
 
     return jsonify(search_results)
 
-@app.route('/add_PI', methods=['GET'])
+@app.route('/add_PI', methods=['POST'])
 def add_plugin_instance():
-    plugin_name = request.args.get('plugin_name')
-    source_name = request.args.get('source_name')
-    interval = request.args.get('interval')
-    plugin_init_info = request.args.get('plugin_init_info')
+    plugin_name = request.form.get('plugin_name')
+    source_name = request.form.get('source_name')
+    interval = request.form.get('interval')
+    plugin_init_info = request.form.get('plugin_init_info')
 
     if plugin_name is None:
         abort(400, 'Missing required parameter: plugin_name')
