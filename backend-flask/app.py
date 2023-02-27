@@ -14,7 +14,7 @@ def hello():
     return 'Welcome!'
 
 @app.route('/test')
-def api():
+def test():
     data = {
         'name': 'John Doe',
         'email': 'johndoe@example.com',
@@ -31,7 +31,7 @@ def add_cors_headers(response):
     return response
 
 @app.route('/search', methods=['POST'])
-def submit():
+def search():
 
     # keywords is a list of strings
     keywords = request.form.get('keywords').split(' ')
@@ -72,7 +72,6 @@ def add_plugin_instance():
     sqlalchemy_db.session.add(new_request)
     sqlalchemy_db.session.commit()
 
-
     return 'Add plugin instance successfully!'
 
 @app.route('/del_PI', methods=['GET'])
@@ -89,5 +88,4 @@ def delete_plugin_instance():
     return 'Delete plugin instance successfully!'
 
 if __name__ == '__main__':
-
     app.run()
