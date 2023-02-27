@@ -158,7 +158,7 @@ Widget buildSearchResults(String query) {
                       break;
                     default:
                       String queryValueString =
-                          ifIntToString(singleQueryResult[key]!);
+                          ifIntOrBoolToString(singleQueryResult[key]!);
                       returnWidget = Expanded(
                         child: Center(
                             child: TextWithHover(text: queryValueString)),

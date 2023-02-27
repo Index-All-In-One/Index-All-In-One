@@ -48,9 +48,10 @@ String formatTimeMinute(String timeString) {
   return formattedTime;
 }
 
-String ifIntToString(queryValue) {
-  final String queryValueString =
-      (queryValue is int) ? queryValue.toString() : queryValue;
+String ifIntOrBoolToString(queryValue) {
+  final String queryValueString = (queryValue is int)
+      ? queryValue.toString()
+      : ((queryValue is bool) ? queryValue.toString() : queryValue);
   return queryValueString;
 }
 

@@ -33,7 +33,6 @@ Widget buildAccountList() {
     builder: (BuildContext context, AsyncSnapshot snapshot) {
       if (snapshot.hasData) {
         var response = snapshot.data;
-
         List<dynamic> queryResults = [];
         if (response.statusCode == 200) {
           //TODO error handling for type conversion
@@ -48,7 +47,8 @@ Widget buildAccountList() {
             if (index == 0) {
               // return the header
               return ListTile(
-                title: Text("${queryResults.length} Account/Applications(s)"),
+                title: Text(
+                    "You have ${queryResults.length} Account/Application(s)"),
               );
             }
             if (index == 1) {
@@ -82,7 +82,7 @@ Widget buildAccountList() {
                   switch (key) {
                     default:
                       String queryValueString =
-                          ifIntToString(singleQueryResult[key]!);
+                          ifIntOrBoolToString(singleQueryResult[key]!);
                       returnWidget = Expanded(
                         child: Center(
                             child: TextWithHover(text: queryValueString)),
@@ -99,6 +99,7 @@ Widget buildAccountList() {
         // Data hasn't been received yet, show a progress indicator
         return const Center(
           child: CircularProgressIndicator(),
+          // child: Text("Loading..."),
         );
       }
     },

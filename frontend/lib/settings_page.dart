@@ -35,7 +35,7 @@ class _SettingsPageState extends State<SettingsPage> {
               onPressed: () {},
             ),
           ),
-          buildAccountList(),
+          Expanded(child: buildAccountList()),
         ],
       ),
     );
