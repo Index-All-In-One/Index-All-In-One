@@ -148,3 +148,42 @@ class TextWithDifferentHover extends StatelessWidget {
     );
   }
 }
+
+class PopUpIconButton extends StatelessWidget {
+  final String title;
+  final Widget content;
+
+  const PopUpIconButton(
+      {super.key, required this.title, required this.content});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.info),
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              content: content,
+              title: Row(
+                children: [
+                  Expanded(child: Text(title)),
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}

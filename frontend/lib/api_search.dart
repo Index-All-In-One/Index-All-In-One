@@ -110,13 +110,12 @@ Widget buildSearchResults(String query) {
                       );
                       break;
                     case 'summary':
+                      final summaryText = singleQueryResult[key]!;
                       returnWidget = Expanded(
                         child: Center(
-                          child: Text(
-                            singleQueryResult[key]!,
-                            softWrap: false,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
+                          child: PopUpIconButton(
+                            title: "Summary",
+                            content: Text(summaryText),
                           ),
                         ),
                       );
