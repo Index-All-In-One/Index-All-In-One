@@ -90,9 +90,9 @@ def add_plugin_instance():
 
     return 'Add plugin instance successfully!'
 
-@app.route('/del_PI', methods=['GET'])
+@app.route('/del_PI', methods=['POST'])
 def delete_plugin_instance():
-    plugin_instance_id = request.args.get('id')
+    plugin_instance_id = request.form.get('id')
 
     if plugin_instance_id is None :
         abort(400, 'Missing required parameter: id')
