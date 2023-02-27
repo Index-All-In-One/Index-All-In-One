@@ -69,7 +69,7 @@ def add_plugin_instance():
     if interval is None:
         abort(400, 'Missing required parameter: interval')
 
-    new_request = Request(request_op="add", plugin_name=name, update_interval=interval)
+    new_request = Request(request_op="activate", plugin_name=name, update_interval=interval)
     sqlalchemy_db.session.add(new_request)
     sqlalchemy_db.session.commit()
 
@@ -82,7 +82,7 @@ def delete_plugin_instance():
     if id is None :
         abort(400, 'Missing required parameter: id')
 
-    new_request = Request(request_op="del", plugin_instance_id=id)
+    new_request = Request(request_op="deactivate", plugin_instance_id=id)
     sqlalchemy_db.session.add(new_request)
     sqlalchemy_db.session.commit()
 
