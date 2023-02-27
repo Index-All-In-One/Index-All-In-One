@@ -2,7 +2,8 @@
 "mappings": {
     "properties": {
         "doc_id": {
-            "type": "integer"
+            "type": "text",
+            "analyzer": "standard"
           },
         "doc_name": {
             "type": "text",
