@@ -149,6 +149,34 @@ class TextWithDifferentHover extends StatelessWidget {
   }
 }
 
+class PopUpDialog extends StatelessWidget {
+  final String title;
+  final Widget content;
+
+  const PopUpDialog({super.key, required this.title, required this.content});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      content: content,
+      title: Row(
+        children: [
+          Expanded(child: Text(title)),
+          Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class PopUpIconButton extends StatelessWidget {
   final String title;
   final Widget content;
@@ -164,23 +192,7 @@ class PopUpIconButton extends StatelessWidget {
         showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              content: content,
-              title: Row(
-                children: [
-                  Expanded(child: Text(title)),
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
+            return PopUpDialog(title: title, content: content);
           },
         );
       },
