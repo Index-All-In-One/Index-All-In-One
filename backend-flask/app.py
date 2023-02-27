@@ -109,8 +109,8 @@ def delete_plugin_instance():
 
     return 'Delete plugin instance successfully!'
 
-@app.route('/list_account', methods=['GET'])
-def list_account():
+@app.route('/list_accounts', methods=['GET'])
+def list_accounts():
     all_PIs=sqlalchemy_db.session.query(PluginInstance).all()
     all_accounts = []
     for plugin_instance in all_PIs:
