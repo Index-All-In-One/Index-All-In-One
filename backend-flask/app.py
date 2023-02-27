@@ -1,8 +1,11 @@
 from flask import Flask, jsonify, request
-from opensearch_utils import *
+from opensearch_conn import *
 import json
-app = Flask(__name__)
 
+opensearch_conn = OpenSearch_Conn()
+opensearch_conn.connect()
+
+app = Flask(__name__)
 @app.route('/')
 def hello():
     return 'Welcome!'
@@ -34,8 +37,7 @@ def submit():
     keywords = request.form.get('keywords').split(' ')
 
     # Connect with openSearch
-    client = connect_OpenSearch()
-    response = search_doc_OpenSearch(client, keywords)
+    response = opensearch_conn.search_doc(keywords)
     docs = response['hits']['hits']
 
     search_results = []
@@ -69,9 +71,7 @@ def delete_by_source():
     for item in keywords.items():
         matches.append({"match": {item[0]: item[1]}})
 
-    # Connect with openSearch
-    client = connect_OpenSearch()
-    response = delete_doc_OpenSearch(client, matches)
+    response = opensearch_conn.delete_doc(matches)
     return jsonify(response)
 
 @app.route('/delete/index', methods=['POST'])
@@ -80,9 +80,9 @@ def delete_index():
     use case:
     curl -X POST -d "index_name=search_index" http://127.0.0.1:5000/delete/index
     '''
-    client = connect_OpenSearch()
+
     index_name = request.form.get('index_name')
-    response = delete_index_OpenSearch(client, index_name)
+    response = opensearch_conn.delete_index(index_name)
     return jsonify(response)
 
 @app.route('/insert/index', methods=['POST'])
@@ -91,10 +91,10 @@ def build_index():
     use case:
     curl -X POST -d "index_name=search_index" http://127.0.0.1:5000/insert/index
     '''
-    client = connect_OpenSearch()
+
     index_name = request.form.get('index_name')
     data = json.load(open("index.json", 'r'))
-    response = insert_index_OpenSearch(client, data, index_name)
+    response = opensearch_conn.insert_index(data, index_name)
     return jsonify(response)
 
 @app.route('/insert/doc', methods=['POST'])
@@ -104,9 +104,9 @@ def insert_doc():
     curl -X POST http://127.0.0.1:5000/insert/doc
     '''
     # insert a dummy data
-    client = connect_OpenSearch()
+
     keywords = dummy_data()
-    response = insert_data_OpenSearch(client, keywords)
+    response = opensearch_conn.insert_doc(keywords)
     return jsonify(response)
 
 @app.route('/count', methods=['POST'])
@@ -115,11 +115,10 @@ def get_doc_count():
     use case:
     curl -X POST -d "index_name=search_index" http://127.0.0.1:5000/count
     '''
-    client = connect_OpenSearch()
-    index_name = request.form.get('index_name')
-    response = get_doc_count_OpenSearch(client, index_name)
-    return jsonify(response)
 
+    index_name = request.form.get('index_name')
+    response = opensearch_conn.get_doc_count(index_name)
+    return jsonify(response)
 
 if __name__ == '__main__':
     app.run()
