@@ -87,6 +87,16 @@ Widget buildSearchResults(String query) {
                     children: documentFieldKeys.map((key) {
                   Expanded returnWidget;
                   switch (key) {
+                    case 'source':
+                      returnWidget = Expanded(
+                        child: Center(
+                          child: TextWithHover(
+                            text: singleQueryResult[key]!,
+                            maxLines: 2,
+                          ),
+                        ),
+                      );
+                      break;
                     case 'doc_name':
                       returnWidget = Expanded(
                         child: Center(
