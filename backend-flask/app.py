@@ -87,5 +87,20 @@ def delete_plugin_instance():
 
     return 'Delete plugin instance successfully!'
 
+@app.route('/list_account', methods=['GET'])
+def list_account():
+    all_PIs=sqlalchemy_db.session.query(PluginInstance).all()
+    all_accounts = []
+    for plugin_instance in all_PIs:
+        all_accounts.append(
+            {
+                "plugin_name": plugin_instance['plugin_name'],
+                "source_name": plugin_instance['source_name'],
+                "update_interval": plugin_instance['update_interval'],
+                "enabled": plugin_instance['enabled'],
+                "active": plugin_instance['active'],
+            })
+    return jsonify(all_accounts)
+
 if __name__ == '__main__':
     app.run()
