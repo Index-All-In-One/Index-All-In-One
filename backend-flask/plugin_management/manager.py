@@ -49,7 +49,7 @@ def get_request(session):
 def handle_request(session, request):
     if request is None:
         return
-    if request.request_op == 'add':
+    if request.request_op == 'activate':
         print('Manager: Add plugin instance Request: ', request.plugin_name, request.update_interval)
         plugin_instance_id=str(uuid.uuid4())
         run_id=str(uuid.uuid4())
@@ -59,10 +59,12 @@ def handle_request(session, request):
         session.add(running_plugin_instance)
         session.commit()
         routiine_thread.start()
-    elif request.request_op == 'del':
+    elif request.request_op == 'deactivate':
         print('Manager: Delete plugin instance Request: ', request.plugin_instance_id)
         #TODO: delete from "all" table
         session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == request.plugin_instance_id).delete()
+    elif request.request_op == 'change_interval':
+        pass
     else:
         print('Unknown request: ', request.request_op)
 
