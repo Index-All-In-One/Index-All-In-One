@@ -1,9 +1,9 @@
 from flask import Flask, jsonify, request, abort
-from plugin_management.model_flask import *
-from plugin_management.plugins.plugin_entry import dispatch_plugin
-from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
 import uuid
 import json
+from flask_utils.model_flask import *
+from plugin_management.plugins.plugin_entry import dispatch_plugin
+from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
 
 opensearch_conn = OpenSearch_Conn()
 opensearch_conn.connect()
@@ -13,6 +13,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///PI.db'
 sqlalchemy_db.init_app(app)
 with app.app_context():
     sqlalchemy_db.create_all()
+
 
 @app.route('/')
 def hello():
@@ -107,11 +108,7 @@ def delete_plugin_instance():
         sqlalchemy_db.session.commit()
 
         dispatch_plugin("plugin_management.", "del", plugin_name, [plugin_instance_id])
-        '''
-            Example:
-                dispatch_plugin("plugin_management.", "del", "gmail", [1])
-                this will run the plugin_gmail_del function in plugin_gmail.py
-        '''
+
         new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
         sqlalchemy_db.session.add(new_request)
         sqlalchemy_db.session.commit()
