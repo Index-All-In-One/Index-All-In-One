@@ -2,10 +2,12 @@
 !.gitignore
 !*.py
 !*.sh
-!Dockerfile
+!Dockerfile*
+!*.yml
 !requirements.txt
 !plugin_management/
 !plugin_management/*/
 !flask_utils/
+!opensearch/
 !docker-*/
 !scripts/
