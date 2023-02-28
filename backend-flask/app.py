@@ -1,11 +1,16 @@
-from flask import Flask, jsonify, request
-from opensearch_conn import *
-import json
+from flask import Flask, jsonify, request, abort
+from plugin_management.model_flask import *
+from plugin_management.plugins.opensearch_conn import *
 
 opensearch_conn = OpenSearch_Conn()
 opensearch_conn.connect()
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///PI.db'
+sqlalchemy_db.init_app(app)
+with app.app_context():
+    sqlalchemy_db.create_all()
+
 @app.route('/')
 def hello():
     return 'Welcome!'
@@ -57,68 +62,35 @@ def submit():
 
     return jsonify(search_results)
 
-@app.route('/delete', methods=['POST'])
-def delete_by_source():
-    '''
-    use case:
-    curl -X POST -d 'keywords={"key1": "value1", "key2": "value2", ...}' http://127.0.0.1:5000/delete
-    curl -X POST -d 'keywords={"doc_id": 1, "source": "Gmail"}' http://127.0.0.1:5000/delete
-    '''
+@app.route('/add_PI', methods=['GET'])
+def add_plugin_instance():
+    name = request.args.get('name')
+    interval = request.args.get('interval')
 
-    # keywords is a list of strings
-    keywords = json.loads(request.form.get('keywords'))
-    matches = []
-    for item in keywords.items():
-        matches.append({"match": {item[0]: item[1]}})
+    if name is None:
+        abort(400, 'Missing required parameter: name')
+    if interval is None:
+        abort(400, 'Missing required parameter: interval')
 
-    response = opensearch_conn.delete_doc(matches)
-    return jsonify(response)
+    new_request = Request(request_op="add", plugin_name=name, update_interval=interval)
+    sqlalchemy_db.session.add(new_request)
+    sqlalchemy_db.session.commit()
 
-@app.route('/delete/index', methods=['POST'])
-def delete_index():
-    '''
-    use case:
-    curl -X POST -d "index_name=search_index" http://127.0.0.1:5000/delete/index
-    '''
 
-    index_name = request.form.get('index_name')
-    response = opensearch_conn.delete_index(index_name)
-    return jsonify(response)
+    return 'Add plugin instance successfully!'
 
-@app.route('/insert/index', methods=['POST'])
-def build_index():
-    '''
-    use case:
-    curl -X POST -d "index_name=search_index" http://127.0.0.1:5000/insert/index
-    '''
+@app.route('/del_PI', methods=['GET'])
+def delete_plugin_instance():
+    id = request.args.get('id')
 
-    index_name = request.form.get('index_name')
-    data = json.load(open("index.json", 'r'))
-    response = opensearch_conn.insert_index(data, index_name)
-    return jsonify(response)
+    if id is None :
+        abort(400, 'Missing required parameter: id')
 
-@app.route('/insert/doc', methods=['POST'])
-def insert_doc():
-    '''
-    use case:
-    curl -X POST http://127.0.0.1:5000/insert/doc
-    '''
-    # insert a dummy data
+    new_request = Request(request_op="del", plugin_instance_id=id)
+    sqlalchemy_db.session.add(new_request)
+    sqlalchemy_db.session.commit()
 
-    keywords = dummy_data()
-    response = opensearch_conn.insert_doc(keywords)
-    return jsonify(response)
-
-@app.route('/count', methods=['POST'])
-def get_doc_count():
-    '''
-    use case:
-    curl -X POST -d "index_name=search_index" http://127.0.0.1:5000/count
-    '''
-
-    index_name = request.form.get('index_name')
-    response = opensearch_conn.get_doc_count(index_name)
-    return jsonify(response)
+    return 'Delete plugin instance successfully!'
 
 if __name__ == '__main__':
     app.run()
