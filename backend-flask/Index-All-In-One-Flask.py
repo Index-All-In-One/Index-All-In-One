@@ -67,19 +67,23 @@ def search():
 
 @app.route('/add_PI', methods=['POST'])
 def add_plugin_instance():
-    plugin_name = request.form.get('plugin_name')
-    source_name = request.form.get('source_name')
-    interval = request.form.get('interval')
-    plugin_init_info = request.form.get('plugin_init_info')
+    json_data = request.get_json()
 
-    if plugin_name is None:
-        abort(400, 'Missing required parameter: plugin_name')
-    if source_name is None:
-        abort(400, 'Missing required parameter: source_name')
-    if interval is None:
-        abort(400, 'Missing required parameter: interval')
-    if plugin_init_info is None:
-        abort(400, 'Missing required parameter: plugin_init_info')
+    try:
+        plugin_name = json_data['plugin_name']
+        source_name = json_data['source_name']
+        interval = json_data['interval']
+        plugin_init_info = json_data['plugin_init_info']
+
+    except KeyError:
+        if plugin_name is None:
+            abort(400, 'Missing key: plugin_name')
+        if source_name is None:
+            abort(400, 'Missing key: source_name')
+        if interval is None:
+            abort(400, 'Missing key: interval')
+        if plugin_init_info is None:
+            abort(400, 'Missing key: plugin_init_info')
 
     plugin_init_info = json.loads(plugin_init_info)
     plugin_instance_id=str(uuid.uuid4())
