@@ -7,13 +7,15 @@ import uuid
 from plugins.plugin_entry import dispatch_plugin
 
 def plugin_instance_routine(session, plugin_name, plugin_instance_id, run_id, update_interval):
+    counter = 0
     while True:
         running_instance = session.query(RunningPluginInstance).filter(RunningPluginInstance.run_id == run_id).first()
         if running_instance is None:
-            print('Routine: ', plugin_name, plugin_instance_id, run_id, update_interval, ' is terminated')
+            print("[",counter,"] Routine: ", plugin_name, plugin_instance_id, run_id, update_interval, ' is terminated')
             break
-        print("Routine: ", plugin_name, plugin_instance_id, run_id, update_interval, ' is running')
+        print("[",counter,"] Routine: ", plugin_name, plugin_instance_id, run_id, update_interval, " is running")
         dispatch_plugin("", "update", plugin_name, [plugin_instance_id])
+        counter += 1
         time.sleep(update_interval)
 
 
