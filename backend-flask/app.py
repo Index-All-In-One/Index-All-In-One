@@ -1,15 +1,17 @@
 from flask import Flask, jsonify, request, abort
-import uuid
-from search_funcs import *
 from plugin_management.model_flask import *
 from plugin_management.plugins.plugin_entry import dispatch_plugin
+from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
+import uuid
+
+opensearch_conn = OpenSearch_Conn()
+opensearch_conn.connect()
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///PI.db'
 sqlalchemy_db.init_app(app)
 with app.app_context():
     sqlalchemy_db.create_all()
-
 
 @app.route('/')
 def hello():
@@ -39,8 +41,7 @@ def search():
     keywords = request.form.get('keywords').split(' ')
 
     # Connect with openSearch
-    client = connect_OpenSearch()
-    response = search_OpenSearch(client, keywords)
+    response = opensearch_conn.search_doc(keywords)
     docs = response['hits']['hits']
 
     search_results = []
