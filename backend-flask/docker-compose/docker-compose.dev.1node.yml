@@ -24,6 +24,18 @@ services:
       - 127.0.0.1:9600:9600 # required for Performance Analyzer
     networks:
       - backend-net-debug
+
+  opensearch-init:
+    container_name: iaio-opensearch-init
+    build:
+      context: ../docker-opensearch-init/
+      dockerfile: Dockerfile
+    image: iaio-opensearch-init:debug
+    depends_on:
+      - opensearch-node1
+    networks:
+      - backend-net-debug
+
   flask:
     container_name: iaio-flask-debug
     build:
@@ -31,7 +43,7 @@ services:
       dockerfile: ./docker-flask/Dockerfile.dev
     image: iaio-flask:debug
     ports:
-      - "5235:5235"
+      - "127.0.0.1:5235:5235"
     expose:
       - "5235"
     networks:
