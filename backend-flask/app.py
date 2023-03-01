@@ -3,6 +3,7 @@ from plugin_management.model_flask import *
 from plugin_management.plugins.plugin_entry import dispatch_plugin
 from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
 import uuid
+import json
 
 opensearch_conn = OpenSearch_Conn()
 opensearch_conn.connect()
@@ -77,6 +78,7 @@ def add_plugin_instance():
     if plugin_init_info is None:
         abort(400, 'Missing required parameter: plugin_init_info')
 
+    plugin_init_info = json.loads(plugin_init_info)
     plugin_instance_id=str(uuid.uuid4())
     new_plugin_instance = PluginInstance(plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, source_name=source_name, update_interval=interval, enabled=True, active=False)
     sqlalchemy_db.session.add(new_plugin_instance)
@@ -105,7 +107,11 @@ def delete_plugin_instance():
         sqlalchemy_db.session.commit()
 
         dispatch_plugin("plugin_management.", "del", plugin_name, [plugin_instance_id])
-
+        '''
+            Example:
+                dispatch_plugin("plugin_management.", "del", "gmail", [1])
+                this will run the plugin_gmail_del function in plugin_gmail.py
+        '''
         new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
         sqlalchemy_db.session.add(new_request)
         sqlalchemy_db.session.commit()

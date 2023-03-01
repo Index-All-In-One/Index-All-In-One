@@ -123,14 +123,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         return mask, res
 
 
-
-
-# def plugin_gmail(email_username, email_password, host='localhost', port=9200, username='admin', password='admin', 
-# use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
-#     gmail_conn = Gmail(email_username, email_password)
-#     gmail_conn.opensearch_conn(host, port, username, password,use_ssl,verify_certs,ssl_assert_hostname,ssl_show_warn)
-
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import orm, Column, Integer, String
 
@@ -160,8 +153,10 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info, db_name = "PI.db"):
     session = DBSession()
 
     # add credentials of plugin instance
+
     username = plugin_init_info["username"]
     password = plugin_init_info["password"]
+
     model.metadata.create_all(engine)
     # create a new GmailCredentials object and add it to the database
     plugin_instance_credentials = GmailCredentials(plugin_instance_id, username, password)
@@ -173,7 +168,17 @@ def plugin_gmail_del(plugin_instance_id, db_name = "PI.db"):
     engine = create_engine(f'sqlite:///instance/{db_name}')
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
-    # delete the object
+
+    # delete all OpenSearch documents of this source
+    creds = session.query(GmailCredentials).filter(GmailCredentials.plugin_instance_id==plugin_instance_id).first()
+    username = creds.username
+    password = creds.password
+    del_keyword = [{"match": {"source": username}}]
+    GmailSession = Gmail_Instance(username, password)
+    GmailSession.login_opensearch()
+    GmailSession.opensearch_conn.delete_doc(del_keyword)
+    
+    # delete the source
     creds = session.query(GmailCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
     session.delete(creds)
     session.commit()
@@ -183,11 +188,11 @@ def plugin_gmail_update(plugin_instance_id, db_name = "PI.db"):
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
     # get credential of plugin_instance_id
-    stmt = session.select(GmailCredentials).where(plugin_instance_id=plugin_instance_id).first()
-    creds = session.execute(stmt).scalar_one()
+    creds = session.query(GmailCredentials).filter(GmailCredentials.plugin_instance_id==plugin_instance_id).first()
+    session.commit()
     # login
-    username = creds['username']
-    password = creds['password']
+    username = creds.username
+    password = creds.password
     GmailSession = Gmail_Instance(username, password)
     GmailSession.login_email()
     GmailSession.login_opensearch()
@@ -196,8 +201,14 @@ def plugin_gmail_update(plugin_instance_id, db_name = "PI.db"):
 if __name__ == "__main__":
 
     username = "a1415217miss@gmail.com"
-    password = "evlthhabxgeasauf"
+    password = "password"
     GmailSession = Gmail_Instance(username, password)
     GmailSession.login_email()
     GmailSession.login_opensearch()
     GmailSession.update_email()
+
+    # plugin_instance_id = "1"
+    # dic = {"username": "a1415217miss@gmail.com", "password": "password"}
+    # plugin_gmail_init(plugin_instance_id, dic)
+    # plugin_gmail_update(plugin_instance_id)
+    # plugin_gmail_del(plugin_instance_id)
