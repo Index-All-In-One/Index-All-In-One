@@ -1,7 +1,6 @@
 import imaplib, email
 import re
 from opensearch_conn import OpenSearch_Conn
-
 IMAP_URL = 'imap.gmail.com'
 
 class Gmail_Instance:
@@ -153,7 +152,6 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info, db_name = "PI.db"):
     session = DBSession()
 
     # add credentials of plugin instance
-
     username = plugin_init_info["username"]
     password = plugin_init_info["password"]
 
@@ -200,15 +198,15 @@ def plugin_gmail_update(plugin_instance_id, db_name = "PI.db"):
 
 if __name__ == "__main__":
 
-    username = "a1415217miss@gmail.com"
-    password = "password"
-    GmailSession = Gmail_Instance(username, password)
-    GmailSession.login_email()
-    GmailSession.login_opensearch()
-    GmailSession.update_email()
+    # username = "a1415217miss@gmail.com"
+    # password = "password"
+    # GmailSession = Gmail_Instance(username, password)
+    # GmailSession.login_email()
+    # GmailSession.login_opensearch()
+    # GmailSession.update_email()
 
-    # plugin_instance_id = "1"
-    # dic = {"username": "a1415217miss@gmail.com", "password": "password"}
-    # plugin_gmail_init(plugin_instance_id, dic)
-    # plugin_gmail_update(plugin_instance_id)
-    # plugin_gmail_del(plugin_instance_id)
+    plugin_instance_id = "2b225262-8235-4c9f-9cb9-a068f72ad181"
+    dic = {"username": "a1415217miss@gmail.com", "password": "password"}
+    plugin_gmail_init(plugin_instance_id, dic)
+    plugin_gmail_update(plugin_instance_id)
+    plugin_gmail_del(plugin_instance_id)

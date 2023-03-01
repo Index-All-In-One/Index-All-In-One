@@ -86,8 +86,8 @@ class OpenSearch_Conn:
         Output:
             the delete result
         Example:
-            keyword = {"match": {"doc_id": doc_id}}
-            keyword = [{"match": {"source": source1}}, {"match": {"doc_id": 1}}]
+            keyword = [{"match": {"doc_id": doc_id}}]
+            keyword = [{"match": {"source": source1}}, {"match": {"doc_id": doc_id}}]
             OpenSearch_Conn.delete_doc(keyword)
         '''
 
