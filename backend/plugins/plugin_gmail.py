@@ -1,8 +1,12 @@
 import imaplib, email
 import re
+import logging
+import sys
 from opensearch.conn import OpenSearch_Conn
 # from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
 IMAP_URL = 'imap.gmail.com'
+
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 class Gmail_Instance:
     def __init__(self, username, password):
@@ -164,6 +168,9 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info):
     session.add(plugin_instance_credentials)
     session.commit()
 
+    logging.info(f'Gmail plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
+    logging.debug(f'Gmail plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}, username: {username}, password: {password}')
+
 
 def plugin_gmail_del(plugin_instance_id):
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
@@ -185,6 +192,7 @@ def plugin_gmail_del(plugin_instance_id):
     session.commit()
 
 def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
+    logging.info(f'Gmail plugin instance {plugin_instance_id} updating, db name: {DB_NAME}')
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     DBSession = sessionmaker(bind=engine)
     session = DBSession()

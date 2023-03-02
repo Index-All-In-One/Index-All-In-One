@@ -5,9 +5,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN mkdir ./plugin_management && mkdir ./plugins
+RUN mkdir ./plugin_management && mkdir ./plugins && mkdir ./opensearch
 
 COPY plugin_management/*.py ./plugin_management/
 COPY plugins/*.py ./plugins/
+COPY opensearch/*.py ./opensearch/
 
 ENTRYPOINT ["python", "plugin_management/manager.py"]

@@ -99,7 +99,7 @@ def add_plugin_instance():
 
     # TODO: handle plugin init failure
     # TODO: add log support for plugin init
-    status = dispatch_plugin("plugin_management.", "init", plugin_name, [plugin_instance_id, plugin_init_info])
+    status = dispatch_plugin("", "init", plugin_name, [plugin_instance_id, plugin_init_info])
     app.logger.debug("Plugin instance init: %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
 
     new_request = Request(request_op="activate", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
@@ -121,7 +121,7 @@ def delete_plugin_instance():
         sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).delete()
         sqlalchemy_db.session.commit()
 
-        dispatch_plugin("plugin_management.", "del", plugin_name, [plugin_instance_id])
+        dispatch_plugin("", "del", plugin_name, [plugin_instance_id])
         app.logger.debug("Plugin instance del: %s, %s", plugin_name, plugin_instance_id)
 
         new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)

@@ -21,7 +21,7 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
             logging.debug("[%d] Routine: %s %s %s %d is terminated", counter, plugin_name, plugin_instance_id, run_id, update_interval)
             break
         logging.debug("[%d] Routine: %s %s %s %d is running", counter, plugin_name, plugin_instance_id, run_id, update_interval)
-        dispatch_plugin("", "update", plugin_name, [opensearch_hostname, plugin_instance_id])
+        dispatch_plugin("", "update", plugin_name, [plugin_instance_id, opensearch_hostname, ])
         counter += 1
         time.sleep(update_interval)
 
