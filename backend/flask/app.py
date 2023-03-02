@@ -3,7 +3,10 @@ import uuid
 import logging
 import json
 import os
-from flask_utils.model_flask import *
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from model_flask import *
 from plugin_management.plugins.plugin_entry import dispatch_plugin
 from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
 
@@ -13,7 +16,7 @@ opensearch_conn = OpenSearch_Conn()
 opensearch_conn.connect(host=opensearch_hostname)
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///PI.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'instance', 'PI.db')
 sqlalchemy_db.init_app(app)
 with app.app_context():
     sqlalchemy_db.create_all()

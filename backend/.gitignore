@@ -6,9 +6,11 @@
 !*.yml
 !index.json
 !requirements.txt
+!EMPTY
 !plugin_management/
 !plugin_management/*/
-!flask_utils/
+!flask/
 !opensearch/
 !docker-*/
 !scripts/
+!instance
