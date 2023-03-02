@@ -1,6 +1,14 @@
 *
 !.gitignore
 !*.py
+!*.sh
+!Dockerfile*
+!*.yml
+!index.json
 !requirements.txt
 !plugin_management/
 !plugin_management/*/
+!flask_utils/
+!opensearch/
+!docker-*/
+!scripts/
