@@ -131,7 +131,6 @@ class OpenSearch_Conn:
         }
         results = self.client.search(index=index_name, body=body)
         doc_ids = [hit["_source"]["doc_id"] for hit in results["hits"]["hits"]]
-<<<<<<< HEAD:backend-flask/plugin_management/plugins/opensearch_conn.py
         return doc_ids
 
 
@@ -153,6 +152,3 @@ if __name__ == "__main__":
     conn.delete_index(index_name)
     # data = json.load(open("index.json", 'r'))
     # conn.insert_index(data)
-=======
-        return doc_ids
->>>>>>> upstream/backend-flask:packages/opensearch_conn/opensearch_conn/opensearch_conn.py
