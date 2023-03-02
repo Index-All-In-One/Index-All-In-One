@@ -4,7 +4,7 @@ class OpenSearch_Conn:
     def __init__(self):
         self.client = None
 
-    def connect(self, host='localhost', port=9200, username='admin', password='admin', 
+    def connect(self, host='localhost', port=9200, username='admin', password='admin',
     use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
         '''
             Connect to Opensearch Client
@@ -52,7 +52,7 @@ class OpenSearch_Conn:
     def search_doc(self, keywords, index_name='search_index'):
         '''
         with a list of keywords, search for documents that match either of the keywords in the list.
-        Input: 
+        Input:
             client: a connectd OpenSearch client
             keywords: the search keyword
             index_name: the name of an OpenSearch index
@@ -79,7 +79,7 @@ class OpenSearch_Conn:
         Delete OpenSource client documents
         Sample Usage: delete documents from source source1 with doc_id 1: delete_OpenSearch(client, )
 
-        Input: 
+        Input:
             client: a connectd OpenSearch client
             fields: the delete field: value pairs
             index_name: the name of an OpenSearch index
@@ -95,7 +95,7 @@ class OpenSearch_Conn:
             "query": {
                 "bool": {
                     "must": keywords
-                } 
+                }
             }
         }
         response = self.client.delete_by_query(index=index_name, body=body)
@@ -134,9 +134,9 @@ class OpenSearch_Conn:
         return doc_ids
 
 
-def init_opensearch_db(indexfile_path: str, host='localhost', port=9200, username='admin', password='admin', 
+def init_opensearch_db(indexfile_path: str, host='localhost', port=9200, username='admin', password='admin',
     use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
-    
+
     '''
     indexfile_path = "index.json"
     '''

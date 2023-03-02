@@ -22,14 +22,18 @@ services:
     ports:
       - 127.0.0.1:9200:9200
       - 127.0.0.1:9600:9600 # required for Performance Analyzer
+    expose:
+      - "9200"
     networks:
       - backend-net-debug
 
   opensearch-init:
     container_name: iaio-opensearch-init
+    environment:
+      OPENSEARCH_HOSTNAME: opensearch-node1
     build:
-      context: ../docker-opensearch-init/
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: ./docker-opensearch-init/Dockerfile
     image: iaio-opensearch-init:debug
     depends_on:
       - opensearch-node1
@@ -41,6 +45,8 @@ services:
     build:
       context: ..
       dockerfile: ./docker-flask/Dockerfile.dev
+    environment:
+      OPENSEARCH_HOSTNAME: opensearch-node1
     image: iaio-flask:debug
     ports:
       - "127.0.0.1:5235:5235"
@@ -52,10 +58,14 @@ services:
       - iaio-pi-db-debug:/app/instance
   pm-manager:
     container_name: iaio-pm-manager-debug
+    environment:
+      OPENSEARCH_HOSTNAME: opensearch-node1
     build:
       context: ..
       dockerfile: ./docker-pm-manager/Dockerfile.dev
     image: iaio-pm-manager:debug
+    networks:
+      - backend-net-debug
     volumes:
       - iaio-pi-db-debug:/app/instance
 

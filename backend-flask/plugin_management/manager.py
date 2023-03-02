@@ -1,16 +1,17 @@
 import time
+import threading
+import uuid
+import logging
+import sys
+import os
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from model_standalone import *
-import threading
-import uuid
 from plugins.plugin_entry import dispatch_plugin
-import logging
-import sys
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-def plugin_instance_routine(session, plugin_name, plugin_instance_id, run_id, update_interval):
+def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_instance_id, run_id, update_interval):
     counter = 0
     while True:
         running_instance = session.query(RunningPluginInstance).filter(RunningPluginInstance.run_id == run_id).first()
@@ -18,7 +19,7 @@ def plugin_instance_routine(session, plugin_name, plugin_instance_id, run_id, up
             logging.debug("[%d] Routine: %s %s %s %d is terminated", counter, plugin_name, plugin_instance_id, run_id, update_interval)
             break
         logging.debug("[%d] Routine: %s %s %s %d is running", counter, plugin_name, plugin_instance_id, run_id, update_interval)
-        dispatch_plugin("", "update", plugin_name, [plugin_instance_id])
+        dispatch_plugin("", "update", plugin_name, [opensearch_hostname, plugin_instance_id])
         counter += 1
         time.sleep(update_interval)
 
@@ -54,6 +55,7 @@ def get_request(session):
     return request
 
 def handle_request(DBSession, man_session, request):
+    global opensearch_hostname
     if request is None:
         return
     if request.request_op == 'activate':
@@ -67,12 +69,12 @@ def handle_request(DBSession, man_session, request):
             man_session.add(running_plugin_instance)
             man_session.commit()
 
-            routine_thread = threading.Thread(target=plugin_instance_routine, args=(DBSession() ,request.plugin_name, request.plugin_instance_id, run_id, request.update_interval))
+            routine_thread = threading.Thread(target=plugin_instance_routine, args=(DBSession(), opensearch_hostname, request.plugin_name, request.plugin_instance_id, run_id, request.update_interval))
             routine_thread.start()
             plugin_instance.active = True
 
     elif request.request_op == 'deactivate':
-        logging.debug('Manager: Deactivate plugin instance Request: %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)
+        logging.debug('Manager: Deactivate plugin instance Request: %s ', request.plugin_instance_id)
 
         man_session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == request.plugin_instance_id).delete()
 
@@ -97,6 +99,7 @@ def loop_for_request(DBSession):
         time.sleep(0.3)
 
 if __name__ == "__main__":
+    opensearch_hostname = os.environ.get('OPENSEARCH_HOSTNAME', 'localhost')
     DBSession = init_db("PI.db")
     start_plugin_instances(DBSession)
     loop_for_request(DBSession)

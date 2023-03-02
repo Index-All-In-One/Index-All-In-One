@@ -2,12 +2,15 @@ from flask import Flask, jsonify, request, abort
 import uuid
 import logging
 import json
+import os
 from flask_utils.model_flask import *
 from plugin_management.plugins.plugin_entry import dispatch_plugin
 from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
 
+
+opensearch_hostname = os.environ.get('OPENSEARCH_HOSTNAME', 'localhost')
 opensearch_conn = OpenSearch_Conn()
-opensearch_conn.connect()
+opensearch_conn.connect(host=opensearch_hostname)
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///PI.db'
@@ -85,7 +88,7 @@ def add_plugin_instance():
         if plugin_init_info is None:
             abort(400, 'Missing key: plugin_init_info')
 
-    plugin_init_info = json.loads(plugin_init_info)
+    # plugin_init_info = json.loads(plugin_init_info)
     plugin_instance_id=str(uuid.uuid4())
     new_plugin_instance = PluginInstance(plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, source_name=source_name, update_interval=interval, enabled=True, active=False)
     sqlalchemy_db.session.add(new_plugin_instance)

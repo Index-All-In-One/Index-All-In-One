@@ -1,7 +1,7 @@
 import imaplib, email
 import re
-# from opensearch_conn import OpenSearch_Conn
-from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
+from opensearch_conn import OpenSearch_Conn
+# from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
 IMAP_URL = 'imap.gmail.com'
 
 class Gmail_Instance:
@@ -11,9 +11,9 @@ class Gmail_Instance:
         self.imap = None
         self.opensearch_conn = OpenSearch_Conn()
 
-    def login_opensearch(self, host='localhost', port=9200, username='admin', password='admin', 
+    def login_opensearch(self, host='localhost', port=9200, username='admin', password='admin',
 use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
-        
+
         try:
             self.opensearch_conn.connect(host, port, username, password,
         use_ssl, verify_certs, ssl_assert_hostname, ssl_show_warn)
@@ -58,7 +58,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
 
     def update_email(self):
         '''
-            Update OpenSearch index, delete documents in OpenSearch but not in mailbox, 
+            Update OpenSearch index, delete documents in OpenSearch but not in mailbox,
             insert documents new in mailbox but not in OpenSearch
         '''
         assert(self.imap)
@@ -165,8 +165,8 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info):
     session.commit()
 
 
-def plugin_gmail_del(plugin_instance_id, db_name = "PI.db"):
-    engine = create_engine(f'sqlite:///instance/{db_name}')
+def plugin_gmail_del(plugin_instance_id):
+    engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
 
@@ -178,14 +178,14 @@ def plugin_gmail_del(plugin_instance_id, db_name = "PI.db"):
     GmailSession = Gmail_Instance(username, password)
     GmailSession.login_opensearch()
     GmailSession.opensearch_conn.delete_doc(del_keyword)
-    
+
     # delete the source
     creds = session.query(GmailCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
     session.delete(creds)
     session.commit()
 
-def plugin_gmail_update(plugin_instance_id, db_name = "PI.db"):
-    engine = create_engine(f'sqlite:///instance/{db_name}')
+def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
+    engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
     # get credential of plugin_instance_id
@@ -196,7 +196,7 @@ def plugin_gmail_update(plugin_instance_id, db_name = "PI.db"):
     password = creds.password
     GmailSession = Gmail_Instance(username, password)
     GmailSession.login_email()
-    GmailSession.login_opensearch()
+    GmailSession.login_opensearch(host=opensearch_hostname)
     GmailSession.update_email()
 
 if __name__ == "__main__":
