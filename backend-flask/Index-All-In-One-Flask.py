@@ -1,12 +1,11 @@
 from flask import Flask, jsonify, request, abort
+from plugin_management.plugins.entry import dispatch_plugin
+from opensearch_conn import OpenSearch_Conn
 import uuid
 import logging
 import json
 import os
 from flask_utils.model_flask import *
-from plugin_management.plugins.plugin_entry import dispatch_plugin
-from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
-
 
 opensearch_hostname = os.environ.get('OPENSEARCH_HOSTNAME', 'localhost')
 opensearch_conn = OpenSearch_Conn()

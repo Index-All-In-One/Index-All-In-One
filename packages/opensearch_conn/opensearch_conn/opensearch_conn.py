@@ -132,23 +132,3 @@ class OpenSearch_Conn:
         results = self.client.search(index=index_name, body=body)
         doc_ids = [hit["_source"]["doc_id"] for hit in results["hits"]["hits"]]
         return doc_ids
-
-
-def init_opensearch_db(indexfile_path: str, host='localhost', port=9200, username='admin', password='admin',
-    use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
-
-    '''
-    indexfile_path = "index.json"
-    '''
-    conn = OpenSearch_Conn()
-    conn.connect(host, port, username, password, use_ssl, verify_certs, ssl_assert_hostname, ssl_show_warn)
-    data = json.load(open(indexfile_path, 'r'))
-    conn.insert_index(data)
-
-if __name__ == "__main__":
-    index_name='search_index'
-    conn = OpenSearch_Conn()
-    conn.connect()
-    conn.delete_index(index_name)
-    # data = json.load(open("index.json", 'r'))
-    # conn.insert_index(data)

@@ -7,7 +7,9 @@ import os
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from model_standalone import *
-from plugins.plugin_entry import dispatch_plugin
+import threading
+import uuid
+from plugins.entry import dispatch_plugin
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
