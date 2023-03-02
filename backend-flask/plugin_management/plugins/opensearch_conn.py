@@ -133,6 +133,14 @@ class OpenSearch_Conn:
         doc_ids = [hit["_source"]["doc_id"] for hit in results["hits"]["hits"]]
         return doc_ids
 
+
+def init_opensearch_db(indexfile_path: str, host='localhost', port=9200, username='admin', password='admin', 
+    use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
+    conn = OpenSearch_Conn()
+    conn.connect(host, port, username, password, use_ssl, verify_certs, ssl_assert_hostname, ssl_show_warn)
+    data = json.load(open(indexfile_path, 'r'))
+    conn.insert_index(data)
+
 if __name__ == "__main__":
     import json
     index_name='search_index'
