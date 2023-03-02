@@ -173,7 +173,7 @@ def plugin_gmail_del(plugin_instance_id):
     creds = session.query(GmailCredentials).filter(GmailCredentials.plugin_instance_id==plugin_instance_id).first()
     username = creds.username
     password = creds.password
-    del_keyword = [{"match": {"source": username}}]
+    del_keyword = [{"match": {"plugin_instance_id": plugin_instance_id}}]
     GmailSession = Gmail_Instance(username, password)
     GmailSession.login_opensearch()
     GmailSession.opensearch_conn.delete_doc(del_keyword)
