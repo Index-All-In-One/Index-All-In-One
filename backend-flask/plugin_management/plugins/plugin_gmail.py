@@ -1,6 +1,7 @@
 import imaplib, email
 import re
 from opensearch_conn import OpenSearch_Conn
+
 IMAP_URL = 'imap.gmail.com'
 
 class Gmail_Instance:

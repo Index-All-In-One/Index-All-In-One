@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, abort
 from plugin_management.model_flask import *
-from plugin_management.plugins.plugin_entry import dispatch_plugin
-from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
+from plugin_management.plugins.entry import dispatch_plugin
+from opensearch_conn import OpenSearch_Conn
 import uuid
 import json
 
