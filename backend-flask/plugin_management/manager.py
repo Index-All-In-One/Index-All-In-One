@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from model_standalone import *
 import threading
 import uuid
-from plugins.plugin_entry import dispatch_plugin
+from plugins.entry import dispatch_plugin
 
 def plugin_instance_routine(session, plugin_name, plugin_instance_id, run_id, update_interval):
     while True:
