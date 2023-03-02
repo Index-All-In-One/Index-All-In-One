@@ -1,6 +1,7 @@
 import imaplib, email
 import re
-from opensearch_conn import OpenSearch_Conn
+# from opensearch_conn import OpenSearch_Conn
+from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
 IMAP_URL = 'imap.gmail.com'
 
 class Gmail_Instance:
@@ -127,7 +128,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import orm, Column, Integer, String
 
 model = orm.declarative_base()
-
+DB_NAME = "PI.db"
 class GmailCredentials(model):
     __tablename__ = 'gmail_credentials'
 
@@ -141,10 +142,10 @@ class GmailCredentials(model):
         self.username = username
         self.password = password
 
-def plugin_gmail_init(plugin_instance_id, plugin_init_info, db_name = "PI.db"):
+def plugin_gmail_init(plugin_instance_id, plugin_init_info):
 
     # create an engine that connects to the database
-    engine = create_engine(f'sqlite:///instance/{db_name}')
+    engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     model.metadata.bind = engine
     model.metadata.create_all(engine)
     # create a session factory that uses the engine
@@ -154,6 +155,8 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info, db_name = "PI.db"):
     # add credentials of plugin instance
     username = plugin_init_info["username"]
     password = plugin_init_info["password"]
+
+    # check if credentials correct
 
     model.metadata.create_all(engine)
     # create a new GmailCredentials object and add it to the database
