@@ -8,9 +8,9 @@
 !requirements.txt
 !EMPTY
 !plugin_management/
-!plugin_management/*/
+!plugins/
 !flask/
 !opensearch/
 !docker-*/
 !scripts/
-!instance
+!instance/

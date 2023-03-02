@@ -1,6 +1,6 @@
 import imaplib, email
 import re
-from opensearch_conn import OpenSearch_Conn
+from opensearch.conn import OpenSearch_Conn
 # from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
 IMAP_URL = 'imap.gmail.com'
 

@@ -2,12 +2,14 @@ import time
 import threading
 import uuid
 import logging
-import sys
 import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from model_standalone import *
-from plugins.plugin_entry import dispatch_plugin
+from plugins.entry_plugin import dispatch_plugin
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 

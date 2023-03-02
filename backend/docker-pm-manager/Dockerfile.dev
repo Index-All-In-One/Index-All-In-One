@@ -2,12 +2,12 @@ FROM python:3.10.10-slim-buster
 
 WORKDIR /app
 
-COPY ../requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN mkdir -p ./plugin_management/plugins
+RUN mkdir ./plugin_management && mkdir ./plugins
 
-COPY ../plugin_management/*.py ./plugin_management/
-COPY ../plugin_management/plugins/*.py ./plugin_management/plugins/
+COPY plugin_management/*.py ./plugin_management/
+COPY plugins/*.py ./plugins/
 
 ENTRYPOINT ["python", "plugin_management/manager.py"]

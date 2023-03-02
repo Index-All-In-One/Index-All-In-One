@@ -7,7 +7,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from model_flask import *
-from plugin_management.plugins.plugin_entry import dispatch_plugin
+from plugins.entry_plugin import dispatch_plugin
 from opensearch.conn import OpenSearch_Conn
 
 
