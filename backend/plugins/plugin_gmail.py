@@ -132,7 +132,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import orm, Column, Integer, String
 
 model = orm.declarative_base()
-DB_NAME = "PI.db"
+DB_NAME = "p_gmail.db"
 class GmailCredentials(model):
     __tablename__ = 'gmail_credentials'
 
@@ -169,7 +169,6 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info):
     session.commit()
 
     logging.info(f'Gmail plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
-    logging.debug(f'Gmail plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}, username: {username}, password: {password}')
 
 
 def plugin_gmail_del(plugin_instance_id):
@@ -192,7 +191,7 @@ def plugin_gmail_del(plugin_instance_id):
     session.commit()
 
 def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
-    logging.info(f'Gmail plugin instance {plugin_instance_id} updating, db name: {DB_NAME}')
+    logging.debug(f'Gmail plugin instance {plugin_instance_id} updating, db name: {DB_NAME}')
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
