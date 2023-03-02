@@ -1,0 +1,91 @@
+version: '3'
+services:
+  opensearch-node1:
+    image: opensearchproject/opensearch:latest
+    container_name: iaio-opensearch-node1-2-debug
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=d
+      - discovery.seed_hosts=d,opensearch-node2
+      - cluster.initial_cluster_manager_nodes=d,opensearch-node2
+      - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536 # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
+        hard: 65536
+    volumes:
+      - opensearch-data1-2-debug:/usr/share/opensearch/data
+    ports:
+      - 127.0.0.1:9200:9200
+      - 127.0.0.1:9600:9600 # required for Performance Analyzer
+    networks:
+      - opensearch-net-2-debug
+      - backend-net-debug
+  opensearch-node2:
+    image: opensearchproject/opensearch:latest
+    container_name: iaio-opensearch-node2-2-debug
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node2
+      - discovery.seed_hosts=d,opensearch-node2
+      - cluster.initial_cluster_manager_nodes=d,opensearch-node2
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data2-2-debug:/usr/share/opensearch/data
+    networks:
+      - opensearch-net-2-debug
+      - backend-net-debug
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:latest
+    container_name: opensearch-dashboards
+    ports:
+      - 127.0.0.1:5601:5601
+    expose:
+      - "5601"
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
+    networks:
+      - opensearch-net-2-debug
+  flask:
+    container_name: iaio-flask-debug
+    build:
+      context: ..
+      dockerfile: ./docker-flask/Dockerfile.dev
+    image: iaio-flask:debug
+    ports:
+      - "5235:5235"
+    expose:
+      - "5235"
+    networks:
+      - backend-net-debug
+    volumes:
+      - iaio-pi-db-debug:/app/instance
+  pm-manager:
+    container_name: iaio-pm-manager-debug
+    build:
+      context: ..
+      dockerfile: ./docker-pm-manager/Dockerfile.dev
+    image: iaio-pm-manager:debug
+    volumes:
+      - iaio-pi-db-debug:/app/instance
+
+volumes:
+  opensearch-data1-2-debug:
+  opensearch-data2-2-debug:
+  iaio-pi-db-debug:
+
+networks:
+  opensearch-net-2-debug:
+  backend-net-debug:

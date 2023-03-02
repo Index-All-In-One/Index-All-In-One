@@ -1,18 +1,24 @@
 from flask import Flask, jsonify, request, abort
-from plugin_management.model_flask import *
+import uuid
+import logging
+import json
+import os
+from flask_utils.model_flask import *
 from plugin_management.plugins.entry import dispatch_plugin
 from opensearch_conn import OpenSearch_Conn
-import uuid
-import json
 
+
+opensearch_hostname = os.environ.get('OPENSEARCH_HOSTNAME', 'localhost')
 opensearch_conn = OpenSearch_Conn()
-opensearch_conn.connect()
+opensearch_conn.connect(host=opensearch_hostname)
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///PI.db'
 sqlalchemy_db.init_app(app)
 with app.app_context():
     sqlalchemy_db.create_all()
+
+logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
 def hello():
@@ -64,28 +70,34 @@ def search():
 
 @app.route('/add_PI', methods=['POST'])
 def add_plugin_instance():
-    plugin_name = request.form.get('plugin_name')
-    source_name = request.form.get('source_name')
-    interval = request.form.get('interval')
-    plugin_init_info = request.form.get('plugin_init_info')
+    json_data = request.get_json()
 
-    if plugin_name is None:
-        abort(400, 'Missing required parameter: plugin_name')
-    if source_name is None:
-        abort(400, 'Missing required parameter: source_name')
-    if interval is None:
-        abort(400, 'Missing required parameter: interval')
-    if plugin_init_info is None:
-        abort(400, 'Missing required parameter: plugin_init_info')
+    try:
+        plugin_name = json_data['plugin_name']
+        source_name = json_data['source_name']
+        interval = json_data['interval']
+        plugin_init_info = json_data['plugin_init_info']
 
-    plugin_init_info = json.loads(plugin_init_info)
+    except KeyError:
+        if plugin_name is None:
+            abort(400, 'Missing key: plugin_name')
+        if source_name is None:
+            abort(400, 'Missing key: source_name')
+        if interval is None:
+            abort(400, 'Missing key: interval')
+        if plugin_init_info is None:
+            abort(400, 'Missing key: plugin_init_info')
+
+    # plugin_init_info = json.loads(plugin_init_info)
     plugin_instance_id=str(uuid.uuid4())
     new_plugin_instance = PluginInstance(plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, source_name=source_name, update_interval=interval, enabled=True, active=False)
     sqlalchemy_db.session.add(new_plugin_instance)
     sqlalchemy_db.session.commit()
 
     # TODO: handle plugin init failure
+    # TODO: add log support for plugin init
     status = dispatch_plugin("plugin_management.", "init", plugin_name, [plugin_instance_id, plugin_init_info])
+    app.logger.debug("Plugin instance init: %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
 
     new_request = Request(request_op="activate", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
     sqlalchemy_db.session.add(new_request)
@@ -107,11 +119,8 @@ def delete_plugin_instance():
         sqlalchemy_db.session.commit()
 
         dispatch_plugin("plugin_management.", "del", plugin_name, [plugin_instance_id])
-        '''
-            Example:
-                dispatch_plugin("plugin_management.", "del", "gmail", [1])
-                this will run the plugin_gmail_del function in plugin_gmail.py
-        '''
+        app.logger.debug("Plugin instance del: %s, %s", plugin_name, plugin_instance_id)
+
         new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
         sqlalchemy_db.session.add(new_request)
         sqlalchemy_db.session.commit()
