@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:index_all_in_one/apis.dart';
 import 'package:index_all_in_one/utils.dart';
 import 'dart:convert';
 import 'globals.dart';
@@ -40,6 +41,16 @@ Widget buildPluginInfoList(String pluginName) {
           fieldNames: pluginInfoFieldNames,
           fieldTypes: pluginInfoFieldTypes,
           hint: hint,
+          onSubmit: (Map<String, String> formData) async {
+            var response = await sendAddPIRequest(pluginName, formData);
+            if (response.statusCode == 200) {
+              //TODO alert user
+              print("Add PI API return successful response");
+            } else {
+              //TODO alert user
+              print("Add PI API return unsuccessful response");
+            }
+          },
         );
       } else {
         // Data hasn't been received yet, show a progress indicator

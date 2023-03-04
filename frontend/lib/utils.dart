@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'apis.dart';
 
 class CopyLinkIcon extends StatelessWidget {
   final String link;
@@ -289,7 +290,6 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
-                print(_formData);
                 widget.onSubmit?.call(_formData);
               }
             },
