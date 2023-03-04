@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'search_page.dart';
 import 'old_search_bar.dart';
 import 'settings_page.dart';
+import 'link_new_page.dart';
 
 Future<void> main() async {
   await dotenv.load();
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
         '/old': (context) => const OldSearchPage(),
         '/': (context) => const SearchPage(),
         '/settings': (context) => const SettingsPage(),
+        '/link_new': (context) => const LinkNewPage(),
       },
     );
   }

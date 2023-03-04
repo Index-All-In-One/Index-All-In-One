@@ -32,7 +32,9 @@ class _SettingsPageState extends State<SettingsPage> {
             padding: const EdgeInsets.symmetric(vertical: 15),
             child: ElevatedButton(
               child: const Text('Link New Account/Application'),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/link_new');
+              },
             ),
           ),
           Expanded(child: buildAccountList()),
