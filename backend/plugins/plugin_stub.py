@@ -12,4 +12,4 @@ def plugin_stub_del(plugin_instance_id):
 
 def plugin_stub_info_list():
     return None, {"hint": "This is the hint of stub plugin", \
-            "info_list": ["username", "password", "private_key"]}
+            "field_type": {"username": "text", "password": "secret", "private_key": "secret",},}

@@ -210,8 +210,8 @@ def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     return None
 
 def plugin_gmail_info_list():
-    return None, {"hint": "Please enter your app passwords, not Gmail's login password. If you don't have, create one first.", \
-            "info_list": ["username", "password"]}
+    return None, {"hint": "Please enter your app password, not Gmail's login password. If you don't have, create one first.", \
+            "field_type": {"username": "text", "app password": "secret", },}
 
 if __name__ == "__main__":
 
