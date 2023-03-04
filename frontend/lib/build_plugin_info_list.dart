@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:index_all_in_one/apis.dart';
-import 'package:index_all_in_one/utils.dart';
 import 'dart:convert';
-import 'globals.dart';
-
-Future<http.Response> sendPluginInfoListRequest(String pluginName) async {
-  var url = Uri.parse('$baseUrl/plugin_info_field_type');
-
-  var response = await http.post(url, body: {'plugin_name': pluginName});
-  return response;
-}
+import 'utils.dart';
+import 'apis.dart';
 
 Widget buildPluginInfoList(String pluginName) {
   return FutureBuilder(

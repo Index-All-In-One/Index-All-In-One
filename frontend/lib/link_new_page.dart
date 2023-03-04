@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'api_list_plugins.dart';
-import 'api_plugin_info_list.dart';
+import 'build_plugin_list.dart';
+import 'build_plugin_info_list.dart';
 
 class LinkNewPage extends StatefulWidget {
   const LinkNewPage({super.key});

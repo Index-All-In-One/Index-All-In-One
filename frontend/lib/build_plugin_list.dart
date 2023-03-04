@@ -1,15 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'globals.dart';
 import 'link_new_page.dart';
-
-Future<http.Response> sendPluginListRequest() async {
-  var url = Uri.parse('$baseUrl/plugin_list');
-
-  var response = await http.get(url);
-  return response;
-}
+import 'apis.dart';
 
 Widget buildPluginList() {
   return FutureBuilder(
