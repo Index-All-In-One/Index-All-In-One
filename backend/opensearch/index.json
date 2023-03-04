@@ -35,6 +35,14 @@
         },
         "file_size": {
             "type" : "integer"
+        },
+        "plugin_instance_id": {
+            "type" : "text",
+            "analyzer": "standard"
+        },
+        "content": {
+            "type" : "text",
+            "analyzer": "standard"
         }
     }
 },

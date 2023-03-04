@@ -42,7 +42,9 @@ class OpenSearch_Conn:
                 "created_date": created_date,
                 "modified_date": modified_date,
                 "summary": summary,
-                "file_size": file_size
+                "file_size": file_size,
+                "plugin_instance_id": plugin_instance_id,
+                "content": content
             }
             OpenSearch_Conn.insert_doc(body)
         '''
@@ -59,22 +61,22 @@ class OpenSearch_Conn:
         Output:
             the search response in the form of a python dict
         Example:
+            keywords = [{"match": {"doc_id": doc_id}}]
+            keywords = [{"match": {"content": content1}}, {"match": {"doc_id": doc_id}}]
         '''
         response = self.client.search(
             index=index_name,
             body={
                 "query": {
                     "bool": {
-                        "should": [
-                            {"match": {"doc_name": keyword}} for keyword in keywords
-                        ]
+                        "should": keywords
                     }
                 }
             }
         )
         return response
 
-    def delete_doc(self, keywords: dict, index_name='search_index'):
+    def delete_doc(self, keywords, index_name='search_index'):
         '''
         Delete OpenSource client documents
         Sample Usage: delete documents from source source1 with doc_id 1: delete_OpenSearch(client, )
@@ -86,11 +88,11 @@ class OpenSearch_Conn:
         Output:
             the delete result
         Example:
-            keyword = [{"match": {"doc_id": doc_id}}]
-            keyword = [{"match": {"source": source1}}, {"match": {"doc_id": doc_id}}]
-            OpenSearch_Conn.delete_doc(keyword)
+            keywords = [{"match": {"doc_id": doc_id}}]
+            keywords = [{"match": {"source": source1}}, {"match": {"doc_id": doc_id}}]
+            OpenSearch_Conn.delete_doc(keywords)
         '''
-
+        
         body = {
             "query": {
                 "bool": {
@@ -149,6 +151,9 @@ if __name__ == "__main__":
     index_name='search_index'
     conn = OpenSearch_Conn()
     conn.connect()
-    conn.delete_index(index_name)
-    # data = json.load(open("index.json", 'r'))
-    # conn.insert_index(data)
+    # conn.delete_index(index_name)
+    data = json.load(open("index.json", 'r'))
+    conn.insert_index(data)
+
+    # body = dummy_data()
+    # conn.insert_doc(body)
