@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:index_all_in_one/utils.dart';
 import 'dart:convert';
-import 'globals.dart';
-
-Future<http.Response> sendSearchRequest(String query) async {
-  var url = Uri.parse('$baseUrl/search');
-
-  var response =
-      await http.post(url, body: {'keywords': query, 'foo': 'flutter'});
-  return response;
-}
+import 'apis.dart';
 
 List<String> documentFieldKeys = [
   "source",

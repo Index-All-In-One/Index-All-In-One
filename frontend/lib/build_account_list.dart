@@ -1,15 +1,8 @@
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'utils.dart';
-import 'globals.dart';
-
-Future<http.Response> sendListAccountRequest() async {
-  var url = Uri.parse('$baseUrl/list_accounts');
-
-  var response = await http.get(url);
-  return response;
-}
+import 'apis.dart';
 
 List<String> accountsFieldKeys = [
   "plugin_name",
