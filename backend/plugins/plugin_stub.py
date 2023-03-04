@@ -11,5 +11,5 @@ def plugin_stub_del(plugin_instance_id):
     return None
 
 def plugin_stub_info_list():
-    return None, {"hint": "", \
+    return None, {"hint": "This is the hint of stub plugin", \
             "info_list": ["username", "password", "private_key"]}

@@ -147,5 +147,11 @@ def list_accounts():
             })
     return jsonify(all_accounts)
 
+@app.route('/plugin_info_list', methods=['POST'])
+def get_plugin_info_list():
+    plugin_name = request.form.get('plugin_name')
+    status, info = dispatch_plugin("info_list", plugin_name)
+    return jsonify(info)
+
 if __name__ == '__main__':
     app.run()

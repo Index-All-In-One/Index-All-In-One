@@ -8,7 +8,7 @@ allowed_plugins = [ \
 def get_plugin_list():
     return allowed_plugins
 
-def dispatch_plugin(function_name, plugin_name, plugin_args):
+def dispatch_plugin(function_name, plugin_name, plugin_args = []):
     """
         function_name: update, init, del, info_list
             update: fetch data from source and update opensearch
