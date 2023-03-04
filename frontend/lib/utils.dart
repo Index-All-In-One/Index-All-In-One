@@ -209,3 +209,110 @@ void showErrorAlert(String errorMesssage, BuildContext context) {
     },
   );
 }
+
+class FormWithSubmit extends StatefulWidget {
+  final List<String> fields;
+  final String hint;
+
+  const FormWithSubmit({
+    super.key,
+    required this.fields,
+    this.hint = "",
+  });
+
+  @override
+  State<FormWithSubmit> createState() => _FormWithSubmitState();
+}
+
+class _FormWithSubmitState extends State<FormWithSubmit> {
+  final _formKey = GlobalKey<FormState>();
+  final Map<String, String> _formData = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Text(
+              'Please fill in information below',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              "Hint: ${widget.hint}",
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ),
+          for (var field in widget.fields) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                field,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+            TextFormField(
+              cursorColor: Colors.deepPurple,
+              decoration: InputDecoration(
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Colors.blue),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Colors.blue),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Colors.red),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Colors.red),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter $field';
+                }
+                return null;
+              },
+              onSaved: (value) {
+                _formData[field] = value!;
+              },
+            ),
+          ],
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                _formKey.currentState!.save();
+                print(_formData); // Do whatever you want with the form data
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
+  }
+}

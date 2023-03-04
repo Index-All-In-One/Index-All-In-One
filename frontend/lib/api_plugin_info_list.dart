@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:index_all_in_one/utils.dart';
 import 'dart:convert';
 import 'globals.dart';
 
 Future<http.Response> sendPluginInfoListRequest(String pluginName) async {
   var url = Uri.parse('$baseUrl/plugin_info_list');
 
-  var response = await http.get(url);
+  var response = await http.post(url, body: {'plugin_name': pluginName});
   return response;
 }
 
@@ -24,24 +25,15 @@ Widget buildPluginInfoList(String pluginName) {
           //TODO alert user
           print("Plugin Info List API return unsuccessful response");
         }
-        String hint = pluginInfoWithHint["hint"] as String;
-        List<String> pluginInfoFields =
-            pluginInfoWithHint["info_list"] as List<String>;
-        return ListView.builder(
-          itemCount: pluginInfoWithHint.length,
-          itemBuilder: (BuildContext context, int index) {
-            String infoField = pluginInfoFields[index];
+        //TODO error handling for type conversion
+        String hint = pluginInfoWithHint["hint"]!;
+        List<dynamic> pluginInfoFields = pluginInfoWithHint["info_list"]!;
+        List<String> pluginInfoFieldsStringList =
+            pluginInfoFields.map((item) => item.toString()).toList();
 
-            return ListTile(
-              title: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                color: Colors.grey[100],
-                child: Row(children: [
-                  Text(infoField),
-                ]),
-              ),
-            );
-          },
+        return FormWithSubmit(
+          fields: pluginInfoFieldsStringList,
+          hint: hint,
         );
       } else {
         // Data hasn't been received yet, show a progress indicator
