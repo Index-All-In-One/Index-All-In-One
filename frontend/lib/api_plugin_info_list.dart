@@ -41,15 +41,16 @@ Widget buildPluginInfoList(String pluginName) {
           fieldNames: pluginInfoFieldNames,
           fieldTypes: pluginInfoFieldTypes,
           hint: hint,
+          successMessage: "Successfully linked $pluginName!",
           onSubmit: (Map<String, String> formData) async {
             var response = await sendAddPIRequest(pluginName, formData);
-            if (response.statusCode == 200) {
-              //TODO alert user
-              print("Add PI API return successful response");
-            } else {
-              //TODO alert user
-              print("Add PI API return unsuccessful response");
+            if (response.statusCode != 200) {
+              //TODO add log
+              print(
+                  "Add PI API return unsuccessful response: ${response.body}");
+              return false;
             }
+            return true;
           },
         );
       } else {

@@ -14,7 +14,7 @@ Future<http.Response> sendAddPIRequest(
     'plugin_name': pluginName,
     'source_name': sourceName,
     'interval': interval,
-    'plugin_init_info': jsonEncode(formData),
+    'plugin_init_info': formData,
   };
 
   var response = await http.post(

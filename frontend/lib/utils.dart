@@ -227,7 +227,8 @@ class FormWithSubmit extends StatefulWidget {
   final List<String> fieldNames;
   final Map<String, String> fieldTypes;
   final String hint;
-  final Function(Map<String, String> formData)? onSubmit;
+  final Future<bool> Function(Map<String, String> formData)? onSubmit;
+  final String? successMessage;
 
   const FormWithSubmit({
     super.key,
@@ -235,6 +236,7 @@ class FormWithSubmit extends StatefulWidget {
     required this.fieldTypes,
     this.hint = "",
     this.onSubmit,
+    this.successMessage,
   });
 
   @override
@@ -287,10 +289,40 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
           ],
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
-                widget.onSubmit?.call(_formData);
+
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+                final success = await widget.onSubmit?.call(_formData) ?? true;
+                Navigator.pop(context);
+
+                if (success) {
+                  // Show success snackbar and pop form page
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(widget.successMessage ??
+                          'Form submitted successfully'),
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
+                  Navigator.pop(context);
+                } else {
+                  // Show error snackbar and stay on form page
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text('An error occurred while submitting the form'),
+                      duration: Duration(seconds: 4),
+                    ),
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(
