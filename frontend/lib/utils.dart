@@ -211,13 +211,15 @@ void showErrorAlert(String errorMesssage, BuildContext context) {
 }
 
 class FormWithSubmit extends StatefulWidget {
-  final List<String> fields;
+  final Map<String, String> fieldNameWithTypes;
   final String hint;
+  final Function(Map<String, String> formData)? onSubmit;
 
   const FormWithSubmit({
     super.key,
-    required this.fields,
+    required this.fieldNameWithTypes,
     this.hint = "",
+    this.onSubmit,
   });
 
   @override
@@ -249,7 +251,7 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
           ),
-          for (var field in widget.fields) ...[
+          for (var field in widget.fieldNameWithTypes.keys) ...[
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
@@ -287,6 +289,14 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
                 if (value == null || value.isEmpty) {
                   return 'Please enter $field';
                 }
+                switch (widget.fieldNameWithTypes[field]) {
+                  case 'int':
+                    if (int.tryParse(value) == null) {
+                      return 'Please enter a valid integer for $field';
+                    }
+                    break;
+                  default:
+                }
                 return null;
               },
               onSaved: (value) {
@@ -299,7 +309,8 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
-                print(_formData); // Do whatever you want with the form data
+                print(_formData);
+                widget.onSubmit?.call(_formData);
               }
             },
             style: ElevatedButton.styleFrom(

@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'globals.dart';
 
 Future<http.Response> sendPluginInfoListRequest(String pluginName) async {
-  var url = Uri.parse('$baseUrl/plugin_info_list');
+  var url = Uri.parse('$baseUrl/plugin_info_field_type');
 
   var response = await http.post(url, body: {'plugin_name': pluginName});
   return response;
@@ -27,12 +27,11 @@ Widget buildPluginInfoList(String pluginName) {
         }
         //TODO error handling for type conversion
         String hint = pluginInfoWithHint["hint"]!;
-        List<dynamic> pluginInfoFields = pluginInfoWithHint["info_list"]!;
-        List<String> pluginInfoFieldsStringList =
-            pluginInfoFields.map((item) => item.toString()).toList();
+        Map<String, String> pluginInfoFieldTypes =
+            pluginInfoWithHint["field_type"].cast<String, String>();
 
         return FormWithSubmit(
-          fields: pluginInfoFieldsStringList,
+          fieldNameWithTypes: pluginInfoFieldTypes,
           hint: hint,
         );
       } else {
