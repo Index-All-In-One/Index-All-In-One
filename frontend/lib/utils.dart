@@ -260,7 +260,7 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
               ),
             ),
             TextFormField(
-              cursorColor: Colors.deepPurple,
+              cursorColor: Colors.blue,
               decoration: InputDecoration(
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
