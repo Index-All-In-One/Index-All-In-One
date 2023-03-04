@@ -210,14 +210,28 @@ void showErrorAlert(String errorMesssage, BuildContext context) {
   );
 }
 
+String? pluginInfoFieldTypeValidator(value, type, field) {
+  switch (type) {
+    case 'int':
+      if (int.tryParse(value) == null) {
+        return 'Please enter a valid integer for $field';
+      }
+      break;
+    default:
+  }
+  return null;
+}
+
 class FormWithSubmit extends StatefulWidget {
-  final Map<String, String> fieldNameWithTypes;
+  final List<String> fieldNames;
+  final Map<String, String> fieldTypes;
   final String hint;
   final Function(Map<String, String> formData)? onSubmit;
 
   const FormWithSubmit({
     super.key,
-    required this.fieldNameWithTypes,
+    required this.fieldNames,
+    required this.fieldTypes,
     this.hint = "",
     this.onSubmit,
   });
@@ -251,58 +265,24 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
           ),
-          for (var field in widget.fieldNameWithTypes.keys) ...[
+          for (var fieldName in widget.fieldNames) ...[
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                field,
+                fieldName,
                 style: const TextStyle(fontSize: 16),
               ),
             ),
-            TextFormField(
-              cursorColor: Colors.blue,
-              decoration: InputDecoration(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Colors.blue),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Colors.grey),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Colors.blue),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Colors.red),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Colors.red),
-                ),
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter $field';
-                }
-                switch (widget.fieldNameWithTypes[field]) {
-                  case 'int':
-                    if (int.tryParse(value) == null) {
-                      return 'Please enter a valid integer for $field';
-                    }
-                    break;
-                  default:
-                }
-                return null;
-              },
-              onSaved: (value) {
-                _formData[field] = value!;
-              },
-            ),
+            TextFormFieldWithStyle(
+                field: fieldName,
+                formData: _formData,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter $fieldName';
+                  }
+                  return pluginInfoFieldTypeValidator(
+                      value, widget.fieldTypes[fieldName]!, fieldName);
+                }),
           ],
           const SizedBox(height: 16),
           ElevatedButton(
@@ -324,6 +304,60 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class TextFormFieldWithStyle extends StatelessWidget {
+  const TextFormFieldWithStyle({
+    super.key,
+    required this.field,
+    this.validator,
+    required Map<String, String> formData,
+  }) : _formData = formData;
+
+  final String field;
+  final String? Function(String?)? validator;
+  final Map<String, String> _formData;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      cursorColor: Colors.blue,
+      decoration: InputDecoration(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.blue),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.grey),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.blue),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.red),
+        ),
+      ),
+      validator: validator ??
+          (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter $field';
+            }
+            return null;
+          },
+      onSaved: (value) {
+        _formData[field] = value!;
+      },
     );
   }
 }

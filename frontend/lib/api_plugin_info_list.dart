@@ -29,9 +29,16 @@ Widget buildPluginInfoList(String pluginName) {
         String hint = pluginInfoWithHint["hint"]!;
         Map<String, String> pluginInfoFieldTypes =
             pluginInfoWithHint["field_type"].cast<String, String>();
+        List<String> pluginInfoFieldNames =
+            ["source_name", "interval"] + pluginInfoFieldTypes.keys.toList();
+        pluginInfoFieldTypes.addEntries([
+          const MapEntry("source_name", "text"),
+          const MapEntry("interval", "int"),
+        ]);
 
         return FormWithSubmit(
-          fieldNameWithTypes: pluginInfoFieldTypes,
+          fieldNames: pluginInfoFieldNames,
+          fieldTypes: pluginInfoFieldTypes,
           hint: hint,
         );
       } else {
