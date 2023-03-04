@@ -169,6 +169,7 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info):
     session.commit()
 
     logging.info(f'Gmail plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
+    return None
 
 
 def plugin_gmail_del(plugin_instance_id):
@@ -189,6 +190,7 @@ def plugin_gmail_del(plugin_instance_id):
     creds = session.query(GmailCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
     session.delete(creds)
     session.commit()
+    return None
 
 def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     logging.debug(f'Gmail plugin instance {plugin_instance_id} updating, db name: {DB_NAME}')
@@ -205,9 +207,10 @@ def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     GmailSession.login_email()
     GmailSession.login_opensearch(host=opensearch_hostname)
     GmailSession.update_email()
+    return None
 
 def plugin_gmail_info_list():
-    return {"hint": "Please enter your app passwords, not Gmail's login password. If you don't have, create one first.", \
+    return None, {"hint": "Please enter your app passwords, not Gmail's login password. If you don't have, create one first.", \
             "info_list": ["username", "password"]}
 
 if __name__ == "__main__":
