@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class CopyLinkIcon extends StatelessWidget {
   final String link;
@@ -388,6 +390,53 @@ class TextFormFieldWithStyle extends StatelessWidget {
           },
       onSaved: (value) {
         _formData[field] = value!;
+      },
+    );
+  }
+}
+
+class BuildFromHttpRequest extends StatefulWidget {
+  final Future<http.Response> Function() httpRequest;
+  final String? apiErrorMessageName;
+  final Widget Function(dynamic) builderUsingResponseBody;
+
+  const BuildFromHttpRequest({
+    super.key,
+    required this.httpRequest,
+    this.apiErrorMessageName,
+    required this.builderUsingResponseBody,
+  });
+
+  @override
+  State<BuildFromHttpRequest> createState() => _BuildFromHttpRequestState();
+}
+
+class _BuildFromHttpRequestState extends State<BuildFromHttpRequest> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: widget.httpRequest(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text('An error occurred'),
+            );
+          }
+
+          final response = snapshot.data as http.Response;
+          if (response.statusCode != 200) {
+            showErrorAlert(
+                widget.apiErrorMessageName ??
+                    " API return unsuccessful response",
+                context);
+          }
+          return widget.builderUsingResponseBody(jsonDecode(response.body));
+        } else {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
       },
     );
   }
