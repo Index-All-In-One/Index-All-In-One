@@ -206,6 +206,10 @@ def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     GmailSession.login_opensearch(host=opensearch_hostname)
     GmailSession.update_email()
 
+def plugin_gmail_info_list():
+    return {"hint": "Please enter your app passwords, not Gmail's login password. If you don't have, create one first.", \
+            "info_list": ["username", "password"]}
+
 if __name__ == "__main__":
 
     # username = "a1415217miss@gmail.com"
