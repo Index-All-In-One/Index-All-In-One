@@ -7,7 +7,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from model_flask import *
-from plugins.entry_plugin import dispatch_plugin
+from plugins.entry_plugin import dispatch_plugin, get_allowed_plugin_list
 from opensearch.conn import OpenSearch_Conn
 
 
@@ -146,6 +146,10 @@ def list_accounts():
                 "active": plugin_instance.active,
             })
     return jsonify(all_accounts)
+
+@app.route('/plugin_list', methods=['GET'])
+def get_plugin_list():
+    return jsonify(get_allowed_plugin_list())
 
 @app.route('/plugin_info_list', methods=['POST'])
 def get_plugin_info_list():

@@ -1,11 +1,12 @@
 import importlib
 
-allowed_plugins = [ \
-    "stub", \
-    "gmail", \
-    ]
+# plugin_name: plugin_display_name
+allowed_plugins = { \
+    "stub":     "Stub for test", \
+    "gmail":    "Gmail", \
+    }
 
-def get_plugin_list():
+def get_allowed_plugin_list():
     return allowed_plugins
 
 def dispatch_plugin(function_name, plugin_name, plugin_args = []):
