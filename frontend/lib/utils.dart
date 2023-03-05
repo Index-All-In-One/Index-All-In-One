@@ -43,11 +43,15 @@ class LinkIconWithHover extends StatelessWidget {
   }
 }
 
-String formatTimeMinute(String timeString) {
-  DateTime time = DateTime.parse(timeString);
-  var formatter = DateFormat('yyyy/MM/dd HH:mm');
-  String formattedTime = formatter.format(time.toLocal());
-  return formattedTime;
+String formatTimeMinute(String? timeString) {
+  if (timeString == null) {
+    return 'empty time';
+  } else {
+    DateTime time = DateTime.parse(timeString);
+    var formatter = DateFormat('yyyy/MM/dd HH:mm');
+    String formattedTime = formatter.format(time.toLocal());
+    return formattedTime;
+  }
 }
 
 String ifIntOrBoolToString(queryValue) {

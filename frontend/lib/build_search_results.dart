@@ -104,7 +104,7 @@ Widget buildSearchResults(String query) {
                     case 'created_date':
                     case 'modified_date':
                       final formattedTime =
-                          formatTimeMinute(singleQueryResult[key]!);
+                          formatTimeMinute(singleQueryResult[key]);
                       returnWidget = Expanded(
                           child: Center(
                         child: TextWithHover(
