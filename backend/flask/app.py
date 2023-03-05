@@ -101,6 +101,9 @@ def add_plugin_instance():
     # TODO: handle plugin init failure
     # TODO: add log support for plugin init
     status = dispatch_plugin("init", plugin_name, [plugin_instance_id, plugin_init_info])
+    if not status:
+        return 'Failed to add plugin instance!'
+    
     app.logger.debug("Plugin instance init: %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
 
     new_request = Request(request_op="activate", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)

@@ -31,9 +31,11 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         try:
             self.imap = imaplib.IMAP4_SSL(IMAP_URL)
             self.imap.login(self.user, self.password)
-            print("Logged in as {}!".format(self.user))
+            logging.debug("Logged in as {}!".format(self.user))
+            return True
         except:
-            print("Email login failed.")
+            logging.debug("Email login failed.")
+            return False
 
     def get_emails(self, mailbox="Inbox"):
         '''
@@ -156,6 +158,17 @@ class GmailCredentials(model):
 
 def plugin_gmail_init(plugin_instance_id, plugin_init_info):
 
+    # add credentials of plugin instance
+    username = plugin_init_info["username"]
+    password = plugin_init_info["password"]
+
+    # check if credentials correct
+    GmailSession = Gmail_Instance(plugin_instance_id, username, password)
+    status = GmailSession.login_email()
+    if not status:
+        logging.error(f'init Gmail plugin instance {plugin_instance_id} failed, wrong credentials')
+        return False
+
     # create an engine that connects to the database
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     model.metadata.bind = engine
@@ -163,21 +176,13 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info):
     # create a session factory that uses the engine
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
-
-    # add credentials of plugin instance
-    username = plugin_init_info["username"]
-    password = plugin_init_info["password"]
-
-    # check if credentials correct
-
-    model.metadata.create_all(engine)
     # create a new GmailCredentials object and add it to the database
     plugin_instance_credentials = GmailCredentials(plugin_instance_id, username, password)
     session.add(plugin_instance_credentials)
     session.commit()
 
     logging.info(f'Gmail plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
-    return None
+    return True
 
 
 def plugin_gmail_del(plugin_instance_id):
