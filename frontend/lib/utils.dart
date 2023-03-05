@@ -5,14 +5,39 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class CopyLinkIcon extends StatelessWidget {
-  final String link;
+class IconButtonWithHover extends StatelessWidget {
+  final String hoverText;
+  final Icon icon;
+  final Function() onPressed;
 
-  const CopyLinkIcon({super.key, required this.link});
+  const IconButtonWithHover({
+    super.key,
+    required this.hoverText,
+    required this.icon,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    return Tooltip(
+      message: hoverText,
+      child: IconButton(
+        icon: icon,
+        onPressed: onPressed,
+      ),
+    );
+  }
+}
+
+class CopyLinkIconWithHover extends StatelessWidget {
+  final String link;
+
+  const CopyLinkIconWithHover({super.key, required this.link});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButtonWithHover(
+      hoverText: 'Copy link to clipboard',
       icon: const Icon(Icons.content_copy),
       onPressed: () {
         FlutterClipboard.copy(link).then((value) => {
@@ -32,13 +57,10 @@ class LinkIconWithHover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: link,
-      child: IconButton(
-        icon: const Icon(Icons.link),
-        onPressed: () =>
-            launchUrl(Uri.parse(link), webOnlyWindowName: '_blank'),
-      ),
+    return IconButtonWithHover(
+      hoverText: link,
+      icon: const Icon(Icons.link),
+      onPressed: () => launchUrl(Uri.parse(link), webOnlyWindowName: '_blank'),
     );
   }
 }
@@ -426,13 +448,13 @@ class _BuildFromHttpRequestState extends State<BuildFromHttpRequest> {
   }
 }
 
-class IconButtonWithDialog extends StatelessWidget {
+class IconButtonWithConfirm extends StatelessWidget {
   final String operationShort;
   final String operationPhrase;
   final Icon? icon;
   final Function()? operationExecution;
 
-  const IconButtonWithDialog({
+  const IconButtonWithConfirm({
     super.key,
     required this.operationShort,
     required this.operationPhrase,
@@ -442,7 +464,8 @@ class IconButtonWithDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    return IconButtonWithHover(
+      hoverText: operationShort,
       icon: icon ?? const Icon(Icons.delete),
       onPressed: () {
         showDialog(

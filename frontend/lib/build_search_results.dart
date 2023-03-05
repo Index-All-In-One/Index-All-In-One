@@ -120,7 +120,7 @@ Widget buildSearchResults(String query) {
                           child: Wrap(
                             children: [
                               LinkIconWithHover(link: queryValue),
-                              CopyLinkIcon(link: queryValue),
+                              CopyLinkIconWithHover(link: queryValue),
                             ],
                           ),
                         ),

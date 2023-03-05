@@ -67,7 +67,7 @@ Widget buildAccountList() {
                   case 'op':
                     returnWidget = Expanded(
                         child: Center(
-                      child: IconButtonWithDialog(
+                      child: IconButtonWithConfirm(
                         icon: const Icon(Icons.delete),
                         operationShort: "Delete",
                         operationPhrase: "delete this Account/Application",
