@@ -505,3 +505,104 @@ void waitAndShowSnackBarMsg(context, Future<bool> Function()? requestFunction,
     );
   }
 }
+
+class ToggleSwitch extends StatefulWidget {
+  final bool initialValue;
+  final Function(bool) onToggle;
+
+  const ToggleSwitch(
+      {super.key, required this.initialValue, required this.onToggle});
+
+  @override
+  State<ToggleSwitch> createState() => _ToggleSwitchState();
+}
+
+class _ToggleSwitchState extends State<ToggleSwitch> {
+  late bool _value;
+  bool isToggling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.initialValue;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        if (!isToggling) {
+          setState(() {
+            isToggling = true;
+          });
+          widget.onToggle(!_value);
+          setState(() {
+            _value = !_value;
+          });
+          setState(() {
+            isToggling = false;
+          });
+          // try {
+          //   await widget.onToggle(!_value);
+          //   setState(() {
+          //     _value = !_value;
+          //   });
+          // } finally {
+          //   setState(() {
+          //     isToggling = false;
+          //   });
+          // }
+        }
+      },
+      child: Container(
+        width: 50.0,
+        height: 30.0,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15.0),
+          color: _value ? Colors.green : Colors.grey,
+        ),
+        child: Stack(
+          children: [
+            Align(
+              alignment: _value ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                margin: const EdgeInsets.all(2.0),
+                width: 25.0,
+                height: 25.0,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            if (isToggling)
+              Center(
+                child: CircularProgressIndicator(),
+              ),
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: !isToggling,
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        // child: Align(
+        //   alignment: _value ? Alignment.centerRight : Alignment.centerLeft,
+        //   child: Container(
+        //     margin: const EdgeInsets.all(2.0),
+        //     width: 25.0,
+        //     height: 25.0,
+        //     decoration: const BoxDecoration(
+        //       shape: BoxShape.circle,
+        //       color: Colors.white,
+        //     ),
+        //   ),
+        // ),
+      ),
+    );
+  }
+}

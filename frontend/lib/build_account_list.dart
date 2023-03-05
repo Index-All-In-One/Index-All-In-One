@@ -16,7 +16,7 @@ Map<String, String> accountsFieldDisplayNames = {
   "plugin_name": "Application Name",
   "source_name": "Source Title",
   "update_interval": "Update Interval",
-  "enabled": "Enable",
+  "enabled": "Enabled",
   "active": "Active",
 };
 
@@ -85,6 +85,45 @@ Widget buildAccountList() {
                         },
                       ),
                     ));
+                    break;
+
+                  case 'enabled':
+                    returnWidget = Expanded(
+                        child: Center(
+                            child: Wrap(
+                      children: [
+                        // TextWithHover(
+                        //     text: ifIntOrBoolToString(singleQueryResult[key]!)),
+                        ToggleSwitch(
+                          initialValue: singleQueryResult[key]!,
+                          onToggle: (value) {
+                            if (value) {
+                              waitAndShowSnackBarMsg(
+                                context,
+                                () async => onlyCareStatus(
+                                    () => sendEnablePIRequest(
+                                        singleQueryResult['id'].toString()),
+                                    "enable_PI"),
+                                "Enabled successfully!",
+                                "Failed to enable.",
+                                false,
+                              );
+                            } else {
+                              waitAndShowSnackBarMsg(
+                                context,
+                                () async => onlyCareStatus(
+                                    () => sendDisablePIRequest(
+                                        singleQueryResult['id'].toString()),
+                                    "disable_PI"),
+                                "Disabled successfully!",
+                                "Failed to disable.",
+                                false,
+                              );
+                            }
+                          },
+                        )
+                      ],
+                    )));
                     break;
                   default:
                     String queryValueString =

@@ -82,3 +82,23 @@ Future<http.Response> sendDelPIRequest(String pluginInstanceID) async {
 
   return Future.value(fakeResponse);
 }
+
+Future<http.Response> sendEnablePIRequest(String pluginInstanceID) async {
+  final url = Uri.parse('$baseUrl/enable_PI');
+  try {
+    var response = await http.post(url, body: {'id': pluginInstanceID});
+    return response;
+  } catch (e) {}
+
+  return Future.value(fakeResponse);
+}
+
+Future<http.Response> sendDisablePIRequest(String pluginInstanceID) async {
+  final url = Uri.parse('$baseUrl/disable_PI');
+  try {
+    var response = await http.post(url, body: {'id': pluginInstanceID});
+    return response;
+  } catch (e) {}
+
+  return Future.value(fakeResponse);
+}
