@@ -80,6 +80,20 @@ class RefreshIconWithHover extends StatelessWidget {
   }
 }
 
+class RefreshIcon extends StatelessWidget {
+  final Function() onPressed;
+
+  const RefreshIcon({super.key, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.refresh),
+      onPressed: onPressed,
+    );
+  }
+}
+
 String formatTimeMinute(String? timeString) {
   if (timeString == null) {
     return 'empty time';

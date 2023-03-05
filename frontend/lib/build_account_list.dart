@@ -34,7 +34,7 @@ Widget buildAccountList(Function() refreshCallback) {
             return ListTile(
                 title: Row(children: [
               Text("You have ${queryResults.length} Account/Application(s)"),
-              RefreshIconWithHover(onPressed: refreshCallback),
+              RefreshIcon(onPressed: refreshCallback),
             ]));
           }
           if (index == 1) {
