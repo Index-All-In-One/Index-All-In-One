@@ -74,24 +74,22 @@ def search():
 
 @app.route('/add_PI', methods=['POST'])
 def add_plugin_instance():
-    json_data = request.get_json()
+    json_data = json.loads(request.data)
 
-    try:
-        plugin_name = json_data['plugin_name']
-        source_name = json_data['source_name']
-        interval = json_data['interval']
-        plugin_init_info = json_data['plugin_init_info']
-        plugin_instance_id = json_data['id']
+    plugin_name = json_data.get('plugin_name', None)
+    source_name = json_data.get('source_name', None)
+    interval = json_data.get('interval', None)
+    plugin_init_info = json_data.get('plugin_init_info', None)
+    plugin_instance_id = json_data.get('id', None)
 
-    except KeyError:
-        if plugin_name is None:
-            abort(400, 'Missing key: plugin_name')
-        if source_name is None:
-            abort(400, 'Missing key: source_name')
-        if interval is None:
-            abort(400, 'Missing key: interval')
-        if plugin_init_info is None:
-            abort(400, 'Missing key: plugin_init_info')
+    if plugin_name is None:
+        abort(400, 'Missing key: plugin_name')
+    if source_name is None:
+        abort(400, 'Missing key: source_name')
+    if interval is None:
+        abort(400, 'Missing key: interval')
+    if plugin_init_info is None:
+        abort(400, 'Missing key: plugin_init_info')
 
     if plugin_instance_id is not None:
         plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
