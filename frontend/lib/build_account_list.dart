@@ -3,12 +3,12 @@ import 'utils.dart';
 import 'apis.dart';
 
 List<String> accountsFieldKeys = [
-  "op", //special field
   "plugin_name",
   "source_name",
   "update_interval",
   "enabled",
   "active",
+  "op", //special field
 ];
 
 Map<String, String> accountsFieldDisplayNames = {
