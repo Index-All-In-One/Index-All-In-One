@@ -72,7 +72,23 @@ Widget buildAccountList() {
                         operationShort: "Delete",
                         operationPhrase: "delete this Account/Application",
                         operationExecution: () {
-                          sendDelPIRequest(singleQueryResult['id'].toString());
+                          waitAndShowSnackBarMsg(
+                            context,
+                            () async {
+                              var response = await sendDelPIRequest(
+                                  singleQueryResult['id'].toString());
+                              if (response.statusCode != 200) {
+                                //TODO add log
+                                print(
+                                    "Del PI API return unsuccessful response: ${response.body}");
+                                return false;
+                              }
+                              return true;
+                            },
+                            "Deleted successfully!",
+                            "Failed to delete.",
+                            false,
+                          );
                         },
                       ),
                     ));

@@ -302,6 +302,7 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
                   },
                   widget.successMessage ?? 'Form submitted successfully',
                   'An error occurred while submitting the form',
+                  true,
                 );
               }
             },
@@ -470,7 +471,7 @@ class IconButtonWithDialog extends StatelessWidget {
 }
 
 void waitAndShowSnackBarMsg(context, Future<bool> Function()? requestFunction,
-    String successMessage, String errorMessage) async {
+    String successMessage, String errorMessage, bool successBack) async {
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -482,16 +483,16 @@ void waitAndShowSnackBarMsg(context, Future<bool> Function()? requestFunction,
   Navigator.pop(context);
 
   if (success) {
-    // Show success snackbar and pop form page
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(successMessage),
         duration: const Duration(seconds: 4),
       ),
     );
-    Navigator.pop(context);
+    if (successBack) {
+      Navigator.pop(context);
+    }
   } else {
-    // Show error snackbar and stay on form page
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(errorMessage),

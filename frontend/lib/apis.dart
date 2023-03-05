@@ -2,6 +2,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'globals.dart';
 
+var fakeResponse = http.Response(
+    '{"message": "Fake response: Encounterd Error when sending Http request"}',
+    500);
+
 Future<http.Response> sendSearchRequest(String query) async {
   var url = Uri.parse('$baseUrl/search');
 
@@ -46,17 +50,24 @@ Future<http.Response> sendAddPIRequest(
     'plugin_init_info': formData,
   };
 
-  var response = await http.post(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode(requestData),
-  );
-  return response;
+  try {
+    var response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(requestData),
+    );
+    return response;
+  } catch (e) {}
+
+  return Future.value(fakeResponse);
 }
 
 Future<http.Response> sendDelPIRequest(String pluginInstanceID) async {
   final url = Uri.parse('$baseUrl/del_PI');
+  try {
+    var response = await http.post(url, body: {'id': pluginInstanceID});
+    return response;
+  } catch (e) {}
 
-  var response = await http.post(url, body: {'id': pluginInstanceID});
-  return response;
+  return Future.value(fakeResponse);
 }
