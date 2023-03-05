@@ -74,17 +74,10 @@ Widget buildAccountList() {
                         operationExecution: () {
                           waitAndShowSnackBarMsg(
                             context,
-                            () async {
-                              var response = await sendDelPIRequest(
-                                  singleQueryResult['id'].toString());
-                              if (response.statusCode != 200) {
-                                //TODO add log
-                                print(
-                                    "Del PI API return unsuccessful response: ${response.body}");
-                                return false;
-                              }
-                              return true;
-                            },
+                            () async => onlyCareStatus(
+                                () => sendDelPIRequest(
+                                    singleQueryResult['id'].toString()),
+                                "del_PI"),
                             "Deleted successfully!",
                             "Failed to delete.",
                             false,

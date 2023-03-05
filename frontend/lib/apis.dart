@@ -6,6 +6,17 @@ var fakeResponse = http.Response(
     '{"message": "Fake response: Encounterd Error when sending Http request"}',
     500);
 
+Future<bool> onlyCareStatus(
+    Future<http.Response> Function() requestFunction, String apiName) async {
+  var response = await requestFunction();
+  if (response.statusCode != 200) {
+    //TODO add log
+    print("$apiName API return unsuccessful response: ${response.body}");
+    return false;
+  }
+  return true;
+}
+
 Future<http.Response> sendSearchRequest(String query) async {
   var url = Uri.parse('$baseUrl/search');
 

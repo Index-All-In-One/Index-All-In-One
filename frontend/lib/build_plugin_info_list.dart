@@ -26,16 +26,8 @@ Widget buildPluginInfoList(String pluginName) {
           fieldTypes: pluginInfoFieldTypes,
           hint: hint,
           successMessage: "Successfully linked $pluginName!",
-          onSubmit: (Map<String, String> formData) async {
-            var response = await sendAddPIRequest(pluginName, formData);
-            if (response.statusCode != 200) {
-              //TODO add log
-              print(
-                  "Add PI API return unsuccessful response: ${response.body}");
-              return false;
-            }
-            return true;
-          },
+          onSubmit: (Map<String, String> formData) async => onlyCareStatus(
+              () => sendAddPIRequest(pluginName, formData), "del_PI"),
         );
       });
 }
