@@ -10,6 +10,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from model_standalone import *
 from plugins.entry_plugin import dispatch_plugin
+from plugins.status_code import PluginReturnStatus
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -25,8 +26,27 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
                 pass
             logging.debug("[%d] Routine: %s %s %s %d is terminated", counter, plugin_name, plugin_instance_id, run_id, update_interval)
             break
-        logging.debug("[%d] Routine: %s %s %s %d is running", counter, plugin_name, plugin_instance_id, run_id, update_interval)
-        dispatch_plugin("update", plugin_name, [plugin_instance_id, opensearch_hostname, ])
+
+        #TODO return status code for plugin update failure
+        try:
+            status = dispatch_plugin("update", plugin_name, [plugin_instance_id, opensearch_hostname, ])
+        except Exception as e:
+            logging.error(e)
+            status = PluginReturnStatus.EXCEPTION
+
+        if status == PluginReturnStatus.SUCCESS:
+            logging.debug("[%d] Routine: %s %s %s %d run update successfully", counter, plugin_name, plugin_instance_id, run_id, update_interval)
+        else:
+            # TODO: handle plugin update failure
+            logging.error("[%d] Routine: %s %s %s %d run update failed! Status: %s", counter, plugin_name, plugin_instance_id, run_id, update_interval, status.name)
+            if status == PluginReturnStatus.EXCEPTION:
+                # TODO: leave message in database
+                all_running_instance = session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == plugin_instance_id)
+                PI_instance = session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+                if all_running_instance is not None and PI_instance is not None:
+                    PI_instance.active = False
+                    session.commit()
+                break
         counter += 1
         time.sleep(update_interval)
 

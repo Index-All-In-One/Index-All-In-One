@@ -3,7 +3,8 @@ import re
 import logging
 import sys
 from opensearch.conn import OpenSearch_Conn
-# from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
+from plugins.status_code import PluginReturnStatus
+
 IMAP_URL = 'imap.gmail.com'
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
@@ -169,7 +170,7 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info):
     session.commit()
 
     logging.info(f'Gmail plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
-    return None
+    return PluginReturnStatus.SUCCESS
 
 
 def plugin_gmail_del(plugin_instance_id):
@@ -190,7 +191,7 @@ def plugin_gmail_del(plugin_instance_id):
     creds = session.query(GmailCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
     session.delete(creds)
     session.commit()
-    return None
+    return PluginReturnStatus.SUCCESS
 
 def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     logging.debug(f'Gmail plugin instance {plugin_instance_id} updating, db name: {DB_NAME}')
@@ -207,10 +208,10 @@ def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     GmailSession.login_email()
     GmailSession.login_opensearch(host=opensearch_hostname)
     GmailSession.update_email()
-    return None
+    return PluginReturnStatus.SUCCESS
 
 def plugin_gmail_info_list():
-    return None, {"hint": "Please enter your app password, not Gmail's login password. If you don't have, create one first.", \
+    return PluginReturnStatus.SUCCESS, {"hint": "Please enter your app password, not Gmail's login password. If you don't have, create one first.", \
             "field_type": {"username": "text", "password": "secret", },}
 
 if __name__ == "__main__":

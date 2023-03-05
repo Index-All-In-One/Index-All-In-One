@@ -8,6 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from model_flask import *
 from plugins.entry_plugin import dispatch_plugin, get_allowed_plugin_list
+from plugins.status_code import PluginReturnStatus
 from opensearch.conn import OpenSearch_Conn
 
 
@@ -103,16 +104,26 @@ def add_plugin_instance():
     sqlalchemy_db.session.add(new_plugin_instance)
     sqlalchemy_db.session.commit()
 
-    # TODO: handle plugin init failure
-    # TODO: add log support for plugin init
-    status = dispatch_plugin("init", plugin_name, [plugin_instance_id, plugin_init_info])
-    app.logger.debug("Plugin instance init: %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
+    # TODO: return status code for plugin init failure,
+    # TODO: add log support inside plugin init
 
-    new_request = Request(request_op="activate", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
-    sqlalchemy_db.session.add(new_request)
-    sqlalchemy_db.session.commit()
+    try:
+        status = dispatch_plugin("init", plugin_name, [plugin_instance_id, plugin_init_info])
+    except Exception as e:
+        app.logger.error(e)
+        status = PluginReturnStatus.EXCEPTION
 
-    return 'Add plugin instance successfully!'
+    if status == PluginReturnStatus.SUCCESS:
+        new_request = Request(request_op="activate", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
+        sqlalchemy_db.session.add(new_request)
+        sqlalchemy_db.session.commit()
+
+        app.logger.debug("Plugin instance init Success! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
+        return 'Add plugin instance successfully!'
+    else:
+        # TODO: handle plugin init failure
+        app.logger.error("Plugin instance init failed! Status: %d : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
+        return 'Plugin instance init function failed!'
 
 @app.route('/del_PI', methods=['POST'])
 def delete_plugin_instance():
@@ -122,26 +133,31 @@ def delete_plugin_instance():
         abort(400, 'Missing required parameter: id')
 
     plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
-    if plugin_instance is not None:
-        plugin_name = plugin_instance.plugin_name
-        sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).delete()
-
-        new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
-        sqlalchemy_db.session.add(new_request)
-        sqlalchemy_db.session.commit()
-
-        #TODO handle plugin del failure
-        try:
-            dispatch_plugin("del", plugin_name, [plugin_instance_id])
-            app.logger.debug("Plugin instance del: %s, %s", plugin_name, plugin_instance_id)
-        except Exception as e:
-            app.logger.error("plugin del function failed: %s, %s", plugin_name, plugin_instance_id)
-            app.logger.error(e)
-
-    else:
+    if plugin_instance is None:
         return 'No such plugin instance!'
 
-    return 'Delete plugin instance successfully!'
+    plugin_name = plugin_instance.plugin_name
+    sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).delete()
+
+    new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
+    sqlalchemy_db.session.add(new_request)
+    sqlalchemy_db.session.commit()
+
+    #TODO return status code for plugin del failure
+    try:
+        status = dispatch_plugin("del", plugin_name, [plugin_instance_id])
+    except Exception as e:
+        app.logger.error(e)
+        status = PluginReturnStatus.EXCEPTION
+
+
+    if status == PluginReturnStatus.SUCCESS:
+        app.logger.debug("Plugin instance del Success! : %s, %s", plugin_name, plugin_instance_id)
+        return 'Delete plugin instance successfully!'
+    else:
+        # TODO: handle plugin del failure
+        app.logger.error("Plugin instance del failed! Status: %s : %s, %s", status.name, plugin_name, plugin_instance_id)
+        return 'Plugin instance del function failed!'
 
 @app.route('/enable_PI', methods=['POST'])
 def enable_plugin_instance():
