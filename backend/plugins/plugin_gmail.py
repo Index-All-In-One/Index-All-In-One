@@ -232,7 +232,7 @@ if __name__ == "__main__":
     # GmailSession.update_email()
 
     plugin_instance_id = "2b225262-8235-4c9f-9cb9-a068f72ad181"
-    dic = {"username": "a1415217miss@gmail.com", "password": "evlthhabxgeasauf"}
+    dic = {"username": "a1415217miss@gmail.com", "password": ""}
     plugin_gmail_init(plugin_instance_id, dic)
     plugin_gmail_update(plugin_instance_id)
     plugin_gmail_del(plugin_instance_id)
