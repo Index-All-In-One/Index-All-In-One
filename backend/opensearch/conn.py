@@ -26,8 +26,11 @@ class OpenSearch_Conn:
             body = json.load(open("index.json", 'r'))
             OpenSearch_Conn.insert_index(body)
         '''
-        response = self.client.indices.create(index=index_name,body=body)
-        return response
+        try:
+            response = self.client.indices.create(index=index_name,body=body)
+        except:
+            return False
+        return True
 
     def insert_doc(self, body: dict, index_name='search_index'):
         '''
@@ -122,8 +125,11 @@ class OpenSearch_Conn:
         '''
         Delete the index and all documents under it
         '''
-        response = self.client.indices.delete(index=index_name)
-        return response
+        try:
+            response = self.client.indices.delete(index=index_name)
+        except:
+            return False
+        return True
 
     def get_doc_count(self, index_name='search_index'):
         '''
@@ -195,12 +201,11 @@ if __name__ == "__main__":
     index_name='search_index'
     conn = OpenSearch_Conn()
     conn.connect()
-    # try:
-    #     conn.delete_index(index_name)
-    # except:
-    #     pass
-    # data = json.load(open("opensearch/index.json", 'r'))
-    # conn.insert_index(data)
+    status = conn.delete_index(index_name)
+    print(status)
+    data = json.load(open("opensearch/index.json", 'r'))
+    status = conn.insert_index(data)
+    print(status)
 
     # body = dummy_data()
     # conn.insert_doc(body)
