@@ -527,7 +527,8 @@ class IconButtonWithConfirm extends StatelessWidget {
 }
 
 void waitAndShowSnackBarMsg(context, Future<bool> Function()? requestFunction,
-    String successMessage, String errorMessage, bool successBack) async {
+    String successMessage, String errorMessage, bool successBack,
+    {Function()? refreshFuncion}) async {
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -548,6 +549,7 @@ void waitAndShowSnackBarMsg(context, Future<bool> Function()? requestFunction,
     if (successBack) {
       Navigator.pop(context);
     }
+    refreshFuncion?.call();
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

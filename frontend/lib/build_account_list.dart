@@ -82,6 +82,7 @@ Widget buildAccountList(Function() refreshCallback) {
                             "Deleted successfully!",
                             "Failed to delete.",
                             false,
+                            refreshFuncion: refreshCallback,
                           );
                         },
                       ),
@@ -108,6 +109,7 @@ Widget buildAccountList(Function() refreshCallback) {
                                 "Enabled successfully!",
                                 "Failed to enable.",
                                 false,
+                                refreshFuncion: refreshCallback,
                               );
                             } else {
                               waitAndShowSnackBarMsg(
@@ -119,6 +121,7 @@ Widget buildAccountList(Function() refreshCallback) {
                                 "Disabled successfully!",
                                 "Failed to disable.",
                                 false,
+                                refreshFuncion: refreshCallback,
                               );
                             }
                           },
