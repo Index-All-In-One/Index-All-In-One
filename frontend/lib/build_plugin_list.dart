@@ -6,6 +6,7 @@ import 'utils.dart';
 Widget buildPluginList() {
   return BuildFromHttpRequest(
     httpRequest: sendPluginListRequest,
+    apiErrorMessageName: "plugin_list",
     builderUsingResponseBody: (responseBody) {
       final Map<String, dynamic> pluginNameMap =
           responseBody.cast<String, dynamic>();

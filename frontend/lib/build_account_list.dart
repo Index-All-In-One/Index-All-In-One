@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'utils.dart';
 import 'apis.dart';
 
@@ -22,6 +21,7 @@ Map<String, String> accountsFieldDisplayNames = {
 Widget buildAccountList() {
   return BuildFromHttpRequest(
     httpRequest: sendListAccountRequest,
+    apiErrorMessageName: "list_account",
     builderUsingResponseBody: (responseBody) {
       List<dynamic> queryResults = responseBody.cast<dynamic>();
       return ListView.builder(

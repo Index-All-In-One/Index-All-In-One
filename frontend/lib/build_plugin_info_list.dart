@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'utils.dart';
 import 'apis.dart';
 
 Widget buildPluginInfoList(String pluginName) {
   return BuildFromHttpRequest(
-      httpRequest: () => sendPluginInfoListRequest(pluginName),
+      httpRequest: () => sendPluginInfoFieldsRequest(pluginName),
+      apiErrorMessageName: "plugin_info_field_type",
       builderUsingResponseBody: (responseBody) {
         Map<String, dynamic> pluginInfoWithHint =
             responseBody.cast<String, dynamic>();

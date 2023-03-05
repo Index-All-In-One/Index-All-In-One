@@ -24,7 +24,7 @@ Future<http.Response> sendPluginListRequest() async {
   return response;
 }
 
-Future<http.Response> sendPluginInfoListRequest(String pluginName) async {
+Future<http.Response> sendPluginInfoFieldsRequest(String pluginName) async {
   var url = Uri.parse('$baseUrl/plugin_info_field_type');
 
   var response = await http.post(url, body: {'plugin_name': pluginName});

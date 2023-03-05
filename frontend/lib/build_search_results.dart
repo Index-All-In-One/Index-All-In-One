@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:index_all_in_one/utils.dart';
-import 'dart:convert';
 import 'apis.dart';
 
 List<String> documentFieldKeys = [
@@ -28,6 +27,7 @@ Map<String, String> documentFieldDisplayNames = {
 Widget buildSearchResults(String query) {
   return BuildFromHttpRequest(
       httpRequest: () => sendSearchRequest(query),
+      apiErrorMessageName: "search",
       builderUsingResponseBody: (responseBody) {
         List<dynamic> queryResults = responseBody.cast<dynamic>();
 
