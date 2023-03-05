@@ -53,3 +53,10 @@ Future<http.Response> sendAddPIRequest(
   );
   return response;
 }
+
+Future<http.Response> sendDelPIRequest(String pluginInstanceID) async {
+  final url = Uri.parse('$baseUrl/del_PI');
+
+  var response = await http.post(url, body: {'id': pluginInstanceID});
+  return response;
+}
