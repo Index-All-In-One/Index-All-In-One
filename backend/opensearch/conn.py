@@ -51,7 +51,7 @@ class OpenSearch_Conn:
         response = self.client.index(index=index_name,body=body)
         return response
 
-    def search_doc(self, keywords, index_name='search_index'):
+    def search_doc(self, keywords, full_text_keywords, index_name='search_index'):
         '''
         with a list of keywords, search for documents that match either of the keywords in the list.
         Input:
@@ -64,12 +64,15 @@ class OpenSearch_Conn:
             keywords = [{"match": {"doc_id": doc_id}}]
             keywords = [{"match": {"content": content1}}, {"match": {"doc_id": doc_id}}]
         '''
+        keywords = {"match": {"doc_name": keywords}}
+        full_text_keywords = {"match": {"content": full_text_keywords}}
+
         response = self.client.search(
             index=index_name,
             body={
                 "query": {
                     "bool": {
-                        "should": keywords
+                        "should": list(keywords,full_text_keywords)
                     }
                 }
             }
@@ -147,13 +150,45 @@ def init_opensearch_db(indexfile_path: str, host='localhost', port=9200, usernam
     data = json.load(open(indexfile_path, 'r'))
     conn.insert_index(data)
 
+def dummy_data():
+    from datetime import datetime
+    doc_id = 1
+    doc_name = "Google"
+    doc_type = "txt"
+    link = "https://www.google.com/"
+    source = "Gmail"
+    created_date = datetime(2022, 2, 18, 12, 30, 0).strftime('%Y-%m-%dT%H:%M:%SZ')
+    modified_date = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    summary = "Google is a multinational technology company that specializes in Internet-related services and products. It was founded in 1998 by Larry Page and Sergey Brin, who were graduate students at Stanford University at the time. Today, Google is one of the largest and most influential companies in the world, with a market capitalization of over $1 trillion."
+    file_size = len(summary.encode('utf-8'))
+    plugin_instance_id = "1"
+    content = "Google is a multinational technology company that specializes in Internet-related services and products. It was founded in 1998 by Larry Page and Sergey Brin, who were graduate students at Stanford University at the time. Today, Google is one of the largest and most influential companies in the world, with a market capitalization of over $1 trillion. Youtube was bought by Google."
+    
+    body = {
+        "doc_id": doc_id,
+        "doc_name": doc_name,
+        "doc_type": doc_type,
+        "link": link,
+        "source": source,
+        "created_date": created_date,
+        "modified_date": modified_date,
+        "summary": summary,
+        "file_size": file_size,
+            "plugin_instance_id": plugin_instance_id,
+            "content": content
+    }
+    return body
+
 if __name__ == "__main__":
     index_name='search_index'
     conn = OpenSearch_Conn()
     conn.connect()
-    # conn.delete_index(index_name)
-    data = json.load(open("index.json", 'r'))
+    try:
+        conn.delete_index(index_name)
+    except:
+        pass
+    data = json.load(open("opensearch/index.json", 'r'))
     conn.insert_index(data)
 
-    # body = dummy_data()
-    # conn.insert_doc(body)
+    body = dummy_data()
+    conn.insert_doc(body)

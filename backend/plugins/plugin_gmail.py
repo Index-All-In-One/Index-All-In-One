@@ -1,24 +1,21 @@
 import imaplib, email
-import re
-<<<<<<< HEAD:backend-flask/plugin_management/plugins/plugin_gmail.py
-from opensearch_conn import OpenSearch_Conn
-=======
+import re, os, sys, datetime
 import logging
-import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from opensearch.conn import OpenSearch_Conn
-# from plugin_management.plugins.opensearch_conn import OpenSearch_Conn
->>>>>>> 79f1cd1e8d1a5ca4a17053d12c18cbb8cf193abd:backend/plugins/plugin_gmail.py
+
 IMAP_URL = 'imap.gmail.com'
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 class Gmail_Instance:
-    def __init__(self, username, password, plugin_instance_id):
+    def __init__(self, plugin_instance_id, username, password):
+        self.plugin_instance_id = plugin_instance_id
         self.user = username
         self.password = password
         self.imap = None
         self.opensearch_conn = OpenSearch_Conn()
-        self.plugin_instance_id = plugin_instance_id
+        
 
     def login_opensearch(self, host='localhost', port=9200, username='admin', password='admin',
 use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
@@ -48,7 +45,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         message_uids = message_uids[0].split()
 
         # fetch the desired attributes for each message
-        doc_ids, doc_content, doc_sizes = [], [], []
+        doc_ids, doc_contents, doc_sizes = [], [], []
         for num in message_uids:
             # the universial id of email
             _, doc_id = self.imap.fetch(num, '(X-GM-MSGID)')
@@ -60,10 +57,10 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             size = re.search(r'RFC822.SIZE (\d+)', size[0].decode('utf-8')).group(1)
 
             doc_ids.append(doc_id)
-            doc_content.append(message)
+            doc_contents.append(message)
             doc_sizes.append(size)
 
-        return doc_ids, doc_content, doc_sizes
+        return doc_ids, doc_contents, doc_sizes
 
     def update_email(self):
         '''
@@ -111,6 +108,11 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             if part.get_content_type() == "text/plain":
                 text_content = part.get_payload(decode=True).decode('utf-8')
 
+
+        send_date = send_date.split(' (')[0]
+        send_date = datetime.datetime.strptime(send_date, '%a, %d %b %Y %H:%M:%S %z')
+        send_date = send_date.replace(tzinfo=None)
+        send_date = send_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         body = {
             "doc_id": doc_id,
             "doc_name": title,
@@ -189,7 +191,7 @@ def plugin_gmail_del(plugin_instance_id):
     username = creds.username
     password = creds.password
     del_keyword = [{"match": {"plugin_instance_id": plugin_instance_id}}]
-    GmailSession = Gmail_Instance(username, password)
+    GmailSession = Gmail_Instance(plugin_instance_id, username, password)
     GmailSession.login_opensearch()
     GmailSession.opensearch_conn.delete_doc(del_keyword)
 
@@ -210,7 +212,7 @@ def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     # login
     username = creds.username
     password = creds.password
-    GmailSession = Gmail_Instance(username, password)
+    GmailSession = Gmail_Instance(plugin_instance_id, username, password)
     GmailSession.login_email()
     GmailSession.login_opensearch(host=opensearch_hostname)
     GmailSession.update_email()
@@ -224,13 +226,13 @@ if __name__ == "__main__":
 
     # username = "a1415217miss@gmail.com"
     # password = "password"
-    # GmailSession = Gmail_Instance(username, password)
+    # GmailSession = Gmail_Instance(plugin_instance_id, username, password)
     # GmailSession.login_email()
     # GmailSession.login_opensearch()
     # GmailSession.update_email()
 
     plugin_instance_id = "2b225262-8235-4c9f-9cb9-a068f72ad181"
-    dic = {"username": "a1415217miss@gmail.com", "password": "password"}
+    dic = {"username": "a1415217miss@gmail.com", "password": "evlthhabxgeasauf"}
     plugin_gmail_init(plugin_instance_id, dic)
     plugin_gmail_update(plugin_instance_id)
     plugin_gmail_del(plugin_instance_id)

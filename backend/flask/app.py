@@ -50,9 +50,9 @@ def search():
 
     # turn keywords into a list of dict
     keywords = request.form.get('keywords')
-    keywords = json.loads(keywords)
+    full_text_keywords = request.form.get('full_text_keywords')
     # Connect with openSearch
-    response = opensearch_conn.search_doc(keywords)
+    response = opensearch_conn.search_doc(keywords,full_text_keywords)
     docs = response['hits']['hits']
 
     search_results = []
