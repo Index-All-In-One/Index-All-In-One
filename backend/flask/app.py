@@ -137,6 +137,48 @@ def delete_plugin_instance():
 
     return 'Delete plugin instance successfully!'
 
+@app.route('/enable_PI', methods=['POST'])
+def enable_plugin_instance():
+    plugin_instance_id = request.form.get('id')
+    if plugin_instance_id is None :
+        abort(400, 'Missing required parameter: id')
+
+    plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+    if plugin_instance is not None:
+        plugin_instance.enabled = True
+
+        new_request = Request(request_op="activate", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
+        sqlalchemy_db.session.add(new_request)
+        sqlalchemy_db.session.commit()
+
+        app.logger.debug("Plugin instance enabled: %s", plugin_instance_id)
+
+    else:
+        return 'No such plugin instance!'
+
+    return 'Enable plugin instance successfully!'
+
+@app.route('/disable_PI', methods=['POST'])
+def disable_plugin_instance():
+    plugin_instance_id = request.form.get('id')
+    if plugin_instance_id is None :
+        abort(400, 'Missing required parameter: id')
+
+    plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+    if plugin_instance is not None:
+        plugin_instance.enabled = False
+
+        new_request = Request(request_op="deactivate", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
+        sqlalchemy_db.session.add(new_request)
+        sqlalchemy_db.session.commit()
+
+        app.logger.debug("Plugin instance disabled: %s", plugin_instance_id)
+
+    else:
+        return 'No such plugin instance!'
+
+    return 'Disable plugin instance successfully!'
+
 @app.route('/list_accounts', methods=['GET'])
 def list_accounts():
     all_PIs=sqlalchemy_db.session.query(PluginInstance).all()
