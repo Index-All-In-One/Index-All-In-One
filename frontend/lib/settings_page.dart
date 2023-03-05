@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'build_account_list.dart';
+import 'apis.dart';
+import 'utils.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -9,6 +11,20 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  Widget _accountListWidget = const Center(child: CircularProgressIndicator());
+
+  void refreshAccountList() {
+    setState(() {
+      _accountListWidget = buildAccountList(refreshAccountList);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _accountListWidget = buildAccountList(refreshAccountList);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,16 +34,6 @@ class _SettingsPageState extends State<SettingsPage> {
       body: Column(
         // mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Center(
-          //   child: Container(
-          //     padding: const EdgeInsets.symmetric(vertical: 10),
-          //     child: const Text(
-          //       'Settings Page',
-          //       style: TextStyle(fontWeight: FontWeight.bold),
-          //     ),
-          //   ),
-          // ),
-          // const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: ElevatedButton(
@@ -38,7 +44,7 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
           ),
-          Expanded(child: buildAccountList()),
+          Expanded(child: _accountListWidget),
         ],
       ),
     );

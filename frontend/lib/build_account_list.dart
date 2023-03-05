@@ -15,12 +15,12 @@ Map<String, String> accountsFieldDisplayNames = {
   "op": "Operation", //special field
   "plugin_name": "Application Name",
   "source_name": "Source Title",
-  "update_interval": "Update Interval",
+  "update_interval": "Update Interval(s)",
   "enabled": "Enabled",
   "active": "Active",
 };
 
-Widget buildAccountList() {
+Widget buildAccountList(Function() refreshCallback) {
   return BuildFromHttpRequest(
     httpRequest: sendListAccountRequest,
     apiErrorMessageName: "list_account",
@@ -30,11 +30,12 @@ Widget buildAccountList() {
         itemCount: queryResults.length + 2,
         itemBuilder: (BuildContext context, int index) {
           if (index == 0) {
-            // return the header
+            // return the count
             return ListTile(
-              title: Text(
-                  "You have ${queryResults.length} Account/Application(s)"),
-            );
+                title: Row(children: [
+              Text("You have ${queryResults.length} Account/Application(s)"),
+              RefreshIconWithHover(onPressed: refreshCallback),
+            ]));
           }
           if (index == 1) {
             // return the header
