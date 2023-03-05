@@ -80,6 +80,7 @@ def add_plugin_instance():
         source_name = json_data['source_name']
         interval = json_data['interval']
         plugin_init_info = json_data['plugin_init_info']
+        plugin_instance_id = json_data['id']
 
     except KeyError:
         if plugin_name is None:
@@ -91,8 +92,13 @@ def add_plugin_instance():
         if plugin_init_info is None:
             abort(400, 'Missing key: plugin_init_info')
 
-    # plugin_init_info = json.loads(plugin_init_info)
-    plugin_instance_id=str(uuid.uuid4())
+    if plugin_instance_id is not None:
+        plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+        if plugin_instance is not None:
+            return abort(400, 'Plugin instance already exists!')
+    else:
+        plugin_instance_id=str(uuid.uuid4())
+
     new_plugin_instance = PluginInstance(plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, source_name=source_name, update_interval=interval, enabled=True, active=False)
     sqlalchemy_db.session.add(new_plugin_instance)
     sqlalchemy_db.session.commit()
