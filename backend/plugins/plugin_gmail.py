@@ -79,8 +79,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         _, doc_ids_to_be_delete = self.not_in(ops_doc_ids, mailbox_doc_ids)
 
         for doc_id in doc_ids_to_be_delete:
-            keyword = {"match": {"doc_id": doc_id}}
-            response = self.opensearch_conn.delete_doc(keyword)
+            response = self.opensearch_conn.delete_doc(doc_id=doc_id)
 
         # if doc in mailboxbut not in OpenSearch, insert doc
         mask, doc_ids_to_be_insert = self.not_in(mailbox_doc_ids, ops_doc_ids)
@@ -190,10 +189,10 @@ def plugin_gmail_del(plugin_instance_id):
     creds = session.query(GmailCredentials).filter(GmailCredentials.plugin_instance_id==plugin_instance_id).first()
     username = creds.username
     password = creds.password
-    del_keyword = [{"match": {"plugin_instance_id": plugin_instance_id}}]
+
     GmailSession = Gmail_Instance(plugin_instance_id, username, password)
     GmailSession.login_opensearch()
-    GmailSession.opensearch_conn.delete_doc(del_keyword)
+    GmailSession.opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id)
 
     # delete the source
     creds = session.query(GmailCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()

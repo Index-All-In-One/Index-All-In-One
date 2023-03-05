@@ -51,7 +51,7 @@ class OpenSearch_Conn:
         response = self.client.index(index=index_name,body=body)
         return response
 
-    def search_doc(self, keywords, full_text_keywords, index_name='search_index'):
+    def search_doc(self, doc_name, full_text_keywords=None, index_name='search_index'):
         '''
         with a list of keywords, search for documents that match either of the keywords in the list.
         Input:
@@ -61,25 +61,29 @@ class OpenSearch_Conn:
         Output:
             the search response in the form of a python dict
         Example:
-            keywords = [{"match": {"doc_id": doc_id}}]
-            keywords = [{"match": {"content": content1}}, {"match": {"doc_id": doc_id}}]
+            keywords = "Youtube"
+            full_text_keywords = "Apple"
         '''
-        keywords = {"match": {"doc_name": keywords}}
-        full_text_keywords = {"match": {"content": full_text_keywords}}
+        keywords = []
+        if doc_name:
+            keywords.append({"match": {"doc_name": doc_name}})
+        if full_text_keywords:
+            keywords.append({"match": {"content": full_text_keywords}})
 
         response = self.client.search(
             index=index_name,
             body={
                 "query": {
                     "bool": {
-                        "should": list(keywords,full_text_keywords)
+                        "should": keywords
                     }
                 }
             }
         )
+
         return response
 
-    def delete_doc(self, keywords, index_name='search_index'):
+    def delete_doc(self, doc_id=None, plugin_instance_id=None, index_name='search_index'):
         '''
         Delete OpenSource client documents
         Sample Usage: delete documents from source source1 with doc_id 1: delete_OpenSearch(client, )
@@ -95,6 +99,14 @@ class OpenSearch_Conn:
             keywords = [{"match": {"source": source1}}, {"match": {"doc_id": doc_id}}]
             OpenSearch_Conn.delete_doc(keywords)
         '''
+        keywords = []
+        if doc_id:
+            keywords.append({"match": {"doc_id": doc_id}})
+        if plugin_instance_id:
+            keywords.append({"match": {"plugin_instance_id": plugin_instance_id}})
+
+        if len(keywords)==0:
+            return
         
         body = {
             "query": {
@@ -183,12 +195,19 @@ if __name__ == "__main__":
     index_name='search_index'
     conn = OpenSearch_Conn()
     conn.connect()
-    try:
-        conn.delete_index(index_name)
-    except:
-        pass
-    data = json.load(open("opensearch/index.json", 'r'))
-    conn.insert_index(data)
+    # try:
+    #     conn.delete_index(index_name)
+    # except:
+    #     pass
+    # data = json.load(open("opensearch/index.json", 'r'))
+    # conn.insert_index(data)
 
-    body = dummy_data()
-    conn.insert_doc(body)
+    # body = dummy_data()
+    # conn.insert_doc(body)
+    # response = conn.search_doc("Google", "Google")
+    # print(response)
+    # response = conn.get_doc_count()
+    # print(response)
+    # conn.delete_doc([{"match": {"plugin_instance_id": '1'}}])
+    # response = conn.get_doc_count()
+    # print(response)
