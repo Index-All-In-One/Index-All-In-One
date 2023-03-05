@@ -18,6 +18,11 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
     while True:
         running_instance = session.query(RunningPluginInstance).filter(RunningPluginInstance.run_id == run_id).first()
         if running_instance is None:
+            PI_instance = session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+            if PI_instance is None:
+                #TODO: send delete request to opensearch
+                logging.debug("[%d] Routine: %s %s %s %d sent delete all docs request", counter, plugin_name, plugin_instance_id, run_id, update_interval)
+                pass
             logging.debug("[%d] Routine: %s %s %s %d is terminated", counter, plugin_name, plugin_instance_id, run_id, update_interval)
             break
         logging.debug("[%d] Routine: %s %s %s %d is running", counter, plugin_name, plugin_instance_id, run_id, update_interval)

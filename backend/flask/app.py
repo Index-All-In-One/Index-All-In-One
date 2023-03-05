@@ -119,14 +119,19 @@ def delete_plugin_instance():
     if plugin_instance is not None:
         plugin_name = plugin_instance.plugin_name
         sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).delete()
-        sqlalchemy_db.session.commit()
-
-        dispatch_plugin("del", plugin_name, [plugin_instance_id])
-        app.logger.debug("Plugin instance del: %s, %s", plugin_name, plugin_instance_id)
 
         new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
         sqlalchemy_db.session.add(new_request)
         sqlalchemy_db.session.commit()
+
+        #TODO handle plugin del failure
+        try:
+            dispatch_plugin("del", plugin_name, [plugin_instance_id])
+            app.logger.debug("Plugin instance del: %s, %s", plugin_name, plugin_instance_id)
+        except Exception as e:
+            app.logger.error("plugin del function failed: %s, %s", plugin_name, plugin_instance_id)
+            app.logger.error(e)
+
     else:
         return 'No such plugin instance!'
 
