@@ -441,3 +441,51 @@ class _BuildFromHttpRequestState extends State<BuildFromHttpRequest> {
     );
   }
 }
+
+class IconButtonWithDialog extends StatelessWidget {
+  final String operationShort;
+  final String operationPhrase;
+  final Icon? icon;
+  final Function()? operationExecution;
+
+  const IconButtonWithDialog({
+    super.key,
+    required this.operationShort,
+    required this.operationPhrase,
+    this.icon,
+    this.operationExecution,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: icon ?? const Icon(Icons.delete),
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(operationShort),
+              content: Text("Are you sure you want to $operationPhrase?"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text(operationShort),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    operationExecution?.call();
+                  },
+                ),
+                TextButton(
+                  child: const Text("Cancel"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}

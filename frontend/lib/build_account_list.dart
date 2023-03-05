@@ -3,6 +3,7 @@ import 'utils.dart';
 import 'apis.dart';
 
 List<String> accountsFieldKeys = [
+  "op", //special field
   "plugin_name",
   "source_name",
   "update_interval",
@@ -11,6 +12,7 @@ List<String> accountsFieldKeys = [
 ];
 
 Map<String, String> accountsFieldDisplayNames = {
+  "op": "Operation", //special field
   "plugin_name": "Application Name",
   "source_name": "Source Title",
   "update_interval": "Update Interval",
@@ -62,6 +64,16 @@ Widget buildAccountList() {
                   children: accountsFieldKeys.map((key) {
                 Expanded returnWidget;
                 switch (key) {
+                  case 'op':
+                    returnWidget = const Expanded(
+                        child: Center(
+                      child: IconButtonWithDialog(
+                        icon: Icon(Icons.delete),
+                        operationShort: "Delete",
+                        operationPhrase: "delete this Account/Application",
+                      ),
+                    ));
+                    break;
                   default:
                     String queryValueString =
                         ifIntOrBoolToString(singleQueryResult[key]!);
