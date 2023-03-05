@@ -4,11 +4,12 @@ from opensearch_conn import OpenSearch_Conn
 IMAP_URL = 'imap.gmail.com'
 
 class Gmail_Instance:
-    def __init__(self, username, password):
+    def __init__(self, username, password, plugin_instance_id):
         self.user = username
         self.password = password
         self.imap = None
         self.opensearch_conn = OpenSearch_Conn()
+        self.plugin_instance_id = plugin_instance_id
 
     def login_opensearch(self, host='localhost', port=9200, username='admin', password='admin',
 use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
@@ -95,11 +96,11 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         sender = doc_content.get('From')
         receiver = doc_content.get('To')
         bcc = doc_content.get('BCC')
-        # size = re.search(r'RFC822.SIZE (\d+)', size[0].decode('utf-8')).group(1)
-        # text_content = ''
-        # for part in message.walk():
-        #     if part.get_content_type() == "text/plain":
-        #         text_content = part.get_payload(decode=True).decode('utf-8')
+
+        text_content = ''
+        for part in doc_content.walk():
+            if part.get_content_type() == "text/plain":
+                text_content = part.get_payload(decode=True).decode('utf-8')
 
         body = {
             "doc_id": doc_id,
@@ -107,10 +108,12 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             "doc_type": 'Email',
             "link": gmail_url,
             "source": self.user,
-            "created_date": None,
-            "modified_date": None,
+            "created_date": send_date,
+            "modified_date": send_date,
             "summary": "Sender: {}  Receiver: {}  BCC: {}".format(sender, receiver, bcc),
-            "file_size": int(size)
+            "file_size": int(size),
+            "plugin_instance_id": self.plugin_instance_id,
+            "content": text_content
         }
         return body
 
