@@ -54,7 +54,19 @@ def init_db(db_name):
 
 def start_plugin_instances(DBSession):
     session = DBSession()
-    pass
+    enabled_plugin_instances = session.query(PluginInstance).filter(PluginInstance.enabled == True).all()
+    for plugin_instance in enabled_plugin_instances:
+        logging.debug('Manager: Starting plugin instance: %s %s %d', plugin_instance.plugin_name, plugin_instance.plugin_instance_id, plugin_instance.update_interval)
+
+        run_id=str(uuid.uuid4())
+        running_plugin_instance = RunningPluginInstance(plugin_instance_id=plugin_instance.plugin_instance_id, run_id=run_id)
+        session.add(running_plugin_instance)
+        plugin_instance.active = True
+        session.commit()
+
+        routine_thread = threading.Thread(target=plugin_instance_routine, args=(DBSession(), opensearch_hostname, plugin_instance.plugin_name, plugin_instance.plugin_instance_id, run_id, plugin_instance.update_interval))
+        routine_thread.start()
+    logging.debug('Manager: All plugin instances are started')
 
 def get_request(session):
     query = select(*[Request.id, Request.request_op, Request.plugin_name, Request.plugin_instance_id, Request.update_interval]).order_by(Request.id).limit(1)
@@ -66,29 +78,28 @@ def handle_request(DBSession, man_session, request):
     if request is None:
         return
     if request.request_op == 'activate':
-        logging.debug('Manager: Activate plugin instance Request: %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)
+        logging.debug('Manager: Activating plugin instance Request: %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)
 
-        run_id=str(uuid.uuid4())
         plugin_instance = man_session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == request.plugin_instance_id).first()
 
         if plugin_instance is not None:
+            run_id=str(uuid.uuid4())
             running_plugin_instance = RunningPluginInstance(plugin_instance_id=request.plugin_instance_id, run_id=run_id)
             man_session.add(running_plugin_instance)
+            plugin_instance.active = True
             man_session.commit()
 
             routine_thread = threading.Thread(target=plugin_instance_routine, args=(DBSession(), opensearch_hostname, request.plugin_name, request.plugin_instance_id, run_id, request.update_interval))
             routine_thread.start()
-            plugin_instance.active = True
 
     elif request.request_op == 'deactivate':
-        logging.debug('Manager: Deactivate plugin instance Request: %s ', request.plugin_instance_id)
+        logging.debug('Manager: Deactivating plugin instance Request: %s ', request.plugin_instance_id)
 
         man_session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == request.plugin_instance_id).delete()
 
         plugin_instance = man_session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == request.plugin_instance_id).first()
         if plugin_instance is not None:
             plugin_instance.active = False
-            man_session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == request.plugin_instance_id).delete()
 
     elif request.request_op == 'change_interval':
         pass

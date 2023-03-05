@@ -11,4 +11,6 @@ COPY plugin_management/*.py ./plugin_management/
 COPY plugins/*.py ./plugins/
 COPY opensearch/*.py ./opensearch/
 
-ENTRYPOINT ["python", "plugin_management/manager.py"]
+COPY plugin_management/scripts/manager-init-docker-dev.sh .
+RUN chmod +x manager-init-docker-dev.sh
+ENTRYPOINT ["./manager-init-docker-dev.sh"]
