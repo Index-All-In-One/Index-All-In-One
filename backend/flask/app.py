@@ -144,6 +144,7 @@ def list_accounts():
                 "update_interval": plugin_instance.update_interval,
                 "enabled": plugin_instance.enabled,
                 "active": plugin_instance.active,
+                "id": plugin_instance.plugin_instance_id,
             })
     return jsonify(all_accounts)
 
