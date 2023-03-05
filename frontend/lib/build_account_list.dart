@@ -65,12 +65,15 @@ Widget buildAccountList() {
                 Expanded returnWidget;
                 switch (key) {
                   case 'op':
-                    returnWidget = const Expanded(
+                    returnWidget = Expanded(
                         child: Center(
                       child: IconButtonWithDialog(
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         operationShort: "Delete",
                         operationPhrase: "delete this Account/Application",
+                        operationExecution: () {
+                          sendDelPIRequest(singleQueryResult['id'].toString());
+                        },
                       ),
                     ));
                     break;

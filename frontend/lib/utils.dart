@@ -293,37 +293,16 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
             onPressed: () async {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
-
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                waitAndShowSnackBarMsg(
+                  context,
+                  () async {
+                    final success =
+                        await widget.onSubmit?.call(_formData) ?? true;
+                    return success;
+                  },
+                  widget.successMessage ?? 'Form submitted successfully',
+                  'An error occurred while submitting the form',
                 );
-                final success = await widget.onSubmit?.call(_formData) ?? true;
-                Navigator.pop(context);
-
-                if (success) {
-                  // Show success snackbar and pop form page
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(widget.successMessage ??
-                          'Form submitted successfully'),
-                      duration: const Duration(seconds: 4),
-                    ),
-                  );
-                  Navigator.pop(context);
-                } else {
-                  // Show error snackbar and stay on form page
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content:
-                          Text('An error occurred while submitting the form'),
-                      duration: Duration(seconds: 4),
-                    ),
-                  );
-                }
               }
             },
             style: ElevatedButton.styleFrom(
@@ -486,6 +465,38 @@ class IconButtonWithDialog extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+void waitAndShowSnackBarMsg(context, Future<bool> Function()? requestFunction,
+    String successMessage, String errorMessage) async {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => const Center(
+      child: CircularProgressIndicator(),
+    ),
+  );
+  final success = await requestFunction?.call() ?? true;
+  Navigator.pop(context);
+
+  if (success) {
+    // Show success snackbar and pop form page
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(successMessage),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+    Navigator.pop(context);
+  } else {
+    // Show error snackbar and stay on form page
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(errorMessage),
+        duration: const Duration(seconds: 4),
+      ),
     );
   }
 }
