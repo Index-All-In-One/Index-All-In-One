@@ -39,6 +39,7 @@ services:
       - opensearch-node1
     networks:
       - backend-net-debug
+    command: "12"
 
   flask:
     container_name: iaio-flask-debug
@@ -56,6 +57,7 @@ services:
       - backend-net-debug
     volumes:
       - iaio-pi-db-debug:/app/instance
+
   pm-manager:
     container_name: iaio-pm-manager-debug
     environment:

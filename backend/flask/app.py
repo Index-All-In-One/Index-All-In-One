@@ -1,18 +1,23 @@
 from flask import Flask, jsonify, request, abort
-from plugin_management.plugins.entry import dispatch_plugin
 from opensearch_conn import OpenSearch_Conn
 import uuid
 import logging
 import json
 import os
-from flask_utils.model_flask import *
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from model_flask import *
+from plugins.entry_plugin import dispatch_plugin, get_allowed_plugin_list
+from opensearch.conn import OpenSearch_Conn
+
 
 opensearch_hostname = os.environ.get('OPENSEARCH_HOSTNAME', 'localhost')
 opensearch_conn = OpenSearch_Conn()
 opensearch_conn.connect(host=opensearch_hostname)
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///PI.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'instance', 'PI.db')
 sqlalchemy_db.init_app(app)
 with app.app_context():
     sqlalchemy_db.create_all()
@@ -95,7 +100,7 @@ def add_plugin_instance():
 
     # TODO: handle plugin init failure
     # TODO: add log support for plugin init
-    status = dispatch_plugin("plugin_management.", "init", plugin_name, [plugin_instance_id, plugin_init_info])
+    status = dispatch_plugin("init", plugin_name, [plugin_instance_id, plugin_init_info])
     app.logger.debug("Plugin instance init: %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
 
     new_request = Request(request_op="activate", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
@@ -115,14 +120,19 @@ def delete_plugin_instance():
     if plugin_instance is not None:
         plugin_name = plugin_instance.plugin_name
         sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).delete()
-        sqlalchemy_db.session.commit()
-
-        dispatch_plugin("plugin_management.", "del", plugin_name, [plugin_instance_id])
-        app.logger.debug("Plugin instance del: %s, %s", plugin_name, plugin_instance_id)
 
         new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
         sqlalchemy_db.session.add(new_request)
         sqlalchemy_db.session.commit()
+
+        #TODO handle plugin del failure
+        try:
+            dispatch_plugin("del", plugin_name, [plugin_instance_id])
+            app.logger.debug("Plugin instance del: %s, %s", plugin_name, plugin_instance_id)
+        except Exception as e:
+            app.logger.error("plugin del function failed: %s, %s", plugin_name, plugin_instance_id)
+            app.logger.error(e)
+
     else:
         return 'No such plugin instance!'
 
@@ -140,8 +150,19 @@ def list_accounts():
                 "update_interval": plugin_instance.update_interval,
                 "enabled": plugin_instance.enabled,
                 "active": plugin_instance.active,
+                "id": plugin_instance.plugin_instance_id,
             })
     return jsonify(all_accounts)
+
+@app.route('/plugin_list', methods=['GET'])
+def get_plugin_list():
+    return jsonify(get_allowed_plugin_list())
+
+@app.route('/plugin_info_field_type', methods=['POST'])
+def get_plugin_info_list():
+    plugin_name = request.form.get('plugin_name')
+    status, info = dispatch_plugin("info_list", plugin_name)
+    return jsonify(info)
 
 if __name__ == '__main__':
     app.run()

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set environment variables
-export FLASK_APP=Index-All-In-One-Flask
+export FLASK_APP=flask/app.py
 export FLASK_DEBUG=1
 
 # Start the Flask application

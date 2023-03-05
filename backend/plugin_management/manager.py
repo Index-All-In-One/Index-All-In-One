@@ -2,14 +2,14 @@ import time
 import threading
 import uuid
 import logging
-import sys
 import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from model_standalone import *
-import threading
-import uuid
-from plugins.entry import dispatch_plugin
+from plugins.entry_plugin import dispatch_plugin
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -18,10 +18,15 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
     while True:
         running_instance = session.query(RunningPluginInstance).filter(RunningPluginInstance.run_id == run_id).first()
         if running_instance is None:
+            PI_instance = session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+            if PI_instance is None:
+                #TODO: send delete request to opensearch
+                logging.debug("[%d] Routine: %s %s %s %d sent delete all docs request", counter, plugin_name, plugin_instance_id, run_id, update_interval)
+                pass
             logging.debug("[%d] Routine: %s %s %s %d is terminated", counter, plugin_name, plugin_instance_id, run_id, update_interval)
             break
         logging.debug("[%d] Routine: %s %s %s %d is running", counter, plugin_name, plugin_instance_id, run_id, update_interval)
-        dispatch_plugin("", "update", plugin_name, [opensearch_hostname, plugin_instance_id])
+        dispatch_plugin("update", plugin_name, [plugin_instance_id, opensearch_hostname, ])
         counter += 1
         time.sleep(update_interval)
 

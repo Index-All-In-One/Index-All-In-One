@@ -58,26 +58,46 @@ services:
       OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
     networks:
       - opensearch-net-2-debug
+
+  opensearch-init:
+    container_name: iaio-opensearch-init
+    environment:
+      OPENSEARCH_HOSTNAME: opensearch-node1
+    build:
+      context: ..
+      dockerfile: ./docker-opensearch-init/Dockerfile
+    image: iaio-opensearch-init:debug
+    depends_on:
+      - opensearch-node1
+    networks:
+      - backend-net-debug
+    command: "25"
+
   flask:
     container_name: iaio-flask-debug
     build:
       context: ..
       dockerfile: ./docker-flask/Dockerfile.dev
+    environment:
+      OPENSEARCH_HOSTNAME: opensearch-node1
     image: iaio-flask:debug
     ports:
-      - "5235:5235"
+      - "127.0.0.1:5235:5235"
     expose:
       - "5235"
     networks:
       - backend-net-debug
     volumes:
       - iaio-pi-db-debug:/app/instance
+
   pm-manager:
     container_name: iaio-pm-manager-debug
     build:
       context: ..
       dockerfile: ./docker-pm-manager/Dockerfile.dev
     image: iaio-pm-manager:debug
+    networks:
+      - backend-net-debug
     volumes:
       - iaio-pi-db-debug:/app/instance
 
