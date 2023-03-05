@@ -26,24 +26,15 @@ Map<String, String> documentFieldDisplayNames = {
 };
 
 Widget buildSearchResults(String query) {
-  return FutureBuilder(
-    future: sendSearchRequest(query),
-    builder: (BuildContext context, AsyncSnapshot snapshot) {
-      if (snapshot.hasData) {
-        var response = snapshot.data;
+  return BuildFromHttpRequest(
+      httpRequest: () => sendSearchRequest(query),
+      builderUsingResponseBody: (responseBody) {
+        List<dynamic> queryResults = responseBody.cast<dynamic>();
 
-        List<dynamic> queryResults = [];
-        if (response.statusCode == 200) {
-          //TODO error handling for type conversion
-          queryResults = jsonDecode(response.body);
-        } else {
-          showErrorAlert("Unable to search. Please try again later.", context);
-        }
         return ListView.builder(
           itemCount: queryResults.length + 2,
           itemBuilder: (BuildContext context, int index) {
             if (index == 0) {
-              // return the header
               return ListTile(
                 title: Text("Find ${queryResults.length} result(s)"),
               );
@@ -162,12 +153,5 @@ Widget buildSearchResults(String query) {
             );
           },
         );
-      } else {
-        // Data hasn't been received yet, show a progress indicator
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      }
-    },
-  );
+      });
 }

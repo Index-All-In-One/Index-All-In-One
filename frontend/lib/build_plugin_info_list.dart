@@ -4,19 +4,12 @@ import 'utils.dart';
 import 'apis.dart';
 
 Widget buildPluginInfoList(String pluginName) {
-  return FutureBuilder(
-    future: sendPluginInfoListRequest(pluginName),
-    builder: (BuildContext context, AsyncSnapshot snapshot) {
-      if (snapshot.hasData) {
-        var response = snapshot.data;
-        Map<String, dynamic> pluginInfoWithHint = {};
-        if (response.statusCode == 200) {
-          //TODO error handling for type conversion
-          pluginInfoWithHint = jsonDecode(response.body);
-        } else {
-          //TODO alert user
-          print("Plugin Info List API return unsuccessful response");
-        }
+  return BuildFromHttpRequest(
+      httpRequest: () => sendPluginInfoListRequest(pluginName),
+      builderUsingResponseBody: (responseBody) {
+        Map<String, dynamic> pluginInfoWithHint =
+            responseBody.cast<String, dynamic>();
+
         //TODO error handling for type conversion
         String hint = pluginInfoWithHint["hint"]!;
         Map<String, String> pluginInfoFieldTypes =
@@ -44,13 +37,5 @@ Widget buildPluginInfoList(String pluginName) {
             return true;
           },
         );
-      } else {
-        // Data hasn't been received yet, show a progress indicator
-        return const Center(
-          child: CircularProgressIndicator(),
-          // child: Text("Loading..."),
-        );
-      }
-    },
-  );
+      });
 }
