@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'utils.dart';
 import 'apis.dart';
@@ -11,7 +10,7 @@ Widget buildNewAccountForm(String pluginName) {
         Map<String, dynamic> pluginInfoWithHint =
             responseBody.cast<String, dynamic>();
 
-        //TODO error handling for type conversion
+        //TODO: error handling for type conversion
         String hint = pluginInfoWithHint["hint"]!;
         Map<String, String> pluginInfoFieldTypes =
             pluginInfoWithHint["field_type"].cast<String, String>();
@@ -22,6 +21,7 @@ Widget buildNewAccountForm(String pluginName) {
           const MapEntry("interval", "int"),
         ]);
 
+        //TODO: specify field sequence
         return FormWithSubmit(
           fieldNames: pluginInfoFieldNames,
           fieldTypes: pluginInfoFieldTypes,
