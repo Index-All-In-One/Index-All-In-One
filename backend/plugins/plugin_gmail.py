@@ -78,7 +78,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         mailbox_doc_ids, doc_content, doc_sizes = self.get_emails()
         # get emails from OpenSearch with the same plugin_instance_id
         ops_doc_ids = self.opensearch_conn.get_doc_ids(plugin_instance_id=self.plugin_instance_id)
-
+        
         # if doc in OpenSearch but not in mailbox, delete doc
         _, doc_ids_to_be_delete = self.not_in(ops_doc_ids, mailbox_doc_ids)
 
@@ -238,11 +238,7 @@ if __name__ == "__main__":
     # GmailSession.login_opensearch()
     # GmailSession.update_email()
 
-    # plugin_instance_id = "2b225262-8235-4c9f-9cb9-a068f72ad181"
-    # dic = {"username": "a1415217miss@gmail.com", "password": "evlthhabxgeasauf"}
 
-    plugin_instance_id = "2b225262-8235-4c9f-9cb9-a068f72ad182"
-    # dic = {"username": "lucyc3663@gmail.com", "password": "gnpdssrepodikvby"}
     # plugin_gmail_init(plugin_instance_id, dic)
     plugin_gmail_update(plugin_instance_id)
     # plugin_gmail_del(plugin_instance_id)

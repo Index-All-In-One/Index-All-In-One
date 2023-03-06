@@ -3,7 +3,7 @@
     "properties": {
         "doc_id": {
             "type": "text",
-            "analyzer": "standard"
+            "analyzer": "keyword"
           },
         "doc_name": {
             "type": "text",
@@ -38,7 +38,7 @@
         },
         "plugin_instance_id": {
             "type" : "text",
-            "analyzer": "standard"
+            "analyzer": "keyword"
         },
         "content": {
             "type" : "text",
