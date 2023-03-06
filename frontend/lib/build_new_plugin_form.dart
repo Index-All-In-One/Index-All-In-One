@@ -1,8 +1,9 @@
+
 import 'package:flutter/material.dart';
 import 'utils.dart';
 import 'apis.dart';
 
-Widget buildPluginInfoList(String pluginName) {
+Widget buildNewAccountForm(String pluginName) {
   return BuildFromHttpRequest(
       httpRequest: () => sendPluginInfoFieldsRequest(pluginName),
       apiErrorMessageName: "plugin_info_field_type",

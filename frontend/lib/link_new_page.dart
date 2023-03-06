@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'build_plugin_list.dart';
-import 'build_plugin_info_list.dart';
+import 'build_new_plugin_form.dart';
 
 class LinkNewPage extends StatefulWidget {
   const LinkNewPage({super.key});
@@ -51,7 +51,7 @@ class _LinkNewInfoPageState extends State<LinkNewInfoPage> {
         Expanded(
             child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: buildPluginInfoList(widget.pluginName)))
+                child: buildNewAccountForm(widget.pluginName)))
       ]),
     );
   }
