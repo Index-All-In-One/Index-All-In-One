@@ -139,7 +139,7 @@ class OpenSearch_Conn:
         response = self.client.count(index=index_name)
         return response
 
-    def get_doc_ids(self, source, index_name='search_index'):
+    def get_doc_ids(self, plugin_instance_id, index_name='search_index'):
         '''
         Find all doc_id with a source
         '''
@@ -147,7 +147,7 @@ class OpenSearch_Conn:
         body = {
             "query": {
                 "match": {
-                    "source": source
+                    "plugin_instance_id": plugin_instance_id
                 }
             },
             "_source": ["doc_id"]
