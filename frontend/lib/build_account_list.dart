@@ -18,7 +18,7 @@ Map<String, String> accountsFieldDisplayNames = {
   "source_name": "Source Title",
   "update_interval": "Update Interval(s)",
   "enabled": "Enabled",
-  "active": "Active",
+  "active": "Status",
 };
 
 Widget buildAccountList(Function() refreshCallback) {
@@ -137,10 +137,14 @@ Widget buildAccountList(Function() refreshCallback) {
                     )));
                     break;
                   case "active":
+                    bool enabled = singleQueryResult["enabled"]!;
+                    bool active = singleQueryResult["active"]!;
                     returnWidget = Expanded(
                       child: Center(
                           child: TextWithHover(
-                              text: boolToYesNo(singleQueryResult[key]!))),
+                              text: (active
+                                  ? "OK"
+                                  : (enabled ? "Error" : "Stopped")))),
                     );
                     break;
                   default:
