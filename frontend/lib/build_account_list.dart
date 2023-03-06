@@ -129,6 +129,13 @@ Widget buildAccountList(Function() refreshCallback) {
                       ],
                     )));
                     break;
+                  case "active":
+                    returnWidget = Expanded(
+                      child: Center(
+                          child: TextWithHover(
+                              text: boolToYesNo(singleQueryResult[key]!))),
+                    );
+                    break;
                   default:
                     String queryValueString =
                         ifIntOrBoolToString(singleQueryResult[key]!);

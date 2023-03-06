@@ -112,6 +112,10 @@ String ifIntOrBoolToString(queryValue) {
   return queryValueString;
 }
 
+String boolToYesNo(bool value) {
+  return value ? 'Yes' : 'No';
+}
+
 String formatFileSize(int fileSizeInt) {
   String fileSizeString;
   final double fileSizeDouble = fileSizeInt.toDouble();
