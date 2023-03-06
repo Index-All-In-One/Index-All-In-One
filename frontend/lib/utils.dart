@@ -399,23 +399,28 @@ class TextFormFieldWithStyle extends StatefulWidget {
 }
 
 class _TextFormFieldWithStyleState extends State<TextFormFieldWithStyle> {
-  bool _showPassword = false;
+  late bool _showField;
+
+  @override
+  void initState() {
+    super.initState();
+    _showField = !widget.isCredential;
+  }
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      obscureText: !_showPassword,
+      obscureText: !_showField,
       cursorColor: Colors.blue,
       decoration: InputDecoration(
         suffixIcon: widget.isCredential
             ? IconButton(
                 icon: Icon(
-                  _showPassword ? Icons.visibility : Icons.visibility_off,
+                  _showField ? Icons.visibility : Icons.visibility_off,
                 ),
                 onPressed: () {
                   setState(() {
-                    _showPassword =
-                        !_showPassword; // toggle _showPassword value
+                    _showField = !_showField; // toggle _showPassword value
                   });
                 },
               )
