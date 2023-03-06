@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'utils.dart';
 import 'apis.dart';
 
@@ -21,6 +22,13 @@ Map<String, String> accountsFieldDisplayNames = {
 };
 
 Widget buildAccountList(Function() refreshCallback) {
+  void delayedRefresh() {
+    Timer(const Duration(milliseconds: 500), () {
+      // This function will be executed after 5 seconds
+      refreshCallback();
+    });
+  }
+
   return BuildFromHttpRequest(
     httpRequest: sendListAccountRequest,
     apiErrorMessageName: "list_account",
@@ -109,7 +117,7 @@ Widget buildAccountList(Function() refreshCallback) {
                                 "Enabled successfully!",
                                 "Failed to enable.",
                                 false,
-                                refreshFuncion: refreshCallback,
+                                refreshFuncion: delayedRefresh,
                               );
                             } else {
                               waitAndShowSnackBarMsg(
@@ -121,7 +129,7 @@ Widget buildAccountList(Function() refreshCallback) {
                                 "Disabled successfully!",
                                 "Failed to disable.",
                                 false,
-                                refreshFuncion: refreshCallback,
+                                refreshFuncion: delayedRefresh,
                               );
                             }
                           },
