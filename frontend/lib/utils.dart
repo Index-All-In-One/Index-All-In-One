@@ -335,7 +335,7 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
               ),
             ),
             TextFormFieldWithStyle(
-                field: fieldName,
+                fieldName: fieldName,
                 formData: _formData,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -378,18 +378,23 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
   }
 }
 
-class TextFormFieldWithStyle extends StatelessWidget {
+class TextFormFieldWithStyle extends StatefulWidget {
   const TextFormFieldWithStyle({
     super.key,
-    required this.field,
+    required this.fieldName,
     this.validator,
     required Map<String, String> formData,
   }) : _formData = formData;
 
-  final String field;
+  final String fieldName;
   final String? Function(String?)? validator;
   final Map<String, String> _formData;
 
+  @override
+  State<TextFormFieldWithStyle> createState() => _TextFormFieldWithStyleState();
+}
+
+class _TextFormFieldWithStyleState extends State<TextFormFieldWithStyle> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
@@ -418,15 +423,15 @@ class TextFormFieldWithStyle extends StatelessWidget {
           borderSide: const BorderSide(color: Colors.red),
         ),
       ),
-      validator: validator ??
+      validator: widget.validator ??
           (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter $field';
+              return 'Please enter ${widget.fieldName}';
             }
             return null;
           },
       onSaved: (value) {
-        _formData[field] = value!;
+        widget._formData[widget.fieldName] = value!;
       },
     );
   }
