@@ -20,8 +20,8 @@ Future<bool> onlyCareStatus(
 Future<http.Response> sendSearchRequest(String query) async {
   var url = Uri.parse('$baseUrl/search');
 
-  var response =
-      await http.post(url, body: {'keywords': query, 'foo': 'flutter'});
+  var response = await http
+      .post(url, body: {'keywords': query, 'full_text_keywords': query});
   return response;
 }
 
