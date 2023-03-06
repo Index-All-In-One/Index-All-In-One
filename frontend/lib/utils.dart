@@ -335,15 +335,17 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
               ),
             ),
             TextFormFieldWithStyle(
-                fieldName: fieldName,
-                formData: _formData,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter $fieldName';
-                  }
-                  return pluginInfoFieldTypeValidator(
-                      value, widget.fieldTypes[fieldName]!, fieldName);
-                }),
+              fieldName: fieldName,
+              formData: _formData,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter $fieldName';
+                }
+                return pluginInfoFieldTypeValidator(
+                    value, widget.fieldTypes[fieldName]!, fieldName);
+              },
+              isCredential: widget.fieldTypes[fieldName] == 'secret',
+            ),
           ],
           const SizedBox(height: 16),
           ElevatedButton(
@@ -379,27 +381,45 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
 }
 
 class TextFormFieldWithStyle extends StatefulWidget {
+  final String fieldName;
+  final String? Function(String?)? validator;
+  final Map<String, String> _formData;
+  final bool isCredential;
+
   const TextFormFieldWithStyle({
     super.key,
     required this.fieldName,
     this.validator,
     required Map<String, String> formData,
+    this.isCredential = false,
   }) : _formData = formData;
-
-  final String fieldName;
-  final String? Function(String?)? validator;
-  final Map<String, String> _formData;
 
   @override
   State<TextFormFieldWithStyle> createState() => _TextFormFieldWithStyleState();
 }
 
 class _TextFormFieldWithStyleState extends State<TextFormFieldWithStyle> {
+  bool _showPassword = false;
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      obscureText: !_showPassword,
       cursorColor: Colors.blue,
       decoration: InputDecoration(
+        suffixIcon: widget.isCredential
+            ? IconButton(
+                icon: Icon(
+                  _showPassword ? Icons.visibility : Icons.visibility_off,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _showPassword =
+                        !_showPassword; // toggle _showPassword value
+                  });
+                },
+              )
+            : null,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
