@@ -1,7 +1,7 @@
 import imaplib, email
-import re
+import re, os, sys, datetime
 import logging
-import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from opensearch.conn import OpenSearch_Conn
 from plugins.status_code import PluginReturnStatus
 
@@ -10,11 +10,13 @@ IMAP_URL = 'imap.gmail.com'
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 class Gmail_Instance:
-    def __init__(self, username, password):
+    def __init__(self, plugin_instance_id, username, password):
+        self.plugin_instance_id = plugin_instance_id
         self.user = username
         self.password = password
         self.imap = None
         self.opensearch_conn = OpenSearch_Conn()
+
 
     def login_opensearch(self, host='localhost', port=9200, username='admin', password='admin',
 use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
@@ -30,9 +32,11 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         try:
             self.imap = imaplib.IMAP4_SSL(IMAP_URL)
             self.imap.login(self.user, self.password)
-            print("Logged in as {}!".format(self.user))
+            logging.debug("Logged in as {}!".format(self.user))
+            return True
         except:
-            print("Email login failed.")
+            logging.debug("Email login failed.")
+            return False
 
     def get_emails(self, mailbox="Inbox"):
         '''
@@ -44,7 +48,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         message_uids = message_uids[0].split()
 
         # fetch the desired attributes for each message
-        doc_ids, doc_content, doc_sizes = [], [], []
+        doc_ids, doc_contents, doc_sizes = [], [], []
         for num in message_uids:
             # the universial id of email
             _, doc_id = self.imap.fetch(num, '(X-GM-MSGID)')
@@ -56,10 +60,10 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             size = re.search(r'RFC822.SIZE (\d+)', size[0].decode('utf-8')).group(1)
 
             doc_ids.append(doc_id)
-            doc_content.append(message)
+            doc_contents.append(message)
             doc_sizes.append(size)
 
-        return doc_ids, doc_content, doc_sizes
+        return doc_ids, doc_contents, doc_sizes
 
     def update_email(self):
         '''
@@ -78,8 +82,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         _, doc_ids_to_be_delete = self.not_in(ops_doc_ids, mailbox_doc_ids)
 
         for doc_id in doc_ids_to_be_delete:
-            keyword = {"match": {"doc_id": doc_id}}
-            response = self.opensearch_conn.delete_doc(keyword)
+            response = self.opensearch_conn.delete_doc(doc_id=doc_id)
 
         # if doc in mailboxbut not in OpenSearch, insert doc
         mask, doc_ids_to_be_insert = self.not_in(mailbox_doc_ids, ops_doc_ids)
@@ -101,22 +104,29 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         sender = doc_content.get('From')
         receiver = doc_content.get('To')
         bcc = doc_content.get('BCC')
-        # size = re.search(r'RFC822.SIZE (\d+)', size[0].decode('utf-8')).group(1)
-        # text_content = ''
-        # for part in message.walk():
-        #     if part.get_content_type() == "text/plain":
-        #         text_content = part.get_payload(decode=True).decode('utf-8')
 
+        text_content = ''
+        for part in doc_content.walk():
+            if part.get_content_type() == "text/plain":
+                text_content = part.get_payload(decode=True).decode('utf-8')
+
+
+        send_date = send_date.split(' (')[0]
+        send_date = datetime.datetime.strptime(send_date, '%a, %d %b %Y %H:%M:%S %z')
+        send_date = send_date.replace(tzinfo=None)
+        send_date = send_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         body = {
             "doc_id": doc_id,
             "doc_name": title,
             "doc_type": 'Email',
             "link": gmail_url,
             "source": self.user,
-            "created_date": None,
-            "modified_date": None,
+            "created_date": send_date,
+            "modified_date": send_date,
             "summary": "Sender: {}  Receiver: {}  BCC: {}".format(sender, receiver, bcc),
-            "file_size": int(size)
+            "file_size": int(size),
+            "plugin_instance_id": self.plugin_instance_id,
+            "content": text_content
         }
         return body
 
@@ -149,6 +159,17 @@ class GmailCredentials(model):
 
 def plugin_gmail_init(plugin_instance_id, plugin_init_info):
 
+    # add credentials of plugin instance
+    username = plugin_init_info["username"]
+    password = plugin_init_info["password"]
+
+    # check if credentials correct
+    GmailSession = Gmail_Instance(plugin_instance_id, username, password)
+    status = GmailSession.login_email()
+    if not status:
+        logging.error(f'init Gmail plugin instance {plugin_instance_id} failed, wrong credentials')
+        return False
+
     # create an engine that connects to the database
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     model.metadata.bind = engine
@@ -156,14 +177,6 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info):
     # create a session factory that uses the engine
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
-
-    # add credentials of plugin instance
-    username = plugin_init_info["username"]
-    password = plugin_init_info["password"]
-
-    # check if credentials correct
-
-    model.metadata.create_all(engine)
     # create a new GmailCredentials object and add it to the database
     plugin_instance_credentials = GmailCredentials(plugin_instance_id, username, password)
     session.add(plugin_instance_credentials)
@@ -182,10 +195,10 @@ def plugin_gmail_del(plugin_instance_id):
     creds = session.query(GmailCredentials).filter(GmailCredentials.plugin_instance_id==plugin_instance_id).first()
     username = creds.username
     password = creds.password
-    del_keyword = [{"match": {"source": username}}]
-    GmailSession = Gmail_Instance(username, password)
+
+    GmailSession = Gmail_Instance(plugin_instance_id, username, password)
     GmailSession.login_opensearch()
-    GmailSession.opensearch_conn.delete_doc(del_keyword)
+    GmailSession.opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id)
 
     # delete the source
     creds = session.query(GmailCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
@@ -204,7 +217,7 @@ def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     # login
     username = creds.username
     password = creds.password
-    GmailSession = Gmail_Instance(username, password)
+    GmailSession = Gmail_Instance(plugin_instance_id, username, password)
     GmailSession.login_email()
     GmailSession.login_opensearch(host=opensearch_hostname)
     GmailSession.update_email()
@@ -218,13 +231,13 @@ if __name__ == "__main__":
 
     # username = "a1415217miss@gmail.com"
     # password = "password"
-    # GmailSession = Gmail_Instance(username, password)
+    # GmailSession = Gmail_Instance(plugin_instance_id, username, password)
     # GmailSession.login_email()
     # GmailSession.login_opensearch()
     # GmailSession.update_email()
 
     plugin_instance_id = "2b225262-8235-4c9f-9cb9-a068f72ad181"
-    dic = {"username": "a1415217miss@gmail.com", "password": "password"}
+    dic = {"username": "a1415217miss@gmail.com", "password": ""}
     plugin_gmail_init(plugin_instance_id, dic)
     plugin_gmail_update(plugin_instance_id)
     plugin_gmail_del(plugin_instance_id)
