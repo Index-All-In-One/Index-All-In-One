@@ -15,9 +15,9 @@ Widget buildNewAccountForm(String pluginName) {
         Map<String, String> pluginInfoFieldTypes =
             pluginInfoWithHint["field_type"].cast<String, String>();
         List<String> pluginInfoFieldNames =
-            ["source_name", "interval"] + pluginInfoFieldTypes.keys.toList();
+            ["source name", "interval"] + pluginInfoFieldTypes.keys.toList();
         pluginInfoFieldTypes.addEntries([
-          const MapEntry("source_name", "text"),
+          const MapEntry("source name", "text"),
           const MapEntry("interval", "int"),
         ]);
 
