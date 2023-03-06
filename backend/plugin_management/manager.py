@@ -5,7 +5,7 @@ import logging
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
+from opensearch.conn import OpenSearch_Conn
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from model_standalone import *
@@ -22,6 +22,9 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
             PI_instance = session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
             if PI_instance is None:
                 #TODO: send delete request to opensearch
+                conn = OpenSearch_Conn()
+                conn.connect()
+                conn.delete_doc(plugin_instance_id=plugin_instance_id)
                 logging.debug("[%d] Routine: %s %s %s %d sent delete all docs request", counter, plugin_name, plugin_instance_id, run_id, update_interval)
                 pass
             logging.debug("[%d] Routine: %s %s %s %d is terminated", counter, plugin_name, plugin_instance_id, run_id, update_interval)
