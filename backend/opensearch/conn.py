@@ -155,6 +155,8 @@ class OpenSearch_Conn:
         results = self.client.search(index=index_name, body=body)
         doc_ids = [hit["_source"]["doc_id"] for hit in results["hits"]["hits"]]
         return doc_ids
+    def index_exist(self, index_name='search_index'):
+        return self.client.indices.exists(index=index_name)
 
 
 def init_opensearch_db(indexfile_path: str, host='localhost', port=9200, username='admin', password='admin',
