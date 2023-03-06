@@ -24,7 +24,6 @@ Map<String, String> accountsFieldDisplayNames = {
 Widget buildAccountList(Function() refreshCallback) {
   void delayedRefresh() {
     Timer(const Duration(milliseconds: 500), () {
-      // This function will be executed after 5 seconds
       refreshCallback();
     });
   }

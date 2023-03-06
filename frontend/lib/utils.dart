@@ -547,7 +547,7 @@ void waitAndShowSnackBarMsg(context, Future<bool> Function()? requestFunction,
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(successMessage),
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 3),
       ),
     );
     if (successBack) {
@@ -558,7 +558,7 @@ void waitAndShowSnackBarMsg(context, Future<bool> Function()? requestFunction,
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(errorMessage),
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
