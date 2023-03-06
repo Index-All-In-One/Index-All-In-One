@@ -40,11 +40,9 @@ class CopyLinkIconWithHover extends StatelessWidget {
       hoverText: 'Copy link to clipboard',
       icon: const Icon(Icons.content_copy),
       onPressed: () {
-        FlutterClipboard.copy(link).then((value) => {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Link copied to clipboard')),
-              )
-            });
+        FlutterClipboard.copy(link).then((value) {
+          clearAndShowSnackBarMsg(context, 'Link copied to clipboard');
+        });
       },
     );
   }
@@ -530,6 +528,18 @@ class IconButtonWithConfirm extends StatelessWidget {
   }
 }
 
+void clearAndShowSnackBarMsg(context, String message,
+    {Color? bgColor, int duration = 3}) {
+  ScaffoldMessenger.of(context).removeCurrentSnackBar();
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: duration),
+      backgroundColor: bgColor,
+    ),
+  );
+}
+
 void waitAndShowSnackBarMsg(context, Future<bool> Function()? requestFunction,
     String successMessage, String errorMessage, bool successBack,
     {Function()? refreshFuncion}) async {
@@ -544,23 +554,13 @@ void waitAndShowSnackBarMsg(context, Future<bool> Function()? requestFunction,
   Navigator.pop(context);
 
   if (success) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(successMessage),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    clearAndShowSnackBarMsg(context, successMessage, bgColor: Colors.green);
     if (successBack) {
       Navigator.pop(context);
     }
     refreshFuncion?.call();
   } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(errorMessage),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    clearAndShowSnackBarMsg(context, errorMessage, bgColor: Colors.red);
   }
 }
 
