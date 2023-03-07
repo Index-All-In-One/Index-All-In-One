@@ -58,7 +58,6 @@ services:
       - backend-net-debug
     volumes:
       - ..:/app
-      - iaio-pi-db-debug:/app/instance
 
   pm-manager:
     container_name: iaio-pm-manager-debug
@@ -72,12 +71,11 @@ services:
     networks:
       - backend-net-debug
     volumes:
-      - iaio-pi-db-debug:/app/instance
+      - ..:/app
     command: "15 3"
 
 volumes:
   opensearch-data1-1-debug:
-  iaio-pi-db-debug:
 
 networks:
   backend-net-debug:
