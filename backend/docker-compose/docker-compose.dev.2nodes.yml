@@ -51,6 +51,25 @@ services:
       - opensearch-net-2-debug
       - backend-net-debug
 
+  # opensearch-dashboards:
+  #   extends:
+  #     file: docker-compose.dev.dashboards.yml
+  #     service: opensearch-dashboards
+  #   environment:
+  #     OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
+  #   networks:
+  #     - opensearch-net-2-debug
+  # opensearch-dashboards:
+  #   image: opensearchproject/opensearch-dashboards:latest
+  #   container_name: opensearch-dashboards
+  #   ports:
+  #     - 127.0.0.1:5601:5601
+  #   expose:
+  #     - "5601"
+  #   environment:
+  #     OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
+
+
   opensearch-init:
     depends_on:
       - opensearch-node1
