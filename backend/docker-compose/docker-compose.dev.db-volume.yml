@@ -2,40 +2,29 @@ version: '3'
 services:
   opensearch-node1:
     extends:
-      file: docker-compose.dev.yml
+      file: docker-compose.dev.base.yml
       service: opensearch-node1
 
   opensearch-init:
     extends:
-      file: docker-compose.base.yml
+      file: docker-compose.dev.base.yml
       service: opensearch-init
     depends_on:
       - opensearch-node1
-    image: iaio-opensearch-init:debug
-    container_name: iaio-opensearch-init-debug
-    build:
-      context: ..
-      dockerfile: ./docker-opensearch-init/Dockerfile.dev
-    networks:
-      - backend-net-debug
-    volumes:
-      - ..:/app
-    command: "12 5"
 
   flask:
     extends:
-      file: docker-compose.dev.yml
+      file: docker-compose.dev.base.yml
       service: flask
     volumes:
       - iaio-pi-db-debug:/app/instance
 
   pm-manager:
     extends:
-      file: docker-compose.dev.yml
+      file: docker-compose.dev.base.yml
       service: pm-manager
     volumes:
       - iaio-pi-db-debug:/app/instance
-
 
 volumes:
   iaio-pi-db-debug:

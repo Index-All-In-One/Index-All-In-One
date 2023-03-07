@@ -2,8 +2,8 @@ version: '3'
 services:
   opensearch-node1:
     extends:
-        file: docker-compose.base.yml
-        service: opensearch-node1
+      file: docker-compose.base.yml
+      service: opensearch-node1
     container_name: iaio-opensearch-node1-1-debug
     environment:
       - cluster.name=opensearch-cluster
@@ -28,13 +28,14 @@ services:
       - opensearch-data1-1-debug:/usr/share/opensearch/data
 
   opensearch-init:
+    extends:
+        file: docker-compose.base.yml
+        service: opensearch-init
     image: iaio-opensearch-init:debug
     container_name: iaio-opensearch-init-debug
     build:
       context: ..
       dockerfile: ./docker-opensearch-init/Dockerfile.dev
-    environment:
-      OPENSEARCH_HOSTNAME: opensearch-node1
     networks:
       - backend-net-debug
     volumes:

@@ -19,14 +19,14 @@ services:
       nofile:
         soft: 65536 # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
         hard: 65536
-    volumes:
-      - opensearch-data1-2-debug:/usr/share/opensearch/data
     ports:
       - 127.0.0.1:9200:9200
       - 127.0.0.1:9600:9600 # required for Performance Analyzer
     networks:
       - opensearch-net-2-debug
       - backend-net-debug
+    volumes:
+      - opensearch-data1-2-debug:/usr/share/opensearch/data
 
   opensearch-node2:
     image: opensearchproject/opensearch:latest
@@ -71,54 +71,22 @@ services:
 
 
   opensearch-init:
+    extends:
+      file: docker-compose.dev.base.yml
+      service: opensearch-init
     depends_on:
       - opensearch-node1
-    image: iaio-opensearch-init:debug
-    container_name: iaio-opensearch-init-debug
-    build:
-      context: ..
-      dockerfile: ./docker-opensearch-init/Dockerfile.dev
-    environment:
-      OPENSEARCH_HOSTNAME: opensearch-node1
-    networks:
-      - backend-net-debug
-    volumes:
-      - ..:/app
     command: "25 5"
 
   flask:
     extends:
-        file: docker-compose.base.yml
+        file: docker-compose.dev.base.yml
         service: flask
-    image: iaio-flask:debug
-    container_name: iaio-flask-debug
-    build:
-      context: ..
-      dockerfile: ./docker-flask/Dockerfile.dev
-    environment:
-      DEBUG: "true"
-    ports:
-      - "127.0.0.1:5235:5235"
-    networks:
-      - backend-net-debug
-    volumes:
-      - ..:/app
 
   pm-manager:
     extends:
-        file: docker-compose.base.yml
+        file: docker-compose.dev.base.yml
         service: pm-manager
-    image: iaio-pm-manager:debug
-    container_name: iaio-pm-manager-debug
-    build:
-      context: ..
-      dockerfile: ./docker-pm-manager/Dockerfile.dev
-    environment:
-      DEBUG: "true"
-    networks:
-      - backend-net-debug
-    volumes:
-      - ..:/app
     command: "30 5"
 
 volumes:
