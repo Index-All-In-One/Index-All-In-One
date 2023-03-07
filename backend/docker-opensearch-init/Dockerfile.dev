@@ -1,14 +1,14 @@
 FROM python:3.10.10-slim-buster
 
-WORKDIR /app
+WORKDIR /pre-app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN mkdir ./opensearch
-COPY opensearch/index.json ./opensearch/
-COPY opensearch/*.py ./opensearch/
+# mount code dir in docker-compose.yml
+WORKDIR /app
 
-COPY opensearch/scripts/init-docker.sh .
-RUN chmod +x init-docker.sh
-ENTRYPOINT ["./init-docker.sh"]
+RUN mkdir /entry
+COPY opensearch/scripts/init-docker.sh /entry
+RUN chmod +x /entry/init-docker.sh
+ENTRYPOINT ["/entry/init-docker.sh"]

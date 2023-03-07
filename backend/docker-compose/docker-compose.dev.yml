@@ -33,12 +33,14 @@ services:
       OPENSEARCH_HOSTNAME: opensearch-node1
     build:
       context: ..
-      dockerfile: ./docker-opensearch-init/Dockerfile
+      dockerfile: ./docker-opensearch-init/Dockerfile.dev
     image: iaio-opensearch-init:debug
     depends_on:
       - opensearch-node1
     networks:
       - backend-net-debug
+    volumes:
+      - ..:/app
     command: "12 5"
 
   flask:
