@@ -28,8 +28,6 @@ services:
       - opensearch-data1-1-debug:/usr/share/opensearch/data
 
   opensearch-init:
-    depends_on:
-      - opensearch-node1
     image: iaio-opensearch-init:debug
     container_name: iaio-opensearch-init-debug
     build:
