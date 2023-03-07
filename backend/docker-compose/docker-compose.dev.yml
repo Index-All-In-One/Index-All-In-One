@@ -39,7 +39,7 @@ services:
       - opensearch-node1
     networks:
       - backend-net-debug
-    command: "12"
+    command: "20"
 
   flask:
     container_name: iaio-flask-debug
