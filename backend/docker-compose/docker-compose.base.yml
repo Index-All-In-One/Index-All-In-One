@@ -2,70 +2,20 @@ version: '3'
 services:
   opensearch-node1:
     image: opensearchproject/opensearch:latest
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536 # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
-        hard: 65536
-    ports:
-      - 127.0.0.1:9200:9200
-      - 127.0.0.1:9600:9600 # required for Performance Analyzer
+    container_name: iaio-opensearch-node1
     expose:
       - "9200"
-    networks:
-      - backend-net-debug
-
-  opensearch-init:
-    container_name: iaio-opensearch-init
-    environment:
-      OPENSEARCH_HOSTNAME: opensearch-node1
-    build:
-      context: ..
-      dockerfile: ./docker-opensearch-init/Dockerfile.dev
-    image: iaio-opensearch-init:debug
-    depends_on:
-      - opensearch-node1
-    networks:
-      - backend-net-debug
-    volumes:
-      - ..:/app
 
   flask:
-    container_name: iaio-flask-debug
-    build:
-      context: ..
-      dockerfile: ./docker-flask/Dockerfile.dev
-    image: iaio-flask:debug
+    image: iaio-flask
+    container_name: iaio-flask
     environment:
       OPENSEARCH_HOSTNAME: opensearch-node1
-      DEBUG: "true"
-    ports:
-      - "127.0.0.1:5235:5235"
     expose:
       - "5235"
-    networks:
-      - backend-net-debug
-    volumes:
-      - ..:/app
 
   pm-manager:
-    container_name: iaio-pm-manager-debug
+    image: iaio-pm-manager
+    container_name: iaio-pm-manager
     environment:
       OPENSEARCH_HOSTNAME: opensearch-node1
-      DEBUG: "true"
-    build:
-      context: ..
-      dockerfile: ./docker-pm-manager/Dockerfile.dev
-    image: iaio-pm-manager:debug
-    networks:
-      - backend-net-debug
-    volumes:
-      - ..:/app
-
-volumes:
-  opensearch-data1-1-debug:
-
-networks:
-  backend-net-debug:

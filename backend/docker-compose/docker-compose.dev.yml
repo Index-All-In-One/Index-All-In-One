@@ -1,7 +1,9 @@
 version: '3'
 services:
   opensearch-node1:
-    image: opensearchproject/opensearch:latest
+    extends:
+        file: docker-compose.base.yml
+        service: opensearch-node1
     container_name: iaio-opensearch-node1-1-debug
     environment:
       - cluster.name=opensearch-cluster
@@ -17,26 +19,24 @@ services:
       nofile:
         soft: 65536 # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
         hard: 65536
-    volumes:
-      - opensearch-data1-1-debug:/usr/share/opensearch/data
     ports:
       - 127.0.0.1:9200:9200
       - 127.0.0.1:9600:9600 # required for Performance Analyzer
-    expose:
-      - "9200"
     networks:
       - backend-net-debug
+    volumes:
+      - opensearch-data1-1-debug:/usr/share/opensearch/data
 
   opensearch-init:
-    container_name: iaio-opensearch-init
-    environment:
-      OPENSEARCH_HOSTNAME: opensearch-node1
+    depends_on:
+      - opensearch-node1
+    image: iaio-opensearch-init:debug
+    container_name: iaio-opensearch-init-debug
     build:
       context: ..
       dockerfile: ./docker-opensearch-init/Dockerfile.dev
-    image: iaio-opensearch-init:debug
-    depends_on:
-      - opensearch-node1
+    environment:
+      OPENSEARCH_HOSTNAME: opensearch-node1
     networks:
       - backend-net-debug
     volumes:
@@ -44,32 +44,34 @@ services:
     command: "12 5"
 
   flask:
+    extends:
+        file: docker-compose.base.yml
+        service: flask
+    image: iaio-flask:debug
     container_name: iaio-flask-debug
     build:
       context: ..
       dockerfile: ./docker-flask/Dockerfile.dev
-    image: iaio-flask:debug
     environment:
-      OPENSEARCH_HOSTNAME: opensearch-node1
       DEBUG: "true"
     ports:
       - "127.0.0.1:5235:5235"
-    expose:
-      - "5235"
     networks:
       - backend-net-debug
     volumes:
       - ..:/app
 
   pm-manager:
+    extends:
+        file: docker-compose.base.yml
+        service: pm-manager
+    image: iaio-pm-manager:debug
     container_name: iaio-pm-manager-debug
-    environment:
-      OPENSEARCH_HOSTNAME: opensearch-node1
-      DEBUG: "true"
     build:
       context: ..
       dockerfile: ./docker-pm-manager/Dockerfile.dev
-    image: iaio-pm-manager:debug
+    environment:
+      DEBUG: "true"
     networks:
       - backend-net-debug
     volumes:
