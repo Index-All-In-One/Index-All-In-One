@@ -9,6 +9,6 @@ RUN mkdir ./opensearch
 COPY opensearch/index.json ./opensearch/
 COPY opensearch/*.py ./opensearch/
 
-COPY opensearch/scripts/init-docker-dev.sh .
-RUN chmod +x init-docker-dev.sh
-ENTRYPOINT ["./init-docker-dev.sh"]
+COPY opensearch/scripts/init-docker.sh .
+RUN chmod +x init-docker.sh
+ENTRYPOINT ["./init-docker.sh"]

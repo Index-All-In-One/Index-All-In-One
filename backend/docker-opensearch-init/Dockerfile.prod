@@ -1,0 +1,14 @@
+FROM python:3.10.10-slim-buster
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN mkdir ./opensearch
+COPY opensearch/index.json ./opensearch/
+COPY opensearch/*.py ./opensearch/
+
+COPY opensearch/scripts/init-docker.sh .
+RUN chmod +x init-docker.sh
+ENTRYPOINT ["./init-docker.sh"]
