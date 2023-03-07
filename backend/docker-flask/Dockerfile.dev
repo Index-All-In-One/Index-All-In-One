@@ -1,16 +1,14 @@
 FROM python:3.10.10-slim-buster
 
-WORKDIR /app
+WORKDIR /pre-app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN mkdir ./flask && mkdir ./plugins && mkdir ./opensearch
+# mount code dir in docker-compose.yml
+WORKDIR /app
 
-COPY flask/*.py ./flask/
-COPY plugins/*.py ./plugins/
-COPY opensearch/*.py ./opensearch/
-
-COPY flask/scripts/flask-docker-dev.sh .
-RUN chmod +x flask-docker-dev.sh
-ENTRYPOINT ["./flask-docker-dev.sh"]
+RUN mkdir /entry
+COPY flask/scripts/flask-docker-dev.sh /entry
+RUN chmod +x /entry/flask-docker-dev.sh
+ENTRYPOINT ["/entry/flask-docker-dev.sh"]

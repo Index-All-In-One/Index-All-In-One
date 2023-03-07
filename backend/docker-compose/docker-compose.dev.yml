@@ -57,6 +57,7 @@ services:
     networks:
       - backend-net-debug
     volumes:
+      - ..:/app
       - iaio-pi-db-debug:/app/instance
 
   pm-manager:
