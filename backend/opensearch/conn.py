@@ -108,7 +108,7 @@ class OpenSearch_Conn:
 
         if len(keywords)==0:
             return
-        
+
         body = {
             "query": {
                 "bool": {
@@ -156,8 +156,15 @@ class OpenSearch_Conn:
     def index_exist(self, index_name='search_index'):
         return self.client.indices.exists(index=index_name)
 
+def check_index_exist(host):
+    try:
+        opensearch_conn = OpenSearch_Conn()
+        opensearch_conn.connect(host=host)
+        return opensearch_conn.index_exist()
+    except:
+        return False
 
-def init_opensearch_db(indexfile_path: str, host='localhost', port=9200, username='admin', password='admin',
+def init_opensearch_db(indexfile_path: str, host, port=9200, username='admin', password='admin',
     use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
 
     '''
@@ -181,7 +188,7 @@ def dummy_data():
     file_size = len(summary.encode('utf-8'))
     plugin_instance_id = "1"
     content = "Google is a multinational technology company that specializes in Internet-related services and products. It was founded in 1998 by Larry Page and Sergey Brin, who were graduate students at Stanford University at the time. Today, Google is one of the largest and most influential companies in the world, with a market capitalization of over $1 trillion. Youtube was bought by Google."
-    
+
     body = {
         "doc_id": doc_id,
         "doc_name": doc_name,

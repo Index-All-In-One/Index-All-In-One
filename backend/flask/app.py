@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, abort
 import uuid
 import logging
 import json
+import threading
 import os
 import sys, time
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -151,7 +152,11 @@ def delete_plugin_instance():
         app.logger.error(e)
         status = PluginReturnStatus.EXCEPTION
 
-    time.sleep(8)
+    delete_task = lambda: (
+        app.logger.debug("plugin_instance_id %s delete_doc: %s", plugin_instance_id, opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id))
+    )
+    threading.Timer(interval = 8, target = delete_task).start()
+
     response = opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id)
     app.logger.debug("plugin_instance_id %s delete_doc: %s", plugin_instance_id, response)
 
@@ -162,6 +167,7 @@ def delete_plugin_instance():
         # TODO: handle plugin del failure
         app.logger.error("Plugin instance del failed! Status: %s : %s, %s", status.name, plugin_name, plugin_instance_id)
         return 'Plugin instance del function failed!'
+
 
 @app.route('/enable_PI', methods=['POST'])
 def enable_plugin_instance():
