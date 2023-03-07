@@ -5,3 +5,4 @@ class PluginReturnStatus(Enum):
     OTHER_ERROR = 1
     WRONG_CREDS = 2
     EXCEPTION = 3
+    NO_PLUGIN = 4

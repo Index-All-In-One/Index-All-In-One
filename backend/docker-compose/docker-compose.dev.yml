@@ -48,6 +48,7 @@ services:
       dockerfile: ./docker-flask/Dockerfile.dev
     environment:
       OPENSEARCH_HOSTNAME: opensearch-node1
+      DEBUG: "true"
     image: iaio-flask:debug
     ports:
       - "127.0.0.1:5235:5235"
@@ -62,6 +63,7 @@ services:
     container_name: iaio-pm-manager-debug
     environment:
       OPENSEARCH_HOSTNAME: opensearch-node1
+      DEBUG: "true"
     build:
       context: ..
       dockerfile: ./docker-pm-manager/Dockerfile.dev

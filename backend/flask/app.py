@@ -83,18 +83,21 @@ def add_plugin_instance():
     plugin_instance_id = json_data.get('id', None)
 
     if plugin_name is None:
-        abort(400, 'Missing key: plugin_name')
+        return abort(400, 'Missing key: plugin_name')
     if source_name is None:
-        abort(400, 'Missing key: source_name')
+        return abort(400, 'Missing key: source_name')
     if interval is None:
-        abort(400, 'Missing key: interval')
+        return abort(400, 'Missing key: interval')
     if plugin_init_info is None:
-        abort(400, 'Missing key: plugin_init_info')
+        return abort(400, 'Missing key: plugin_init_info')
+
+    if plugin_name not in get_allowed_plugin_list():
+        return abort(400, 'Plugin not allowed!')
 
     if plugin_instance_id is not None:
         plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
         if plugin_instance is not None:
-            return abort(400, 'Plugin instance already exists!')
+            return abort(400, 'Plugin instance id already exists!')
     else:
         plugin_instance_id=str(uuid.uuid4())
 
