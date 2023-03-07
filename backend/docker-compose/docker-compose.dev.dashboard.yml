@@ -71,7 +71,7 @@ services:
       - opensearch-node1
     networks:
       - backend-net-debug
-    command: "25"
+    command: "25 5"
 
   flask:
     container_name: iaio-flask-debug
@@ -80,6 +80,7 @@ services:
       dockerfile: ./docker-flask/Dockerfile.dev
     environment:
       OPENSEARCH_HOSTNAME: opensearch-node1
+      DEBUG: "true"
     image: iaio-flask:debug
     ports:
       - "127.0.0.1:5235:5235"
@@ -92,6 +93,9 @@ services:
 
   pm-manager:
     container_name: iaio-pm-manager-debug
+    environment:
+      OPENSEARCH_HOSTNAME: opensearch-node1
+      DEBUG: "true"
     build:
       context: ..
       dockerfile: ./docker-pm-manager/Dockerfile.dev
@@ -100,7 +104,7 @@ services:
       - backend-net-debug
     volumes:
       - iaio-pi-db-debug:/app/instance
-    command: "30"
+    command: "30 5"
 
 volumes:
   opensearch-data1-2-debug:
