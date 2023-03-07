@@ -14,18 +14,38 @@ Widget buildNewAccountForm(String pluginName) {
         String hint = pluginInfoWithHint["hint"]!;
         Map<String, String> pluginInfoFieldTypes =
             pluginInfoWithHint["field_type"].cast<String, String>();
-        List<String> pluginInfoFieldNames =
-            ["source name", "interval"] + pluginInfoFieldTypes.keys.toList();
-        pluginInfoFieldTypes.addEntries([
-          const MapEntry("source name", "text"),
-          const MapEntry("interval", "int"),
-        ]);
 
-        //TODO: specify field sequence
+        FormSegment basicSegment = {
+          "title": "Basic Information",
+          "hint": null,
+          "field_info": [
+            Map.fromEntries([
+              const MapEntry("field_name", "source_name"),
+              const MapEntry("display_name", "source name"),
+              const MapEntry("type", "text"),
+            ]),
+            Map.fromEntries([
+              const MapEntry("field_name", "interval"),
+              const MapEntry("display_name", "interval"),
+              const MapEntry("type", "int"),
+            ]),
+          ],
+        };
+
+        FormSegment pluginSegment = {
+          "title": "Account/Application Information",
+          "hint": hint,
+          "field_info": pluginInfoFieldTypes.entries
+              .map((entry) => Map.fromEntries([
+                    MapEntry("field_name", entry.key),
+                    MapEntry("display_name", entry.key),
+                    MapEntry("type", entry.value),
+                  ]))
+              .toList(),
+        };
+
         return FormWithSubmit(
-          fieldNames: pluginInfoFieldNames,
-          fieldTypes: pluginInfoFieldTypes,
-          hint: hint,
+          formSegments: [basicSegment, pluginSegment],
           successMessage: "Successfully linked $pluginName!",
           onSubmit: (Map<String, String> formData) async => onlyCareStatus(
               () => sendAddPIRequest(pluginName, formData), "del_PI"),

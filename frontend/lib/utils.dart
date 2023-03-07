@@ -269,11 +269,11 @@ void showErrorAlert(String errorMesssage, BuildContext context) {
   );
 }
 
-String? pluginInfoFieldTypeValidator(value, type, field) {
+String? pluginInfoFieldTypeValidator(value, type, fieldDisplayName) {
   switch (type) {
     case 'int':
       if (int.tryParse(value) == null) {
-        return 'Please enter a valid integer for $field';
+        return 'Please enter a valid integer for $fieldDisplayName';
       }
       break;
     default:
@@ -281,20 +281,19 @@ String? pluginInfoFieldTypeValidator(value, type, field) {
   return null;
 }
 
+typedef FieldMap = Map<String, String>;
+typedef FormSegment = Map<String, dynamic>;
+
 class FormWithSubmit extends StatefulWidget {
-  final List<String> fieldNames;
-  final Map<String, String> fieldTypes;
-  final String hint;
   final Future<bool> Function(Map<String, String> formData)? onSubmit;
   final String? successMessage;
+  final List<FormSegment> formSegments;
 
   const FormWithSubmit({
     super.key,
-    required this.fieldNames,
-    required this.fieldTypes,
-    this.hint = "",
     this.onSubmit,
     this.successMessage,
+    required this.formSegments,
   });
 
   @override
@@ -312,42 +311,44 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: Text(
-              'Please fill in information below',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              "Hint: ${widget.hint}",
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-          ),
-          for (var fieldName in widget.fieldNames) ...[
+          for (var segment in widget.formSegments) ...[
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                fieldName,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-            TextFormFieldWithStyle(
-              fieldName: fieldName,
-              formData: _formData,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter $fieldName';
-                }
-                return pluginInfoFieldTypeValidator(
-                    value, widget.fieldTypes[fieldName]!, fieldName);
-              },
-              isCredential: widget.fieldTypes[fieldName] == 'secret',
-            ),
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Text(
+                  segment['title'],
+                  style: const TextStyle(fontSize: 18),
+                )),
+            if (segment['hint'] != null)
+              Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text(
+                    "Hint: ${segment['hint']}",
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  )),
+            for (FieldMap field in segment['field_info']!) ...[
+              Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    field['display_name']!,
+                    style: const TextStyle(fontSize: 16),
+                  )),
+              Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: TextFormFieldWithStyle(
+                    fieldName: field['field_name']!,
+                    formData: _formData,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter ${field['display_name']!}';
+                      }
+                      return pluginInfoFieldTypeValidator(
+                          value, field['type']!, field['display_name']!);
+                    },
+                    isCredential: field['type']! == 'secret',
+                  )),
+            ],
+            const SizedBox(height: 16),
           ],
-          const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () async {
               if (_formKey.currentState!.validate()) {
