@@ -5,9 +5,9 @@ services:
     container_name: iaio-opensearch-node1-2-debug
     environment:
       - cluster.name=opensearch-cluster
-      - node.name=d
-      - discovery.seed_hosts=d,opensearch-node2
-      - cluster.initial_cluster_manager_nodes=d,opensearch-node2
+      - node.nameopensearch-node1
+      - discovery.seed_hostsopensearch-node1,opensearch-node2
+      - cluster.initial_cluster_manager_nodesopensearch-node1,opensearch-node2
       - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
     ulimits:
@@ -31,8 +31,8 @@ services:
     environment:
       - cluster.name=opensearch-cluster
       - node.name=opensearch-node2
-      - discovery.seed_hosts=d,opensearch-node2
-      - cluster.initial_cluster_manager_nodes=d,opensearch-node2
+      - discovery.seed_hostsopensearch-node1,opensearch-node2
+      - cluster.initial_cluster_manager_nodesopensearch-node1,opensearch-node2
       - bootstrap.memory_lock=true
       - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
