@@ -12,8 +12,11 @@ Widget buildNewAccountForm(String pluginName) {
 
         //TODO: error handling for type conversion
         String hint = pluginInfoWithHint["hint"]!;
-        Map<String, String> pluginInfoFieldTypes =
-            pluginInfoWithHint["field_type"].cast<String, String>();
+        List<Map<String, String>> pluginFieldDefList =
+            List<Map<String, String>>.from(
+          pluginInfoWithHint["field_def"]!
+              .map((item) => Map<String, String>.from(item)),
+        );
 
         FormSegment basicSegment = {
           "title": "Basic Information",
@@ -35,11 +38,11 @@ Widget buildNewAccountForm(String pluginName) {
         FormSegment pluginSegment = {
           "title": "Account/Application Information",
           "hint": hint,
-          "field_info": pluginInfoFieldTypes.entries
-              .map((entry) => Map.fromEntries([
-                    MapEntry("field_name", entry.key),
-                    MapEntry("display_name", entry.key),
-                    MapEntry("type", entry.value),
+          "field_info": pluginFieldDefList
+              .map((fieldDef) => Map.fromEntries([
+                    MapEntry("field_name", fieldDef["field_name"]!),
+                    MapEntry("display_name", fieldDef["display_name"]!),
+                    MapEntry("type", fieldDef["type"]!),
                   ]))
               .toList(),
         };
