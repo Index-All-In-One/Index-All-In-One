@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from model_standalone import *
 from plugins.entry_plugin import dispatch_plugin
 from plugins.status_code import PluginReturnStatus
+from opensearch.conn import check_index_exist
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -71,7 +72,12 @@ def init_db(db_name):
     session.commit()
     return DBSession
 
-def start_plugin_instances(DBSession):
+def start_plugin_instances(DBSession, sleep_interval):
+    global opensearch_hostname
+    while(not check_index_exist(opensearch_hostname)):
+        logging.debug('Manager: Waiting for opensearch to start')
+        time.sleep(sleep_interval)
+
     session = DBSession()
     enabled_plugin_instances = session.query(PluginInstance).filter(PluginInstance.enabled == True).all()
     for plugin_instance in enabled_plugin_instances:
@@ -138,5 +144,8 @@ def loop_for_request(DBSession):
 if __name__ == "__main__":
     opensearch_hostname = os.environ.get('OPENSEARCH_HOSTNAME', 'localhost')
     DBSession = init_db("PI.db")
-    start_plugin_instances(DBSession)
+    sleep_interval = 5
+    if len(sys.argv) > 1:
+        sleep_interval = int(sys.argv[1])
+    start_plugin_instances(DBSession, sleep_interval)
     loop_for_request(DBSession)

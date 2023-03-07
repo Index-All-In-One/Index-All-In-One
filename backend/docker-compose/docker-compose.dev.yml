@@ -72,7 +72,7 @@ services:
       - backend-net-debug
     volumes:
       - iaio-pi-db-debug:/app/instance
-    command: "15"
+    command: "15 3"
 
 volumes:
   opensearch-data1-1-debug:
