@@ -155,7 +155,7 @@ def delete_plugin_instance():
     delete_task = lambda: (
         app.logger.debug("plugin_instance_id %s delete_doc: %s", plugin_instance_id, opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id))
     )
-    threading.Timer(interval = 8, target = delete_task).start()
+    threading.Timer(interval = 12, function = delete_task).start()
 
     response = opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id)
     app.logger.debug("plugin_instance_id %s delete_doc: %s", plugin_instance_id, response)
