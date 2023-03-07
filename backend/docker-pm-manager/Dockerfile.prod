@@ -1,0 +1,16 @@
+FROM python:3.10.10-slim-buster
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN mkdir ./plugin_management && mkdir ./plugins && mkdir ./opensearch
+
+COPY plugin_management/*.py ./plugin_management/
+COPY plugins/*.py ./plugins/
+COPY opensearch/*.py ./opensearch/
+
+COPY plugin_management/scripts/manager-init-docker.sh .
+RUN chmod +x manager-init-docker.sh
+ENTRYPOINT ["./manager-init-docker.sh"]
