@@ -157,9 +157,6 @@ def delete_plugin_instance():
     )
     threading.Timer(interval = 12, function = delete_task).start()
 
-    response = opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id)
-    app.logger.debug("plugin_instance_id %s delete_doc: %s", plugin_instance_id, response)
-
     if status == PluginReturnStatus.SUCCESS:
         app.logger.debug("Plugin instance del Success! : %s, %s", plugin_name, plugin_instance_id)
         return 'Delete plugin instance successfully!'
