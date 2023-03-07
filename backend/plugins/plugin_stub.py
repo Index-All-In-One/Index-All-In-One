@@ -21,4 +21,15 @@ def plugin_stub_del(plugin_instance_id):
 
 def plugin_stub_info_list():
     return PluginReturnStatus.SUCCESS, {"hint": "This is the hint of stub plugin", \
-            "field_type": {"username": "text", "password": "secret",},}
+            "field_def":[ \
+                { \
+                    "field_name": "username", \
+                    "display_name": "Username", \
+                    "type": "text",
+                }, \
+                {
+                    "field_name": "password", \
+                    "display_name": "Password", \
+                    "type": "secret",
+                }, \
+            ],}

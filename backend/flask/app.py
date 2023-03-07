@@ -8,7 +8,7 @@ import sys, time
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from model_flask import *
-from plugins.entry_plugin import dispatch_plugin, get_allowed_plugin_list
+from plugins.entry_plugin import dispatch_plugin, get_allowed_plugin_display_list, get_allowed_plugin_list
 from plugins.status_code import PluginReturnStatus
 from opensearch.conn import OpenSearch_Conn
 
@@ -229,13 +229,22 @@ def list_accounts():
 
 @app.route('/plugin_list', methods=['GET'])
 def get_plugin_list():
-    return jsonify(get_allowed_plugin_list())
+    return jsonify(get_allowed_plugin_display_list())
 
 @app.route('/plugin_info_field_type', methods=['POST'])
 def get_plugin_info_list():
     plugin_name = request.form.get('plugin_name')
-    status, info = dispatch_plugin("info_list", plugin_name)
-    return jsonify(info)
+
+    if plugin_name not in get_allowed_plugin_list():
+        return abort(400, 'Plugin not allowed!')
+
+    result = dispatch_plugin("info_list", plugin_name)
+    if (isinstance(result, tuple) and result[0] == PluginReturnStatus.SUCCESS):
+        info = result[1]
+        return jsonify(info)
+    else:
+        return abort(400, 'Plugin info_list function failed!')
+
 
 if __name__ == '__main__':
     app.run()

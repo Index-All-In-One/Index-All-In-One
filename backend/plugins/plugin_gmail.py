@@ -78,7 +78,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         mailbox_doc_ids, doc_content, doc_sizes = self.get_emails()
         # get emails from OpenSearch with the same plugin_instance_id
         ops_doc_ids = self.opensearch_conn.get_doc_ids(plugin_instance_id=self.plugin_instance_id)
-        
+
         # if doc in OpenSearch but not in mailbox, delete doc
         _, doc_ids_to_be_delete = self.not_in(ops_doc_ids, mailbox_doc_ids)
 
@@ -217,7 +217,18 @@ def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
 
 def plugin_gmail_info_list():
     return PluginReturnStatus.SUCCESS, {"hint": "Please enter your app password, not Gmail's login password. If you don't have, create one first.", \
-            "field_type": {"username": "text", "password": "secret", },}
+            "field_def": [\
+                { \
+                    "field_name": "username", \
+                    "display_name": "Username", \
+                    "type": "text",
+                }, \
+                {
+                    "field_name": "password", \
+                    "display_name": "Password", \
+                    "type": "secret",
+                }, \
+            ],}
 
 if __name__ == "__main__":
 

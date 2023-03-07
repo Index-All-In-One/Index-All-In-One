@@ -46,10 +46,10 @@ services:
     build:
       context: ..
       dockerfile: ./docker-flask/Dockerfile.dev
+    image: iaio-flask:debug
     environment:
       OPENSEARCH_HOSTNAME: opensearch-node1
       DEBUG: "true"
-    image: iaio-flask:debug
     ports:
       - "127.0.0.1:5235:5235"
     expose:

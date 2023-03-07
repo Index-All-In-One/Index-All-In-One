@@ -5,16 +5,19 @@ from plugins.status_code import PluginReturnStatus
 DEBUG = os.getenv('DEBUG', '').lower() in ['1', 'true', 'yes']
 
 # plugin_name: plugin_display_name
-allowed_plugins = { \
+allowed_plugins_display = { \
     "gmail":    "Gmail", \
     }
 
-def get_allowed_plugin_list():
+def get_allowed_plugin_display_list():
     if DEBUG:
-        allowed_plugins["stub"]="Stub for test"
-        return allowed_plugins
+        allowed_plugins_display["stub"]="Stub for test"
+        return allowed_plugins_display
     else:
-        return allowed_plugins
+        return allowed_plugins_display
+
+def get_allowed_plugin_list():
+    return list(get_allowed_plugin_display_list().keys())
 
 def dispatch_plugin(function_name, plugin_name, plugin_args = []):
     """
@@ -26,7 +29,7 @@ def dispatch_plugin(function_name, plugin_name, plugin_args = []):
         Each function should return a status code. Format: (status, other_return_values, ...)
     """
 
-    if plugin_name not in allowed_plugins:
+    if plugin_name not in get_allowed_plugin_list():
         # TODO: log error
         print("dispatch_plugin: Plugin not allowed: ", plugin_name)
         return PluginReturnStatus.NO_PLUGIN
