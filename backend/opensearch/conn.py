@@ -98,9 +98,7 @@ class OpenSearch_Conn:
         Output:
             the delete result
         Example:
-            keywords = [{"match": {"doc_id": doc_id}}]
-            keywords = [{"match": {"source": source1}}, {"match": {"doc_id": doc_id}}]
-            OpenSearch_Conn.delete_doc(keywords)
+            OpenSearch_Conn.delete_doc(doc_id, plugin_instance_id)
         '''
         keywords = []
         if doc_id:
@@ -211,10 +209,11 @@ if __name__ == "__main__":
 
     # body = dummy_data()
     # conn.insert_doc(body)
-    # response = conn.search_doc("Google", "Google")
+    # response = conn.search_doc("3bb5dd85-2d54-4f18-88a1-3513bec54fed")
     # print(response)
     # response = conn.get_doc_count()
     # print(response)
-    # conn.delete_doc([{"match": {"plugin_instance_id": '1'}}])
-    # response = conn.get_doc_count()
+    # response = conn.index_exist()
+    # print(response)
+    # response = conn.delete_doc(plugin_instance_id = "3bb5dd85-2d54-4f18-88a1-3513bec54fed")
     # print(response)
