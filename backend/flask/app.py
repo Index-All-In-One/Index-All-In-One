@@ -3,7 +3,7 @@ import uuid
 import logging
 import json
 import os
-import sys
+import sys, time
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from model_flask import *
@@ -148,6 +148,7 @@ def delete_plugin_instance():
         app.logger.error(e)
         status = PluginReturnStatus.EXCEPTION
 
+    time.sleep(8)
     response = opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id)
     app.logger.debug("plugin_instance_id %s delete_doc: %s", plugin_instance_id, response)
 
