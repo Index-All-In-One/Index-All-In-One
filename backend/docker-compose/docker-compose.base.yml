@@ -6,6 +6,12 @@ services:
     expose:
       - "9200"
 
+  opensearch-init:
+    image: iaio-opensearch-init
+    container_name: iaio-opensearch-init
+    environment:
+      OPENSEARCH_HOSTNAME: opensearch-node1
+
   flask:
     image: iaio-flask
     container_name: iaio-flask
