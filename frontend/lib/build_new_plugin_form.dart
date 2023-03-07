@@ -21,15 +21,15 @@ Widget buildNewAccountForm(String pluginName) {
         FormSegment basicSegment = {
           "title": "Basic Information",
           "hint": null,
-          "field_info": [
+          "field_def": [
             Map.fromEntries([
               const MapEntry("field_name", "source_name"),
-              const MapEntry("display_name", "source name"),
+              const MapEntry("display_name", "Source name"),
               const MapEntry("type", "text"),
             ]),
             Map.fromEntries([
               const MapEntry("field_name", "interval"),
-              const MapEntry("display_name", "interval"),
+              const MapEntry("display_name", "Interval"),
               const MapEntry("type", "int"),
             ]),
           ],
@@ -38,7 +38,7 @@ Widget buildNewAccountForm(String pluginName) {
         FormSegment pluginSegment = {
           "title": "Account/Application Information",
           "hint": hint,
-          "field_info": pluginFieldDefList
+          "field_def": pluginFieldDefList
               .map((fieldDef) => Map.fromEntries([
                     MapEntry("field_name", fieldDef["field_name"]!),
                     MapEntry("display_name", fieldDef["display_name"]!),

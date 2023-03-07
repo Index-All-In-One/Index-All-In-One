@@ -325,7 +325,7 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
                     "Hint: ${segment['hint']}",
                     style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   )),
-            for (FieldMap field in segment['field_info']!) ...[
+            for (FieldMap field in segment['field_def']!) ...[
               Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
