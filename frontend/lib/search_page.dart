@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'search_bar.dart';
 import 'build_search_results.dart';
+import 'utils.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -11,6 +12,14 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   Widget _searchResultsWidget = ListView();
+  Widget _searchResultsCountWidget = const ListTile();
+  Widget _searchResultsFieldNameWidget = const ListTile();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,6 +40,8 @@ class _SearchPageState extends State<SearchPage> {
             hintText: 'Search...',
             onSearch: onSearchFunction,
           ),
+          _searchResultsCountWidget,
+          _searchResultsFieldNameWidget,
           Expanded(child: Container(child: _searchResultsWidget)),
         ],
       ),
@@ -41,6 +52,23 @@ class _SearchPageState extends State<SearchPage> {
     if (query.isNotEmpty) {
       setState(() {
         _searchResultsWidget = buildSearchResults(query);
+        _searchResultsCountWidget = buildSearchResultCountFromRequest(query);
+        _searchResultsFieldNameWidget = ListTile(
+          title: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            color: Colors.grey[200],
+            child: Row(
+                children: documentFieldKeys
+                    .map((key) => Expanded(
+                          child: Center(
+                              child: TextWithHover(
+                            text: documentFieldDisplayNames[key]!,
+                            maxLines: 1,
+                          )),
+                        ))
+                    .toList()),
+          ),
+        );
       });
     }
   }

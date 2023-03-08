@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:index_all_in_one/utils.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'apis.dart';
 
 List<String> documentFieldKeys = [
@@ -24,6 +26,34 @@ Map<String, String> documentFieldDisplayNames = {
   "file_size": "Size",
 };
 
+Widget buildSearchResultCount(int count) {
+  return ListTile(
+    title: Text("Find $count result(s)"),
+  );
+}
+
+Widget buildSearchResultCountFromRequest(String query) {
+  return FutureBuilder(
+    future: sendSearchRequest(query),
+    builder: (BuildContext context, AsyncSnapshot snapshot) {
+      if (snapshot.connectionState == ConnectionState.done) {
+        if (snapshot.hasError) {
+          return Text("Error: ${snapshot.error}");
+        }
+
+        final response = snapshot.data as http.Response;
+        if (response.statusCode != 200) {
+          showErrorAlert("search API return unsuccessful response", context);
+        }
+        List<dynamic> queryResults = jsonDecode(response.body).cast<dynamic>();
+        return buildSearchResultCount(queryResults.length);
+      } else {
+        return buildSearchResultCount(0);
+      }
+    },
+  );
+}
+
 Widget buildSearchResults(String query) {
   return BuildFromHttpRequest(
       httpRequest: () => sendSearchRequest(query),
@@ -32,36 +62,11 @@ Widget buildSearchResults(String query) {
         List<dynamic> queryResults = responseBody.cast<dynamic>();
 
         return ListView.builder(
-          itemCount: queryResults.length + 2,
+          itemCount: queryResults.length,
           itemBuilder: (BuildContext context, int index) {
-            if (index == 0) {
-              return ListTile(
-                title: Text("Find ${queryResults.length} result(s)"),
-              );
-            }
-            if (index == 1) {
-              // return the header
-              return ListTile(
-                title: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  color: Colors.grey[200],
-                  child: Row(
-                      children: documentFieldKeys
-                          .map((key) => Expanded(
-                                child: Center(
-                                    child: TextWithHover(
-                                  text: documentFieldDisplayNames[key]!,
-                                  maxLines: 1,
-                                )),
-                              ))
-                          .toList()),
-                ),
-              );
-            }
-
             //TODO type conversion error handling
             Map<String, dynamic> singleQueryResult =
-                queryResults[index - 2] as Map<String, dynamic>;
+                queryResults[index] as Map<String, dynamic>;
             return ListTile(
               title: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
