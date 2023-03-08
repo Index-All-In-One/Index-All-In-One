@@ -99,17 +99,36 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
     def raw_to_insert_format(self, doc_id, doc_content, size):
         doc_content = email.message_from_bytes(doc_content[0][1])
 
-        title = doc_content.get('Subject')
+        title_bytes = email.header.decode_header(doc_content.get('Subject'))
+        title = title_bytes[0][0].decode(title_bytes[0][1]) if title_bytes[0][1] else title_bytes[0][0]
+
         gmail_url = f'https://mail.google.com/mail/u/0/#inbox/'
-        send_date = doc_content.get('Date')
-        sender = doc_content.get('From')
-        receiver = doc_content.get('To')
-        bcc = doc_content.get('BCC')
+
+        send_date_bytes = email.header.decode_header(doc_content.get('Date'))
+        send_date = send_date_bytes[0][0].decode(send_date_bytes[0][1]) if send_date_bytes[0][1] else send_date_bytes[0][0]
+
+        sender_bytes = email.header.decode_header(doc_content.get('From'))
+        sender = sender_bytes[0][0].decode(sender_bytes[0][1]) if sender_bytes[0][1] else sender_bytes[0][0]
+
+        receiver_bytes = email.header.decode_header(doc_content.get('To'))
+        receiver = receiver_bytes[0][0].decode(receiver_bytes[0][1]) if receiver_bytes[0][1] else receiver_bytes[0][0]
+
+        bcc = ''
+        bcc_bytes = doc_content.get('Bcc')
+        if bcc_bytes:
+            bcc_bytes = email.header.decode_header(bcc_bytes)
+            bcc = bcc_bytes[0][0].decode(bcc_bytes[0][1]) if bcc_bytes[0][1] else bcc_bytes[0][0]
 
         text_content = ''
-        for part in doc_content.walk():
-            if part.get_content_type() == "text/plain":
-                text_content = part.get_payload(decode=True).decode('utf-8')
+        if doc_content.is_multipart():
+            # For multipart messages, iterate over the individual message parts
+            for part in doc_content.get_payload():
+                if part.get_content_type() == 'text/plain' or part.get_content_type() == 'text/html':
+                    # Decode the message body using the appropriate character encoding
+                    text_content += part.get_payload(decode=True).decode(part.get_content_charset())
+        else:
+            # For single-part messages, simply decode the message body using the appropriate character encoding
+            text_content = doc_content.get_payload(decode=True).decode(doc_content.get_content_charset())
 
         text_summary = text_content[:100] + '...' if len(text_content) > 100 else text_content
 
