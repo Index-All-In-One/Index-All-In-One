@@ -111,6 +111,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             if part.get_content_type() == "text/plain":
                 text_content = part.get_payload(decode=True).decode('utf-8')
 
+        text_summary = text_content[:100] + '...' if len(text_content) > 100 else text_content
 
         # send_date = send_date.split(' (')[0]
         # send_date = datetime.datetime.strptime(send_date, '%a, %d %b %Y %H:%M:%S %z')
@@ -124,7 +125,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             "link": gmail_url,
             "created_date": send_date,
             "modified_date": send_date,
-            "summary": "Sender: {}  Receiver: {}  BCC: {}".format(sender, receiver, bcc),
+            "summary": "Sender: {}\nReceiver: {}\nBCC: {}\nBody:\n{}".format(sender, receiver, bcc, text_summary),
             "file_size": int(size),
             "plugin_instance_id": self.plugin_instance_id,
             "content": text_content
