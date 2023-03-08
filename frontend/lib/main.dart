@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Index All In One App',
+      title: 'Index All In One',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
