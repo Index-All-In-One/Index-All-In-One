@@ -467,12 +467,14 @@ class BuildFromHttpRequest extends StatefulWidget {
   final Future<http.Response> Function() httpRequest;
   final String? apiErrorMessageName;
   final Widget Function(dynamic) builderUsingResponseBody;
+  final Widget? loadingWidget;
 
   const BuildFromHttpRequest({
     super.key,
     required this.httpRequest,
     this.apiErrorMessageName,
     required this.builderUsingResponseBody,
+    this.loadingWidget,
   });
 
   @override
@@ -488,22 +490,25 @@ class _BuildFromHttpRequestState extends State<BuildFromHttpRequest> {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
             return const Center(
-              child: Text('An error occurred'),
+              child: Text('An error occurred in http request'),
             );
           }
 
           final response = snapshot.data as http.Response;
           if (response.statusCode != 200) {
             showErrorAlert(
-                widget.apiErrorMessageName ??
-                    " API return unsuccessful response",
+                "${widget.apiErrorMessageName ?? "unknown"} API return unsuccessful response",
                 context);
           }
           return widget.builderUsingResponseBody(jsonDecode(response.body));
         } else {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          if (widget.loadingWidget != null) {
+            return widget.loadingWidget!;
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
         }
       },
     );

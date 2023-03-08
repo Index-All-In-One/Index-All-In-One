@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:index_all_in_one/utils.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'apis.dart';
 
 List<String> documentFieldKeys = [
@@ -33,24 +31,14 @@ Widget buildSearchResultCount(int count) {
 }
 
 Widget buildSearchResultCountFromRequest(String query) {
-  return FutureBuilder(
-    future: sendSearchRequest(query),
-    builder: (BuildContext context, AsyncSnapshot snapshot) {
-      if (snapshot.connectionState == ConnectionState.done) {
-        if (snapshot.hasError) {
-          return Text("Error: ${snapshot.error}");
-        }
-
-        final response = snapshot.data as http.Response;
-        if (response.statusCode != 200) {
-          showErrorAlert("search API return unsuccessful response", context);
-        }
-        List<dynamic> queryResults = jsonDecode(response.body).cast<dynamic>();
-        return buildSearchResultCount(queryResults.length);
-      } else {
-        return buildSearchResultCount(0);
-      }
+  return BuildFromHttpRequest(
+    httpRequest: () => sendSearchRequest(query),
+    apiErrorMessageName: "search",
+    builderUsingResponseBody: (responseBody) {
+      List<dynamic> queryResults = responseBody.cast<dynamic>();
+      return buildSearchResultCount(queryResults.length);
     },
+    loadingWidget: buildSearchResultCount(0),
   );
 }
 
