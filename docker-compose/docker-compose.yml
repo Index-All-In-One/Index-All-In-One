@@ -6,9 +6,7 @@ services:
     container_name: iaio-flutter-web
     build:
       context: ../frontend
-      dockerfile: ./docker-nginx/Dockerfile
-    environment:
-      - BASE_URL=http://127.0.0.1:5235
+      dockerfile: ./docker-nginx/Dockerfile.prod
     ports:
       - "127.0.0.1:8000:80"
     networks:
