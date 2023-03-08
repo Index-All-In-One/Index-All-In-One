@@ -139,6 +139,7 @@ def delete_plugin_instance():
         return 'No such plugin instance!'
 
     plugin_name = plugin_instance.plugin_name
+    enabled = plugin_instance.enabled
     sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).delete()
 
     new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
@@ -156,6 +157,10 @@ def delete_plugin_instance():
         app.logger.debug("plugin_instance_id %s delete_doc: %s", plugin_instance_id, opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id))
     )
     threading.Timer(interval = 12, function = delete_task).start()
+
+    # if not enabled, delete the doc immediately
+    if not enabled:
+        app.logger.debug("plugin_instance_id %s delete_doc: %s", plugin_instance_id, opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id))
 
     if status == PluginReturnStatus.SUCCESS:
         app.logger.debug("Plugin instance del Success! : %s, %s", plugin_name, plugin_instance_id)
