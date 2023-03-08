@@ -1,0 +1,46 @@
+version: '3'
+services:
+# include web:
+  web:
+    image: iaio-flutter-web
+    container_name: iaio-flutter-web
+    build:
+      context: ../frontend
+      dockerfile: ./docker-nginx/Dockerfile
+    environment:
+      - BASE_URL=http://127.0.0.1:5235
+    ports:
+      - "127.0.0.1:8000:80"
+    networks:
+      - backend-net
+
+# extends:
+  opensearch-node1:
+    extends:
+        file: ../backend/docker-compose/docker-compose.prod.base.yml
+        service: opensearch-node1
+    container_name: iaio-opensearch-node1-1
+
+  opensearch-init:
+    extends:
+        file: ../backend/docker-compose/docker-compose.prod.base.yml
+        service: opensearch-init
+    depends_on:
+      - opensearch-node1
+
+  flask:
+    extends:
+        file: ../backend/docker-compose/docker-compose.prod.base.yml
+        service: flask
+
+  pm-manager:
+    extends:
+        file: ../backend/docker-compose/docker-compose.prod.base.yml
+        service: pm-manager
+
+volumes:
+  opensearch-data1-1:
+  iaio-pi-db:
+
+networks:
+  backend-net:
