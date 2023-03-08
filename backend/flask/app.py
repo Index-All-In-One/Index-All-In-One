@@ -158,6 +158,7 @@ def delete_plugin_instance():
         app.logger.debug("plugin_instance_id %s delete_doc: %s", plugin_instance_id, opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id))
     )
     threading.Timer(interval = 12, function = delete_task).start()
+    threading.Timer(interval = 6, function = delete_task).start()
 
     # if not enabled, delete the doc immediately
     if not enabled or not active:
