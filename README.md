@@ -14,7 +14,7 @@ Current solutions such as Elastic Workplace Search, Coveo’s unified search, Ap
 
 ## Project Approach
 
-Components: 
+Components:
 Search engine: The core component of our backend, which is responsible for building, searching and updating the unified index.
 Application integration plugins: The component that connects the search engine with other platforms such as email, Google Drive, Notion by sending updates to the backend.
 Frontend: The UI where users perform searches and view results.
@@ -24,3 +24,23 @@ OpenSearch for search engine, Flutter for frontend UI, Python for integration pl
 
 Expected project Outcome:
 An app with a unified search framework suitable for running on home devices, integrating files and content from different sources to build and update an index.
+
+## Run in docker compose
+
+Make sure you have `flutter` installed.
+
+Run this command on project’s root dir to start docker compose in detached mode:
+
+```bash
+./scripts/run-docker-compose.sh
+```
+
+And then access flutter web at localhost:8000.
+
+Or set `SERVER_URL` and `LOCAL_ADDR` in env to run it in different port or remote server.
+
+You can check logs with this command:
+
+```bash
+docker-compose -f docker-compose/docker-compose.yml logs --follow
+```
