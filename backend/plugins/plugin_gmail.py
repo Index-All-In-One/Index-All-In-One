@@ -96,28 +96,24 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             response = self.opensearch_conn.insert_doc(body)
 
 
+    def decode_email_header(self, header):
+        header_bytes = email.header.decode_header(header)
+        return header_bytes[0][0].decode(header_bytes[0][1]) if header_bytes[0][1] else header_bytes[0][0]
+
     def raw_to_insert_format(self, doc_id, doc_content, size):
         doc_content = email.message_from_bytes(doc_content[0][1])
 
-        title_bytes = email.header.decode_header(doc_content.get('Subject'))
-        title = title_bytes[0][0].decode(title_bytes[0][1]) if title_bytes[0][1] else title_bytes[0][0]
-
+        title = self.decode_email_header(doc_content.get('Subject'))
         gmail_url = f'https://mail.google.com/mail/u/0/#inbox/'
-
-        send_date_bytes = email.header.decode_header(doc_content.get('Date'))
-        send_date = send_date_bytes[0][0].decode(send_date_bytes[0][1]) if send_date_bytes[0][1] else send_date_bytes[0][0]
-
-        sender_bytes = email.header.decode_header(doc_content.get('From'))
-        sender = sender_bytes[0][0].decode(sender_bytes[0][1]) if sender_bytes[0][1] else sender_bytes[0][0]
-
-        receiver_bytes = email.header.decode_header(doc_content.get('To'))
-        receiver = receiver_bytes[0][0].decode(receiver_bytes[0][1]) if receiver_bytes[0][1] else receiver_bytes[0][0]
+        send_date = self.decode_email_header(doc_content.get('Date'))
+        sender = self.decode_email_header(doc_content.get('From'))
+        receiver = self.decode_email_header(doc_content.get('To'))
 
         bcc = ''
         bcc_bytes = doc_content.get('Bcc')
         if bcc_bytes:
             bcc_bytes = email.header.decode_header(bcc_bytes)
-            bcc = bcc_bytes[0][0].decode(bcc_bytes[0][1]) if bcc_bytes[0][1] else bcc_bytes[0][0]
+            bcc = self.decode_email_header(doc_content.get('Bcc'))
 
         text_content = ''
         if doc_content.is_multipart():
