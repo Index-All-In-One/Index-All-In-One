@@ -140,6 +140,7 @@ def delete_plugin_instance():
 
     plugin_name = plugin_instance.plugin_name
     enabled = plugin_instance.enabled
+    active = plugin_instance.active
     sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).delete()
 
     new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
@@ -159,7 +160,7 @@ def delete_plugin_instance():
     threading.Timer(interval = 12, function = delete_task).start()
 
     # if not enabled, delete the doc immediately
-    if not enabled:
+    if not enabled or not active:
         app.logger.debug("plugin_instance_id %s delete_doc: %s", plugin_instance_id, opensearch_conn.delete_doc(plugin_instance_id=plugin_instance_id))
 
     if status == PluginReturnStatus.SUCCESS:
