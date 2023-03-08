@@ -13,4 +13,4 @@ cd frontend
 ./scripts/build-web-release.sh
 cd ..
 
-docker-compose -f docker-compose/docker-compose.yml up --build
+docker-compose -f docker-compose/docker-compose.yml up -d --build
