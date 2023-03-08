@@ -22,7 +22,7 @@ class _LinkNewPageState extends State<LinkNewPage> {
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: const Text(
               'Plugin List',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 18),
             ),
           ),
           Expanded(child: buildPluginList()),
