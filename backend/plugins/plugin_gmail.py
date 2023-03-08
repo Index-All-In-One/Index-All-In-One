@@ -104,6 +104,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         doc_content = email.message_from_bytes(doc_content[0][1])
 
         title = self.decode_email_header(doc_content.get('Subject'))
+        logging.debug("title: {}".format(title))
         gmail_url = f'https://mail.google.com/mail/u/0/#inbox/'
         send_date = self.decode_email_header(doc_content.get('Date'))
         sender = self.decode_email_header(doc_content.get('From'))
@@ -116,15 +117,9 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             bcc = self.decode_email_header(doc_content.get('Bcc'))
 
         text_content = ''
-        if doc_content.is_multipart():
-            # For multipart messages, iterate over the individual message parts
-            for part in doc_content.get_payload():
-                if part.get_content_type() == 'text/plain' or part.get_content_type() == 'text/html':
-                    # Decode the message body using the appropriate character encoding
-                    text_content += part.get_payload(decode=True).decode(part.get_content_charset())
-        else:
-            # For single-part messages, simply decode the message body using the appropriate character encoding
-            text_content = doc_content.get_payload(decode=True).decode(doc_content.get_content_charset())
+        for part in doc_content.walk():
+            if part.get_content_type() == "text/plain":
+                text_content = part.get_payload(decode=True).decode(part.get_content_charset())
 
         text_summary = text_content[:100] + '...' if len(text_content) > 100 else text_content
 
