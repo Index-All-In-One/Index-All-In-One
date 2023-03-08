@@ -1,0 +1,31 @@
+version: '3'
+services:
+  opensearch-node1:
+    extends:
+        file: docker-compose.prod.base.yml
+        service: opensearch-node1
+    container_name: iaio-opensearch-node1-1-debug
+
+  opensearch-init:
+    extends:
+        file: docker-compose.prod.base.yml
+        service: opensearch-init
+    depends_on:
+      - opensearch-node1
+
+  flask:
+    extends:
+        file: docker-compose.prod.base.yml
+        service: flask
+
+  pm-manager:
+    extends:
+        file: docker-compose.prod.base.yml
+        service: pm-manager
+
+volumes:
+  opensearch-data1-1:
+  iaio-pi-db:
+
+networks:
+  backend-net:
