@@ -44,6 +44,24 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
           ),
+          ListTile(
+              title: Row(children: [
+            const Text("Current Account/Application(s)"),
+            RefreshIcon(onPressed: refreshAccountList),
+          ])),
+          ListTile(
+            title: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              color: Colors.grey[200],
+              child: Row(
+                  children: accountsFieldKeys
+                      .map((key) => Expanded(
+                            child: Center(
+                                child: Text(accountsFieldDisplayNames[key]!)),
+                          ))
+                      .toList()),
+            ),
+          ),
           Expanded(child: _accountListWidget),
         ],
       ),

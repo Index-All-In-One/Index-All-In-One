@@ -34,36 +34,11 @@ Widget buildAccountList(Function() refreshCallback) {
     builderUsingResponseBody: (responseBody) {
       List<dynamic> queryResults = responseBody.cast<dynamic>();
       return ListView.builder(
-        itemCount: queryResults.length + 2,
+        itemCount: queryResults.length,
         itemBuilder: (BuildContext context, int index) {
-          if (index == 0) {
-            // return the count
-            return ListTile(
-                title: Row(children: [
-              Text("You have ${queryResults.length} Account/Application(s)"),
-              RefreshIcon(onPressed: refreshCallback),
-            ]));
-          }
-          if (index == 1) {
-            // return the header
-            return ListTile(
-              title: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                color: Colors.grey[200],
-                child: Row(
-                    children: accountsFieldKeys
-                        .map((key) => Expanded(
-                              child: Center(
-                                  child: Text(accountsFieldDisplayNames[key]!)),
-                            ))
-                        .toList()),
-              ),
-            );
-          }
-
           //TODO type conversion error handling
           Map<String, dynamic> singleQueryResult =
-              queryResults[index - 2] as Map<String, dynamic>;
+              queryResults[index] as Map<String, dynamic>;
           return ListTile(
             title: Container(
               padding: const EdgeInsets.symmetric(vertical: 10),
