@@ -8,7 +8,7 @@ services:
       context: ../frontend
       dockerfile: ./docker-nginx/Dockerfile.prod
     ports:
-      - "127.0.0.1:8000:80"
+      - "${LOCAL_ADDR}:80"
     networks:
       - backend-net
 
@@ -30,6 +30,8 @@ services:
     extends:
         file: ../backend/docker-compose/docker-compose.prod.base.yml
         service: flask
+    ports:
+      - "127.0.0.1:${BACKEND_LOCAL_PORT}:5235"
 
   pm-manager:
     extends:
