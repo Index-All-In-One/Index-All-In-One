@@ -29,18 +29,18 @@ An app with a unified search framework suitable for running on home devices, int
 
 Make sure you have `flutter` installed.
 
-Run this command on project’s root dir to start docker compose in detached mode:
+Run this command on project’s root dir to start docker compose (detached mode):
 
 ```bash
-./scripts/run-docker-compose.sh
+./scripts/run-docker-compose.sh run
 ```
 
 And then access flutter web at localhost:8000.
 
 Or set `SERVER_URL` and `LOCAL_ADDR` in env to run it in different port or remote server.
 
-You can check logs with this command:
+You can also use `logs` , `stop`, `clean` as operation in this command:
 
 ```bash
-docker-compose -f docker-compose/docker-compose.yml logs --follow
+./scripts/run-docker-compose.sh <operation>
 ```
