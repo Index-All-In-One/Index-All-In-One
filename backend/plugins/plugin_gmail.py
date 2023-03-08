@@ -122,7 +122,6 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             "doc_name": title,
             "doc_type": 'Email',
             "link": gmail_url,
-            "source": self.user,
             "created_date": send_date,
             "modified_date": send_date,
             "summary": "Sender: {}  Receiver: {}  BCC: {}".format(sender, receiver, bcc),

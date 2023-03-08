@@ -59,17 +59,20 @@ def search():
     search_results = []
     for doc in docs:
         doc = doc['_source']
-        search_results.append(
-            {
-                "doc_name": doc['doc_name'],
-                "doc_type": doc['doc_type'],
-                "link": doc['link'],
-                "source": doc['source'],
-                "created_date": doc['created_date'],
-                "modified_date": doc['modified_date'],
-                "summary": doc['summary'],
-                "file_size": doc['file_size']
-            })
+        plugin_instance = sqlalchemy_db.session.query(PluginInstance.source_name).filter_by(plugin_instance_id=doc['plugin_instance_id']).first()
+        if plugin_instance is not None:
+            source_name = plugin_instance.source_name
+            search_results.append(
+                {
+                    "doc_name": doc['doc_name'],
+                    "doc_type": doc['doc_type'],
+                    "link": doc['link'],
+                    "source": source_name,
+                    "created_date": doc['created_date'],
+                    "modified_date": doc['modified_date'],
+                    "summary": doc['summary'],
+                    "file_size": doc['file_size']
+                })
 
     return jsonify(search_results)
 
