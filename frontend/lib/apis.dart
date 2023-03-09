@@ -25,6 +25,14 @@ Future<http.Response> sendSearchRequest(String query) async {
   return response;
 }
 
+Future<http.Response> sendSearchCountRequest(String query) async {
+  var url = Uri.parse('$baseUrl/search_count');
+
+  var response = await http
+      .post(url, body: {'keywords': query, 'full_text_keywords': query});
+  return response;
+}
+
 Future<http.Response> sendListAccountRequest() async {
   var url = Uri.parse('$baseUrl/list_accounts');
 
