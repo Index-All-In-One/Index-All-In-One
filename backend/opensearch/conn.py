@@ -76,6 +76,7 @@ class OpenSearch_Conn:
         response = self.client.search(
             index=index_name,
             body={
+                "size": 100,
                 "query": {
                     "bool": {
                         "should": keywords
