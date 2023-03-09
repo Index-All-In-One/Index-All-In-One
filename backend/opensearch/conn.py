@@ -54,19 +54,7 @@ class OpenSearch_Conn:
         response = self.client.index(index=index_name,body=body)
         return response
 
-    def search_doc(self, doc_name, full_text_keywords=None, index_name='search_index', include_fields=None):
-        '''
-        with a list of keywords, search for documents that match either of the keywords in the list.
-        Input:
-            client: a connectd OpenSearch client
-            keywords: the search keyword
-            index_name: the name of an OpenSearch index
-        Output:
-            the search response in the form of a python dict
-        Example:
-            keywords = "Youtube"
-            full_text_keywords = "Apple"
-        '''
+    def construct_search_body(self, doc_name, full_text_keywords=None, include_fields=None):
         keywords = []
         if doc_name:
             keywords.append({"match": {"doc_name": doc_name}})
@@ -83,13 +71,33 @@ class OpenSearch_Conn:
         }
         if include_fields is not None:
             body["_source"] = include_fields
+        return body
+
+    def search_doc(self, doc_name, full_text_keywords=None, index_name='search_index', include_fields=None):
+        '''
+        with a list of keywords, search for documents that match either of the keywords in the list.
+        Input:
+            client: a connectd OpenSearch client
+            keywords: the search keyword
+            index_name: the name of an OpenSearch index
+        Output:
+            the search response in the form of a python dict
+        Example:
+            keywords = "Youtube"
+            full_text_keywords = "Apple"
+        '''
+        body=self.construct_search_body(doc_name, full_text_keywords, include_fields)
 
         response = self.client.search(
             index=index_name,
             body=body,
         )
-
         return response
+
+    # def search_doc_return_count(self, doc_name, full_text_keywords=None, index_name='search_index', include_fields=None):
+    #     body=self.construct_search_body(doc_name, full_text_keywords, include_fields)
+
+    #     return self.get_doc_count(body, index_name)
 
     def delete_doc(self, doc_id=None, plugin_instance_id=None, index_name='search_index'):
         '''
@@ -134,20 +142,20 @@ class OpenSearch_Conn:
             return False
         return True
 
-    def get_doc_count(self, index_name='search_index'):
+    def get_doc_count(self, index_name='search_index', body=None):
         '''
         Output:
             The total number of documents under index
         '''
-        response = self.client.count(index=index_name)
-        return response
+        response = self.client.count(index=index_name, body=body)
+        return response["count"]
 
     def get_doc_ids(self, plugin_instance_id, index_name='search_index'):
         '''
         Find all doc_id with a source
         '''
 
-        doc_num = self.get_doc_count(index_name)["count"]
+        doc_num = self.get_doc_count(index_name)
 
         body = {
             "size": doc_num,

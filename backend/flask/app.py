@@ -11,6 +11,7 @@ from model_flask import *
 from plugins.entry_plugin import dispatch_plugin, get_allowed_plugin_display_list, get_allowed_plugin_list
 from plugins.status_code import PluginReturnStatus
 from opensearch.conn import OpenSearch_Conn
+from utils_flask import *
 
 
 opensearch_hostname = os.environ.get('OPENSEARCH_HOSTNAME', 'localhost')
@@ -46,19 +47,17 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS'
     return response
 
+@app.route('/search_count', methods=['POST'])
+def search_count():
+    count = get_search_count(opensearch_conn, request)
+    return jsonify({'count': count})
+
 @app.route('/search', methods=['POST'])
 def search():
-
-    # turn keywords into a list of dict
-    keywords = request.form.get('keywords')
-    full_text_keywords = request.form.get('full_text_keywords')
-    # Connect with openSearch
-    response = opensearch_conn.search_doc(keywords,full_text_keywords)
-    docs = response['hits']['hits']
+    docs = extract_docs_from_response(get_search_results(opensearch_conn, request, include_fields=['doc_name', 'doc_type', 'link', 'plugin_instance_id', 'created_date', 'modified_date', 'summary', 'file_size']))
 
     search_results = []
     for doc in docs:
-        doc = doc['_source']
         plugin_instance = sqlalchemy_db.session.query(PluginInstance.source_name).filter_by(plugin_instance_id=doc['plugin_instance_id']).first()
         if plugin_instance is not None:
             source_name = plugin_instance.source_name
