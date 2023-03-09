@@ -32,11 +32,11 @@ Widget buildSearchResultCount(int count) {
 
 Widget buildSearchResultCountFromRequest(String query) {
   return BuildFromHttpRequest(
-    httpRequest: () => sendSearchRequest(query),
+    httpRequest: () => sendSearchCountRequest(query),
     apiErrorMessageName: "search",
     builderUsingResponseBody: (responseBody) {
-      List<dynamic> queryResults = responseBody.cast<dynamic>();
-      return buildSearchResultCount(queryResults.length);
+      var queryResultCount = responseBody["count"] as int;
+      return buildSearchResultCount(queryResultCount);
     },
     loadingWidget: buildSearchResultCount(0),
   );
