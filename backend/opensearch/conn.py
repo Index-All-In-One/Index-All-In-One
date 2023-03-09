@@ -54,7 +54,7 @@ class OpenSearch_Conn:
         response = self.client.index(index=index_name,body=body)
         return response
 
-    def search_doc(self, doc_name, full_text_keywords=None, index_name='search_index'):
+    def search_doc(self, doc_name, full_text_keywords=None, index_name='search_index', include_fields=None):
         '''
         with a list of keywords, search for documents that match either of the keywords in the list.
         Input:
@@ -73,16 +73,20 @@ class OpenSearch_Conn:
         if full_text_keywords:
             keywords.append({"match": {"content": full_text_keywords}})
 
-        response = self.client.search(
-            index=index_name,
-            body={
-                "size": 100,
-                "query": {
-                    "bool": {
-                        "should": keywords
-                    }
+        body = {
+            "size": 100,
+            "query": {
+                "bool": {
+                    "should": keywords
                 }
             }
+        }
+        if include_fields is not None:
+            body["_source"] = include_fields
+
+        response = self.client.search(
+            index=index_name,
+            body=body,
         )
 
         return response
