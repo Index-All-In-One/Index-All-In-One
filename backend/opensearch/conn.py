@@ -94,11 +94,6 @@ class OpenSearch_Conn:
         )
         return response
 
-    # def search_doc_return_count(self, doc_name, full_text_keywords=None, index_name='search_index', include_fields=None):
-    #     body=self.construct_search_body(doc_name, full_text_keywords, include_fields)
-
-    #     return self.get_doc_count(body, index_name)
-
     def delete_doc(self, doc_id=None, plugin_instance_id=None, index_name='search_index'):
         '''
         Delete OpenSource client documents
