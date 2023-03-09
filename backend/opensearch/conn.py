@@ -54,7 +54,26 @@ class OpenSearch_Conn:
         response = self.client.index(index=index_name,body=body)
         return response
 
-    def search_doc(self, doc_name, full_text_keywords=None, index_name='search_index'):
+    def construct_search_body(self, doc_name, full_text_keywords=None, include_fields=None):
+        keywords = []
+        if doc_name:
+            keywords.append({"match": {"doc_name": doc_name}})
+        if full_text_keywords:
+            keywords.append({"match": {"content": full_text_keywords}})
+
+        body = {
+            "size": 100,
+            "query": {
+                "bool": {
+                    "should": keywords
+                }
+            }
+        }
+        if include_fields is not None:
+            body["_source"] = include_fields
+        return body
+
+    def search_doc(self, doc_name, full_text_keywords=None, index_name='search_index', include_fields=None):
         '''
         with a list of keywords, search for documents that match either of the keywords in the list.
         Input:
@@ -67,23 +86,12 @@ class OpenSearch_Conn:
             keywords = "Youtube"
             full_text_keywords = "Apple"
         '''
-        keywords = []
-        if doc_name:
-            keywords.append({"match": {"doc_name": doc_name}})
-        if full_text_keywords:
-            keywords.append({"match": {"content": full_text_keywords}})
+        body=self.construct_search_body(doc_name, full_text_keywords, include_fields)
 
         response = self.client.search(
             index=index_name,
-            body={
-                "query": {
-                    "bool": {
-                        "should": keywords
-                    }
-                }
-            }
+            body=body,
         )
-
         return response
 
     def delete_doc(self, doc_id=None, plugin_instance_id=None, index_name='search_index'):
@@ -129,20 +137,23 @@ class OpenSearch_Conn:
             return False
         return True
 
-    def get_doc_count(self, index_name='search_index'):
+    def get_doc_count(self, index_name='search_index', body=None):
         '''
         Output:
             The total number of documents under index
         '''
-        response = self.client.count(index=index_name)
-        return response
+        response = self.client.count(index=index_name, body=body)
+        return response["count"]
 
     def get_doc_ids(self, plugin_instance_id, index_name='search_index'):
         '''
         Find all doc_id with a source
         '''
 
+        doc_num = self.get_doc_count(index_name)
+
         body = {
+            "size": doc_num,
             "query": {
                 "match": {
                     "plugin_instance_id": plugin_instance_id
