@@ -142,7 +142,10 @@ class OpenSearch_Conn:
         Find all doc_id with a source
         '''
 
+        doc_num = self.get_doc_count(index_name)["count"]
+
         body = {
+            "size": doc_num,
             "query": {
                 "match": {
                     "plugin_instance_id": plugin_instance_id
