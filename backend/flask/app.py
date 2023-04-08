@@ -129,6 +129,65 @@ def add_plugin_instance():
         app.logger.error("Plugin instance init failed! Status: %d : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
         return 'Plugin instance init function failed!'
 
+
+@app.route('/mod_PI', methods=['POST'])
+def mod_plugin_instance():
+    json_data = json.loads(request.data)
+
+    plugin_name = json_data.get('plugin_name', None)
+    source_name = json_data.get('source_name', None)
+    interval = json_data.get('interval', None)
+    plugin_init_info = json_data.get('plugin_init_info', None)
+    plugin_instance_id = json_data.get('id', None)
+
+    if plugin_name is None:
+        return abort(400, 'Missing key: plugin_name')
+    if source_name is None:
+        return abort(400, 'Missing key: source_name')
+    if interval is None:
+        return abort(400, 'Missing key: interval')
+    if plugin_init_info is None:
+        return abort(400, 'Missing key: plugin_init_info')
+    if plugin_instance_id is None:
+        return abort(400, 'Missing key: plugin_instance_id')
+
+    plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+    if plugin_instance is None:
+        return abort(400, "Plugin instance id does not exist!")
+
+    if(plugin_instance.plugin_name != plugin_name):
+        return abort(400, "Plugin instance id does not match plugin name!")
+
+    plugin_instance.source_name = source_name
+    interval_changed = (plugin_instance.update_interval != interval)
+    plugin_instance.update_interval = interval
+    # no commit here, will commit after plugin init success
+
+    # TODO: return status code for plugin init failure,
+    # TODO: add log support inside plugin init
+
+    try:
+        status = dispatch_plugin("init", plugin_name, [plugin_instance_id, plugin_init_info])
+    except Exception as e:
+        app.logger.error(e)
+        status = PluginReturnStatus.EXCEPTION
+
+    if status == PluginReturnStatus.SUCCESS:
+        if plugin_instance.active and interval_changed:
+            new_request = Request(request_op="change_interval", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
+            sqlalchemy_db.session.add(new_request)
+        sqlalchemy_db.session.commit()
+
+        app.logger.debug("Plugin instance init Success! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
+        return 'Mod plugin instance successfully!'
+    else:
+        # TODO: handle plugin init failure
+        app.logger.error("Plugin instance init failed! Status: %d : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
+        return 'Plugin instance init function failed!'
+        # no db commit here
+
+
+
 @app.route('/del_PI', methods=['POST'])
 def delete_plugin_instance():
     plugin_instance_id = request.form.get('id')
