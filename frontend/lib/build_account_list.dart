@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'utils.dart';
 import 'apis.dart';
+import 'edit_account_page.dart';
 
 List<String> accountsFieldKeys = [
   "plugin_name",
@@ -50,24 +51,39 @@ Widget buildAccountList(Function() refreshCallback) {
                   case 'op':
                     returnWidget = Expanded(
                         child: Center(
-                      child: IconButtonWithConfirm(
-                        icon: const Icon(Icons.delete),
-                        operationShort: "Delete",
-                        operationPhrase: "delete this Account/Application",
-                        operationExecution: () {
-                          waitAndShowSnackBarMsg(
-                            context,
-                            () async => onlyCareStatus(
-                                () => sendDelPIRequest(
-                                    singleQueryResult['id'].toString()),
-                                "del_PI"),
-                            "Deleted successfully!",
-                            "Failed to delete.",
-                            false,
-                            refreshFuncion: refreshCallback,
-                          );
-                        },
-                      ),
+                      child: Wrap(children: [
+                        IconButtonWithConfirm(
+                          icon: const Icon(Icons.delete),
+                          operationShort: "Delete",
+                          operationPhrase: "delete this Account/Application",
+                          operationExecution: () {
+                            waitAndShowSnackBarMsg(
+                              context,
+                              () async => onlyCareStatus(
+                                  () => sendDelPIRequest(
+                                      singleQueryResult['id'].toString()),
+                                  "del_PI"),
+                              "Deleted successfully!",
+                              "Failed to delete.",
+                              false,
+                              refreshFuncion: refreshCallback,
+                            );
+                          },
+                        ),
+                        IconButtonWithHover(
+                          hoverText: "Edit",
+                          icon: const Icon(Icons.edit),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => EditAccountInfoPage(
+                                      pluginInstanceID:
+                                          singleQueryResult['id'].toString())),
+                            );
+                          },
+                        ),
+                      ]),
                     ));
                     break;
 

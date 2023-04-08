@@ -54,6 +54,40 @@ Future<http.Response> sendPluginInfoFieldsRequest(String pluginName) async {
   return response;
 }
 
+Future<http.Response> sendPIInfoValuesRequest(String pluginInstanceID) async {
+  var url = Uri.parse('$baseUrl/PI_info_value');
+
+  var response = await http.post(url, body: {'id': pluginInstanceID});
+  return response;
+}
+
+Future<http.Response> sendEditPIRequest(
+    String pluginInstanceID, Map<String, String> formData) async {
+  final url = Uri.parse('$baseUrl/mod_PI');
+
+  final sourceName = formData['source_name']!;
+  final interval = int.parse(formData['interval']!);
+  formData.remove('source_name');
+  formData.remove('interval');
+  final Map<String, dynamic> requestData = {
+    'source_name': sourceName,
+    'interval': interval,
+    'plugin_init_info': formData,
+    'id': pluginInstanceID,
+  };
+
+  try {
+    var response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(requestData),
+    );
+    return response;
+  } catch (e) {}
+
+  return Future.value(fakeResponse);
+}
+
 Future<http.Response> sendAddPIRequest(
     String pluginName, Map<String, String> formData) async {
   final url = Uri.parse('$baseUrl/add_PI');
