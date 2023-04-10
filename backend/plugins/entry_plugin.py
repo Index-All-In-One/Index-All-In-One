@@ -21,11 +21,11 @@ def get_allowed_plugin_list():
 
 def dispatch_plugin(function_name, plugin_name, plugin_args = []):
     """
-        function_name: update, init, del, info_list
+        function_name: update, init, del, info_def
             update: fetch data from source and update opensearch
             init: store info when initialize the plugin
             del: clean stored info when delete the plugin
-            info_list: return a list of required info to initialize the plugin, with hint text. "password", "private_key" are special info that will be hidden in the UI. Format: { "hint": "Enter your private key", "field_type": {"username": "text", "password": "secret", "private_key": "secret",}}. Supported field types: text, secret, int.
+            info_def: return a list of required info to initialize the plugin, with hint text. "password", "private_key" are special info that will be hidden in the UI. Format: { "hint": "Enter your private key", "field_type": {"username": "text", "password": "secret", "private_key": "secret",}}. Supported field types: text, secret, int.
         Each function should return a status code. Format: (status, other_return_values, ...)
     """
 

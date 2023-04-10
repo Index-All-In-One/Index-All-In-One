@@ -294,18 +294,18 @@ def get_plugin_list():
     return jsonify(get_allowed_plugin_display_list())
 
 @app.route('/plugin_info_field_type', methods=['POST'])
-def get_plugin_info_list():
+def get_plugin_info_def():
     plugin_name = request.form.get('plugin_name')
 
     if plugin_name not in get_allowed_plugin_list():
         return abort(400, 'Plugin not allowed!')
 
-    result = dispatch_plugin("info_list", plugin_name)
+    result = dispatch_plugin("info_def", plugin_name)
     if (isinstance(result, tuple) and result[0] == PluginReturnStatus.SUCCESS):
         info = result[1]
         return jsonify(info)
     else:
-        return abort(400, 'Plugin info_list function failed!')
+        return abort(400, 'Plugin info_def function failed!')
 
 @app.route('/PI_info_value', methods=['POST'])
 def get_plugin_instance_info_value():
@@ -318,7 +318,7 @@ def get_plugin_instance_info_value():
         abort(400, 'No such plugin instance!')
 
     plugin_name = plugin_instance.plugin_name
-    result = dispatch_plugin("info_list", plugin_name)
+    result = dispatch_plugin("info_def", plugin_name)
     if (isinstance(result, tuple) and result[0] == PluginReturnStatus.SUCCESS):
         plugin_info_def = result[1]
         logging.debug("plugin_init_info: %s", plugin_instance.plugin_init_info)
@@ -332,7 +332,7 @@ def get_plugin_instance_info_value():
             field["value"] = info_value_list[field["field_name"]]
         return jsonify(info)
     else:
-        return abort(400, 'Plugin info_list function failed!')
+        return abort(400, 'Plugin info_def function failed!')
 
 if __name__ == '__main__':
     app.run()

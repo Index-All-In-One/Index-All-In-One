@@ -229,7 +229,7 @@ def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     GmailSession.update_email()
     return PluginReturnStatus.SUCCESS
 
-def plugin_gmail_info_list():
+def plugin_gmail_info_def():
     return PluginReturnStatus.SUCCESS, {"hint": "Please enter your app password, not Gmail's login password. If you don't have, create one first.", \
             "field_def": [\
                 { \
