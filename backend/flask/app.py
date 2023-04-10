@@ -104,7 +104,7 @@ def add_plugin_instance():
     else:
         plugin_instance_id=str(uuid.uuid4())
 
-    new_plugin_instance = PluginInstance(plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, source_name=source_name, update_interval=interval, enabled=True, active=False)
+    new_plugin_instance = PluginInstance(plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, source_name=source_name, update_interval=interval, enabled=True, active=False, plugin_init_info=json.dumps(plugin_init_info))
     sqlalchemy_db.session.add(new_plugin_instance)
     sqlalchemy_db.session.commit()
 
@@ -134,14 +134,11 @@ def add_plugin_instance():
 def mod_plugin_instance():
     json_data = json.loads(request.data)
 
-    plugin_name = json_data.get('plugin_name', None)
     source_name = json_data.get('source_name', None)
     interval = json_data.get('interval', None)
     plugin_init_info = json_data.get('plugin_init_info', None)
     plugin_instance_id = json_data.get('id', None)
 
-    if plugin_name is None:
-        return abort(400, 'Missing key: plugin_name')
     if source_name is None:
         return abort(400, 'Missing key: source_name')
     if interval is None:
@@ -155,34 +152,39 @@ def mod_plugin_instance():
     if plugin_instance is None:
         return abort(400, "Plugin instance id does not exist!")
 
-    if(plugin_instance.plugin_name != plugin_name):
-        return abort(400, "Plugin instance id does not match plugin name!")
-
     plugin_instance.source_name = source_name
     interval_changed = (plugin_instance.update_interval != interval)
     plugin_instance.update_interval = interval
-    # no commit here, will commit after plugin init success
+    plugin_init_info_str=json.dumps(plugin_init_info)
+    info_changed = (plugin_instance.plugin_init_info != plugin_init_info_str)
+    plugin_instance.plugin_init_info = plugin_init_info_str
+    sqlalchemy_db.session.commit()
 
     # TODO: return status code for plugin init failure,
     # TODO: add log support inside plugin init
 
     try:
-        status = dispatch_plugin("init", plugin_name, [plugin_instance_id, plugin_init_info])
+        status = dispatch_plugin("init", plugin_instance.plugin_name, [plugin_instance_id, plugin_init_info])
     except Exception as e:
         app.logger.error(e)
         status = PluginReturnStatus.EXCEPTION
 
     if status == PluginReturnStatus.SUCCESS:
-        if plugin_instance.active and interval_changed:
-            new_request = Request(request_op="change_interval", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
+        if plugin_instance.active and (interval_changed or info_changed):
+            # if plugin_init_info changed, use change_interval to restart
+            new_request = Request(request_op="change_interval", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
             sqlalchemy_db.session.add(new_request)
         sqlalchemy_db.session.commit()
 
-        app.logger.debug("Plugin instance init Success! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
+        app.logger.debug("Plugin instance init Success! : %s, %s, %s", plugin_instance.plugin_name, plugin_instance_id, str(plugin_init_info))
         return 'Mod plugin instance successfully!'
     else:
-        # TODO: handle plugin init failure
-        app.logger.error("Plugin instance init failed! Status: %d : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
+        # TODO: handle plugin init failure, show error msg
+        new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
+        sqlalchemy_db.session.add(new_request)
+        sqlalchemy_db.session.commit()
+
+        app.logger.error("Plugin instance init failed! Status: %d : %s, %s, %s", status.name, plugin_instance.plugin_name, plugin_instance_id, str(plugin_init_info))
         return 'Plugin instance init function failed!'
         # no db commit here
 
@@ -305,6 +307,32 @@ def get_plugin_info_list():
     else:
         return abort(400, 'Plugin info_list function failed!')
 
+@app.route('/PI_info_value', methods=['POST'])
+def get_plugin_instance_info_value():
+    plugin_instance_id = request.form.get('id')
+    if plugin_instance_id is None :
+        abort(400, 'Missing required parameter: id')
+
+    plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+    if plugin_instance is None:
+        abort(400, 'No such plugin instance!')
+
+    plugin_name = plugin_instance.plugin_name
+    result = dispatch_plugin("info_list", plugin_name)
+    if (isinstance(result, tuple) and result[0] == PluginReturnStatus.SUCCESS):
+        plugin_info_def = result[1]
+        logging.debug("plugin_init_info: %s", plugin_instance.plugin_init_info)
+        info_value_list =  json.loads(plugin_instance.plugin_init_info)
+        info={\
+            "hint":plugin_info_def["hint"], \
+            "source_name":plugin_instance.source_name, \
+            "interval":plugin_instance.update_interval, \
+            "plugin_init_info": plugin_info_def["field_def"],}
+        for field in plugin_info_def["field_def"]:
+            field["value"] = info_value_list[field["field_name"]]
+        return jsonify(info)
+    else:
+        return abort(400, 'Plugin info_list function failed!')
 
 if __name__ == '__main__':
     app.run()
