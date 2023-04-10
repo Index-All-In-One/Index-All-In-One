@@ -106,9 +106,7 @@ def add_plugin_instance():
 
     new_plugin_instance = PluginInstance(plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, source_name=source_name, update_interval=interval, enabled=True, active=False, plugin_init_info=json.dumps(plugin_init_info))
     sqlalchemy_db.session.add(new_plugin_instance)
-    sqlalchemy_db.session.commit()
 
-    # TODO: return status code for plugin init failure,
     # TODO: add log support inside plugin init
 
     try:
@@ -118,6 +116,7 @@ def add_plugin_instance():
         status = PluginReturnStatus.EXCEPTION
 
     if status == PluginReturnStatus.SUCCESS:
+        sqlalchemy_db.session.commit()
         new_request = Request(request_op="activate", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
         sqlalchemy_db.session.add(new_request)
         sqlalchemy_db.session.commit()
@@ -127,7 +126,7 @@ def add_plugin_instance():
     else:
         # TODO: handle plugin init failure
         app.logger.error("Plugin instance init failed! Status: %d : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
-        return 'Plugin instance init function failed!'
+        abort(400, 'Plugin instance init function failed!')
 
 
 @app.route('/mod_PI', methods=['POST'])
@@ -158,9 +157,7 @@ def mod_plugin_instance():
     plugin_init_info_str=json.dumps(plugin_init_info)
     info_changed = (plugin_instance.plugin_init_info != plugin_init_info_str)
     plugin_instance.plugin_init_info = plugin_init_info_str
-    sqlalchemy_db.session.commit()
 
-    # TODO: return status code for plugin init failure,
     # TODO: add log support inside plugin init
 
     try:
@@ -170,6 +167,7 @@ def mod_plugin_instance():
         status = PluginReturnStatus.EXCEPTION
 
     if status == PluginReturnStatus.SUCCESS:
+        sqlalchemy_db.session.commit()
         if plugin_instance.active and (interval_changed or info_changed):
             # if plugin_init_info changed, use change_interval to restart
             new_request = Request(request_op="change_interval", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
@@ -180,12 +178,9 @@ def mod_plugin_instance():
         return 'Mod plugin instance successfully!'
     else:
         # TODO: handle plugin init failure, show error msg
-        new_request = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
-        sqlalchemy_db.session.add(new_request)
-        sqlalchemy_db.session.commit()
 
         app.logger.error("Plugin instance init failed! Status: %d : %s, %s, %s", status.name, plugin_instance.plugin_name, plugin_instance_id, str(plugin_init_info))
-        return 'Plugin instance init function failed!'
+        abort (400, 'Plugin instance init function failed!')
         # no db commit here
 
 
