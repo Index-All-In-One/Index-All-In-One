@@ -14,7 +14,7 @@ Widget buildEditAccountForm(String pluginInstanceID) {
         String hint = pluginInstInfoValueWithHint["hint"]!;
         List<Map<String, String>> pluginInitInfoList =
             List<Map<String, String>>.from(
-          pluginInstInfoValueWithHint["plugin_init_info"]!
+          pluginInstInfoValueWithHint["info_value"]!
               .map((item) => Map<String, String>.from(item)),
         );
 
