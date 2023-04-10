@@ -321,13 +321,13 @@ def get_plugin_instance_info_value():
     result = dispatch_plugin("info_def", plugin_name)
     if (isinstance(result, tuple) and result[0] == PluginReturnStatus.SUCCESS):
         plugin_info_def = result[1]
-        logging.debug("plugin_init_info: %s", plugin_instance.plugin_init_info)
+        logging.debug("info_value: %s", plugin_instance.plugin_init_info)
         info_value_list =  json.loads(plugin_instance.plugin_init_info)
         info={\
             "hint":plugin_info_def["hint"], \
             "source_name":plugin_instance.source_name, \
             "interval":plugin_instance.update_interval, \
-            "plugin_init_info": plugin_info_def["field_def"],}
+            "info_value": plugin_info_def["field_def"],}
         for field in plugin_info_def["field_def"]:
             field["value"] = info_value_list[field["field_name"]]
         return jsonify(info)
