@@ -345,6 +345,7 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
                           value, field['type']!, field['display_name']!);
                     },
                     isCredential: field['type']! == 'secret',
+                    initialValue: field['value'] ?? '',
                   )),
             ],
             const SizedBox(height: 16),
@@ -386,6 +387,7 @@ class TextFormFieldWithStyle extends StatefulWidget {
   final String? Function(String?)? validator;
   final Map<String, String> _formData;
   final bool isCredential;
+  final String initialValue;
 
   const TextFormFieldWithStyle({
     super.key,
@@ -393,6 +395,7 @@ class TextFormFieldWithStyle extends StatefulWidget {
     this.validator,
     required Map<String, String> formData,
     this.isCredential = false,
+    this.initialValue = "",
   }) : _formData = formData;
 
   @override
@@ -411,6 +414,7 @@ class _TextFormFieldWithStyleState extends State<TextFormFieldWithStyle> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      initialValue: widget.initialValue,
       obscureText: !_showField,
       cursorColor: Colors.blue,
       decoration: InputDecoration(
