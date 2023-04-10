@@ -124,7 +124,6 @@ def add_plugin_instance():
         app.logger.debug("Plugin instance init Success! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
         return 'Add plugin instance successfully!'
     else:
-        # TODO: handle plugin init failure
         app.logger.error("Plugin instance init failed! Status: %d : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
         abort(400, 'Plugin instance init function failed!')
 
@@ -282,6 +281,8 @@ def list_accounts():
                 "active": plugin_instance.active,
                 "id": plugin_instance.plugin_instance_id,
             })
+        if plugin_instance.status_message is not None:
+            all_accounts[-1]["status_msg"] = plugin_instance.status_message
     return jsonify(all_accounts)
 
 @app.route('/plugin_list', methods=['GET'])

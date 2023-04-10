@@ -19,5 +19,6 @@ class PluginInstance(model):
     enabled = sqlalchemy_db.Column(sqlalchemy_db.Boolean, nullable=False, default=True)
     active = sqlalchemy_db.Column(sqlalchemy_db.Boolean, nullable=False, default=False)
     plugin_init_info = sqlalchemy_db.Column(sqlalchemy_db.Text, nullable=False)
+    status_message = sqlalchemy_db.Column(sqlalchemy_db.Text, nullable=True)
 
 __all__ = ['sqlalchemy_db', 'Request', 'PluginInstance']
