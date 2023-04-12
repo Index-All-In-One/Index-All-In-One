@@ -193,9 +193,15 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info):
     # create a session factory that uses the engine
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
-    # create a new GmailCredentials object and add it to the database
-    plugin_instance_credentials = GmailCredentials(plugin_instance_id, username, password)
-    session.add(plugin_instance_credentials)
+    # create new or update GmailCredentials object and add it to the database
+    plugin_instance_credentials = session.query(GmailCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
+    if plugin_instance_credentials is None:
+        plugin_instance_credentials = GmailCredentials(plugin_instance_id, username, password)
+        session.add(plugin_instance_credentials)
+    else:
+        plugin_instance_credentials.username = username
+        plugin_instance_credentials.password = password
+
     session.commit()
 
     logging.info(f'Gmail plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
