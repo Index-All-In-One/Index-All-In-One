@@ -35,16 +35,23 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
         if status == PluginReturnStatus.SUCCESS:
             logging.debug("[%d] Routine: %s %s %s %d run update successfully", counter, plugin_name, plugin_instance_id, run_id, update_interval)
         else:
-            # TODO: handle plugin update failure
             logging.error("[%d] Routine: %s %s %s %d run update failed! Status: %s", counter, plugin_name, plugin_instance_id, run_id, update_interval, status.name)
-            if status == PluginReturnStatus.EXCEPTION:
-                # TODO: leave message in database
-                all_running_instance = session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == plugin_instance_id)
-                PI_instance = session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
-                if all_running_instance is not None and PI_instance is not None:
-                    PI_instance.active = False
-                    session.commit()
+
+            plugin_instance = session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+            if(plugin_instance is None):
                 break
+
+            if status == PluginReturnStatus.EXCEPTION:
+                plugin_instance.status_message = "Running Exception"
+            elif status == PluginReturnStatus.WRONG_CREDS:
+                plugin_instance.status_message = "Wrong Credentials"
+            elif status == PluginReturnStatus.OTHER_ERROR:
+                plugin_instance.status_message = "Unknown Error"
+
+            plugin_instance.active = False
+            session.commit()
+            break
+
         counter += 1
         time.sleep(update_interval)
 

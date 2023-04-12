@@ -184,7 +184,7 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info):
     status = GmailSession.login_email()
     if not status:
         logging.error(f'init Gmail plugin instance {plugin_instance_id} failed, wrong credentials')
-        return PluginReturnStatus.EXCEPTION
+        return PluginReturnStatus.WRONG_CREDS
 
     # create an engine that connects to the database
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
@@ -224,7 +224,9 @@ def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     username = creds.username
     password = creds.password
     GmailSession = Gmail_Instance(plugin_instance_id, username, password)
-    GmailSession.login_email()
+    if not GmailSession.login_email():
+       logging.error(f'update Gmail plugin instance {plugin_instance_id} failed, wrong credentials')
+       return PluginReturnStatus.WRONG_CREDS
     GmailSession.login_opensearch(host=opensearch_hostname)
     GmailSession.update_email()
     return PluginReturnStatus.SUCCESS
