@@ -16,6 +16,9 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_instance_id, run_id, update_interval):
     counter = 0
+    plugin_instance = session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first();
+    plugin_instance.status_message = None
+    session.commit()
     while True:
         running_instance = session.query(RunningPluginInstance).filter(RunningPluginInstance.run_id == run_id).first()
         if running_instance is None:
