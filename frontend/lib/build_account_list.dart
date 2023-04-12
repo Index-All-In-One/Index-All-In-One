@@ -131,12 +131,24 @@ Widget buildAccountList(Function() refreshCallback) {
                     bool enabled = singleQueryResult["enabled"]!;
                     bool active = singleQueryResult["active"]!;
                     returnWidget = Expanded(
-                      child: Center(
-                          child: TextWithHover(
-                              text: (active
-                                  ? "OK"
-                                  : (enabled ? "Error" : "Stopped")))),
-                    );
+                        child: Center(
+                      child: Wrap(
+                          alignment: WrapAlignment.start,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            TextWithHover(
+                                text: (active
+                                    ? "OK"
+                                    : (enabled ? "Error" : "Stopped"))),
+                            if (!active &&
+                                enabled &&
+                                singleQueryResult["status_msg"] != null)
+                              PopUpIconButton(
+                                title: "Error Message",
+                                content: Text(singleQueryResult["status_msg"]!),
+                              )
+                          ]),
+                    ));
                     break;
                   default:
                     String queryValueString =
