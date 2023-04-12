@@ -225,6 +225,32 @@ def delete_plugin_instance():
         return 'Plugin instance del function failed!'
 
 
+@app.route('/restart_PI', methods=['POST'])
+def restart_plugin_instance():
+    plugin_instance_id = request.form.get('id')
+    if plugin_instance_id is None :
+        abort(400, 'Missing required parameter: id')
+
+    plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+    if plugin_instance is not None:
+        if plugin_instance.enabled == False:
+            return 'Plugin instance is disabled!'
+
+        new_request_1 = Request(request_op="deactivate", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
+        sqlalchemy_db.session.add(new_request_1)
+
+        new_request_2 = Request(request_op="activate", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
+        sqlalchemy_db.session.add(new_request_2)
+        sqlalchemy_db.session.commit()
+
+        app.logger.debug("Plugin instance restarted: %s", plugin_instance_id)
+
+    else:
+        return 'No such plugin instance!'
+
+    return 'Restart plugin instance successfully!'
+
+
 @app.route('/enable_PI', methods=['POST'])
 def enable_plugin_instance():
     plugin_instance_id = request.form.get('id')
