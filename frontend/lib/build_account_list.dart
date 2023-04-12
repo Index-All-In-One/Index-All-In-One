@@ -49,9 +49,41 @@ Widget buildAccountList(Function() refreshCallback) {
                 Expanded returnWidget;
                 switch (key) {
                   case 'op':
+                    bool enabled = singleQueryResult["enabled"]!;
                     returnWidget = Expanded(
                         child: Center(
                       child: Wrap(children: [
+                        if (enabled)
+                          IconButtonWithHover(
+                            hoverText: "Restart",
+                            icon: const Icon(Icons.refresh),
+                            onPressed: () {
+                              waitAndShowSnackBarMsg(
+                                context,
+                                () async => onlyCareStatus(
+                                    () => sendRestartPIRequest(
+                                        singleQueryResult['id'].toString()),
+                                    "restart_PI"),
+                                "Restart successfully!",
+                                "Failed to restart.",
+                                false,
+                                refreshFuncion: delayedRefresh,
+                              );
+                            },
+                          ),
+                        IconButtonWithHover(
+                          hoverText: "Edit",
+                          icon: const Icon(Icons.edit),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => EditAccountInfoPage(
+                                      pluginInstanceID:
+                                          singleQueryResult['id'].toString())),
+                            );
+                          },
+                        ),
                         IconButtonWithConfirm(
                           icon: const Icon(Icons.delete),
                           operationShort: "Delete",
@@ -67,19 +99,6 @@ Widget buildAccountList(Function() refreshCallback) {
                               "Failed to delete.",
                               false,
                               refreshFuncion: refreshCallback,
-                            );
-                          },
-                        ),
-                        IconButtonWithHover(
-                          hoverText: "Edit",
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => EditAccountInfoPage(
-                                      pluginInstanceID:
-                                          singleQueryResult['id'].toString())),
                             );
                           },
                         ),
