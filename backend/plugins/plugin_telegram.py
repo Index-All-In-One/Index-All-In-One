@@ -69,6 +69,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                 if isinstance(message, Message):
                     # doc_id
                     message_id = message.id
+                    print(message_id)
                     doc_id = str(dialog_id) + "_" + str(message_id)
                     # doc_name
                     # sender = await self.client.get_entity(message.from_id); sender_name = "{} {}".format(sender.first_name, sender.last_name)
@@ -119,6 +120,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         ops_doc_ids = self.opensearch_conn.get_doc_ids(plugin_instance_id=self.plugin_instance_id)
         # if doc in OpenSearch but not in mailbox, delete doc
         _, doc_ids_to_be_delete = self.not_in(ops_doc_ids, doc_ids)
+        print(doc_ids_to_be_delete)
         for doc_id in doc_ids_to_be_delete:
             response = self.opensearch_conn.delete_doc(doc_id=doc_id,plugin_instance_id=self.plugin_instance_id)
 
@@ -259,10 +261,10 @@ async def main():
     TelegramSession.login_opensearch()
     await TelegramSession.login_telegram()
     # Display the messages in the chat
-    # _, messages =  await TelegramSession.get_messages()
-    # print(messages)
+    _, messages =  await TelegramSession.get_messages()
+    print(messages)
 
-    await TelegramSession.update_messages()
+    # await TelegramSession.update_messages()
 
 # Run the async function
 asyncio.run(main())
