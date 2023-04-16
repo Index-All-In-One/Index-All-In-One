@@ -7,6 +7,7 @@ DEBUG = os.getenv('DEBUG', '').lower() in ['1', 'true', 'yes']
 # plugin_name: plugin_display_name
 allowed_plugins_display = { \
     "gmail":    "Gmail", \
+    "telegram": "Telegram",\
     }
 
 def get_allowed_plugin_display_list():
