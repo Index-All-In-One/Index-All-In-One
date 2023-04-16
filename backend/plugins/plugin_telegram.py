@@ -25,17 +25,17 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         try:
             self.opensearch_conn.connect(host, port, username, password,
         use_ssl, verify_certs, ssl_assert_hostname, ssl_show_warn)
-            print("Opensearch login success.")
+            logging.debug("Opensearch login success.")
         except:
-            print("Opensearch login failed.")
+            logging.debug("Opensearch login failed.")
 
     async def login_telegram(self):
         try:
             await self.client.start(self.phone_number)
-            logging.debug("Logged in as {}!".format(self.user))
+            logging.debug("Logged in Telegram as {}!".format(self.phone_number))
             return True
         except:
-            logging.debug("Email login failed.")
+            logging.debug("Telegram login failed.")
             return False
 
 
@@ -46,21 +46,14 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         doc_ids = []
         async for dialog in self.client.iter_dialogs():
             if dialog.is_group:
-                print(f'Group: {dialog.title} (ID: {dialog.id})')
+                # print(f'Group: {dialog.title} (ID: {dialog.id})')
                 conv_type = 'Group'
             elif dialog.is_channel:
-                print(f'Channel: {dialog.title} (ID: {dialog.id})')
+                # print(f'Channel: {dialog.title} (ID: {dialog.id})')
                 conv_type = 'Channel'
             else:
-                print(f'Private chat: {dialog.title} (ID: {dialog.id})')
+                # print(f'Private chat: {dialog.title} (ID: {dialog.id})')
                 conv_type = 'private chat'
-
-            # if isinstance(dialog.entity, PeerUser):
-            #     conv_type = 'user'
-            # elif isinstance(dialog.entity, PeerChat):
-            #     conv_type = 'chat'
-            # elif isinstance(dialog.entity, PeerChannel):
-            #     conv_type = 'channel'
 
             dialog_id = dialog.entity.id
             dialog_name = dialog.name
@@ -69,12 +62,15 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                 if isinstance(message, Message):
                     # doc_id
                     message_id = message.id
-                    print(message_id)
+                    # print(message_id)
                     doc_id = str(dialog_id) + "_" + str(message_id)
                     # doc_name
-                    # sender = await self.client.get_entity(message.from_id); sender_name = "{} {}".format(sender.first_name, sender.last_name)
-                    sender = await self.client.get_entity(message.from_id); sender_name = "{} {}".format(sender.first_name, sender.last_name)
+                    sender = await message.get_sender()
+                    
+                    sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
                     doc_name = sender_name
+
+                    # print(sender_name)
                     # link
                     link = ""
                     if dialog.is_group:
@@ -115,18 +111,18 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                     
     async def update_messages(self):
         doc_ids, messages = await self.get_messages()
-        print(doc_ids)
+
 
         ops_doc_ids = self.opensearch_conn.get_doc_ids(plugin_instance_id=self.plugin_instance_id)
         # if doc in OpenSearch but not in mailbox, delete doc
         _, doc_ids_to_be_delete = self.not_in(ops_doc_ids, doc_ids)
-        print(doc_ids_to_be_delete)
+
         for doc_id in doc_ids_to_be_delete:
             response = self.opensearch_conn.delete_doc(doc_id=doc_id,plugin_instance_id=self.plugin_instance_id)
 
         # if doc in telegram but not in OpenSearch, insert doc
         mask, doc_ids_to_be_insert = self.not_in(doc_ids, ops_doc_ids)
-        print(mask)
+
         messages = [messages[i] for i in range(len(mask)) if not mask[i]]
         for i in range(len(messages)):
             response = self.opensearch_conn.insert_doc(messages[i])
@@ -136,20 +132,6 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         mask = [item in list2 for item in list1]
         res = [list1[i] for i in range(len(mask)) if not mask[i]]
         return mask, res
-
-
-    # async def get_message_info(self, dialog_id, message_id):
-    #     entity = await self.client.get_entity(dialog_id)
-    #     message = await self.client.get_messages(entity, ids=message_id)
-    #     link = await self.client.get_message_link(entity, message)
-    #     return {
-    #         'id': message.id,
-    #         'sender': message.sender_id,
-    #         'content': message.message,
-    #         'size': message.file.size if message.file else 0,
-    #         'link': link
-    #     }
-
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -181,10 +163,13 @@ def plugin_telegram_init(plugin_instance_id, plugin_init_info):
     phone_number = plugin_init_info["phone_number"]
     # check if credentials correct
     TelegramSession = Telegram_Instance(plugin_instance_id, api_id, api_hash, phone_number)
-    # status = TelegramSession.login_email()
-    # if not status:
-    #     logging.error(f'init telegram plugin instance {plugin_instance_id} failed, wrong credentials')
-    #     return PluginReturnStatus.EXCEPTION
+
+    status = asyncio.run(TelegramSession.login_telegram())
+    if not status:
+        logging.error(f'init telegram plugin instance {plugin_instance_id} failed, wrong credentials')
+        return PluginReturnStatus.EXCEPTION
+    else:
+        asyncio.run(TelegramSession.client.disconnect())
 
     # create an engine that connects to the database
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
@@ -213,7 +198,7 @@ def plugin_telegram_del(plugin_instance_id):
     return PluginReturnStatus.SUCCESS
 
 def plugin_telegram_update(plugin_instance_id, opensearch_hostname='localhost'):
-    logging.debug(f'Gmail plugin instance {plugin_instance_id} updating, db name: {DB_NAME}')
+    logging.debug(f'Telegram plugin instance {plugin_instance_id} updating, db name: {DB_NAME}')
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
@@ -226,9 +211,10 @@ def plugin_telegram_update(plugin_instance_id, opensearch_hostname='localhost'):
     phone_number = creds.phone_number
 
     TelegramSession = Telegram_Instance(plugin_instance_id, api_id, api_hash, phone_number)
-    # TelegramSession.login_email()
-    # TelegramSession.login_opensearch(host=opensearch_hostname)
-    # TelegramSession.update_email()
+    asyncio.run(TelegramSession.login_telegram())
+    TelegramSession.login_opensearch(host=opensearch_hostname)
+    asyncio.run(TelegramSession.update_messages())
+    asyncio.run(TelegramSession.client.disconnect())
     return PluginReturnStatus.SUCCESS
 
 def plugin_telegram_info_def():
@@ -262,8 +248,8 @@ async def main():
     await TelegramSession.login_telegram()
     # Display the messages in the chat
     _, messages =  await TelegramSession.get_messages()
-    print(messages)
-
+    # print(messages)
+    await TelegramSession.client.disconnect()
     # await TelegramSession.update_messages()
 
 # Run the async function
