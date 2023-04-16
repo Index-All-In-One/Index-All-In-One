@@ -11,12 +11,12 @@ import logging
 
 class Telegram_Instance:
     def __init__(self, plugin_instance_id, api_id, api_hash, phone_number):
+
         self.plugin_instance_id = plugin_instance_id
         self.api_id = api_id
         self.api_hash = api_hash
         self.phone_number = phone_number
 
-        self.client = TelegramClient('main', api_id, api_hash)
         self.opensearch_conn = OpenSearch_Conn()
 
     def login_opensearch(self, host='localhost', port=9200, username='admin', password='admin',
@@ -31,6 +31,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
 
     async def login_telegram(self):
         try:
+            self.client = TelegramClient('main',self.api_id, self.api_hash)
             await self.client.start(self.phone_number)
             logging.debug("Logged in Telegram as {}!".format(self.phone_number))
             return True
@@ -38,6 +39,8 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             logging.debug("Telegram login failed.")
             return False
 
+    async def disconnect_telegram(self):
+        await self.client.disconnect()
 
     async def get_messages(self):
 
@@ -46,15 +49,14 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         doc_ids = []
         async for dialog in self.client.iter_dialogs():
             if dialog.is_group:
-                # print(f'Group: {dialog.title} (ID: {dialog.id})')
                 conv_type = 'Group'
             elif dialog.is_channel:
-                # print(f'Channel: {dialog.title} (ID: {dialog.id})')
                 conv_type = 'Channel'
             else:
                 # print(f'Private chat: {dialog.title} (ID: {dialog.id})')
                 conv_type = 'private chat'
 
+            dialog_title = dialog.title
             dialog_id = dialog.entity.id
             dialog_name = dialog.name
             
@@ -163,13 +165,13 @@ def plugin_telegram_init(plugin_instance_id, plugin_init_info):
     phone_number = plugin_init_info["phone_number"]
     # check if credentials correct
     TelegramSession = Telegram_Instance(plugin_instance_id, api_id, api_hash, phone_number)
-
     status = asyncio.run(TelegramSession.login_telegram())
+
     if not status:
         logging.error(f'init telegram plugin instance {plugin_instance_id} failed, wrong credentials')
         return PluginReturnStatus.EXCEPTION
     else:
-        asyncio.run(TelegramSession.client.disconnect())
+        asyncio.run(TelegramSession.disconnect_telegram())
 
     # create an engine that connects to the database
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
@@ -214,7 +216,7 @@ def plugin_telegram_update(plugin_instance_id, opensearch_hostname='localhost'):
     asyncio.run(TelegramSession.login_telegram())
     TelegramSession.login_opensearch(host=opensearch_hostname)
     asyncio.run(TelegramSession.update_messages())
-    asyncio.run(TelegramSession.client.disconnect())
+    asyncio.run(TelegramSession.disconnect_telegram())
     return PluginReturnStatus.SUCCESS
 
 def plugin_telegram_info_def():
@@ -248,7 +250,6 @@ async def main():
     await TelegramSession.login_telegram()
     # Display the messages in the chat
     _, messages =  await TelegramSession.get_messages()
-    # print(messages)
     await TelegramSession.client.disconnect()
     # await TelegramSession.update_messages()
 
