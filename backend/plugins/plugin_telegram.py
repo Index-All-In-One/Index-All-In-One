@@ -47,6 +47,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         # Iterate over all the dialogs and print the title and ID of each chat
         messages = []
         doc_ids = []
+        logging.debug(f'Telegram plugin instance {self.plugin_instance_id} get_messages')
         async for dialog in self.client.iter_dialogs():
             if dialog.is_group:
                 conv_type = 'Group'
@@ -112,9 +113,9 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         return doc_ids, messages
                     
     async def update_messages(self):
+        print("YESS")
         doc_ids, messages = await self.get_messages()
-
-
+        print("\nupdate_messages\n")
         ops_doc_ids = self.opensearch_conn.get_doc_ids(plugin_instance_id=self.plugin_instance_id)
         # if doc in OpenSearch but not in mailbox, delete doc
         _, doc_ids_to_be_delete = self.not_in(ops_doc_ids, doc_ids)
@@ -125,6 +126,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         # if doc in telegram but not in OpenSearch, insert doc
         mask, doc_ids_to_be_insert = self.not_in(doc_ids, ops_doc_ids)
 
+        
         messages = [messages[i] for i in range(len(mask)) if not mask[i]]
         for i in range(len(messages)):
             response = self.opensearch_conn.insert_doc(messages[i])
@@ -200,6 +202,8 @@ def plugin_telegram_del(plugin_instance_id):
     return PluginReturnStatus.SUCCESS
 
 def plugin_telegram_update(plugin_instance_id, opensearch_hostname='localhost'):
+
+
     logging.debug(f'Telegram plugin instance {plugin_instance_id} updating, db name: {DB_NAME}')
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     DBSession = sessionmaker(bind=engine)
@@ -213,9 +217,12 @@ def plugin_telegram_update(plugin_instance_id, opensearch_hostname='localhost'):
     phone_number = creds.phone_number
 
     TelegramSession = Telegram_Instance(plugin_instance_id, api_id, api_hash, phone_number)
+    
     asyncio.run(TelegramSession.login_telegram())
     TelegramSession.login_opensearch(host=opensearch_hostname)
+    print("\nHELLO3\n")
     asyncio.run(TelegramSession.update_messages())
+    print("\nHELLO5\n")
     asyncio.run(TelegramSession.disconnect_telegram())
     return PluginReturnStatus.SUCCESS
 
@@ -250,8 +257,9 @@ async def main():
     await TelegramSession.login_telegram()
     # Display the messages in the chat
     _, messages =  await TelegramSession.get_messages()
-    await TelegramSession.client.disconnect()
-    # await TelegramSession.update_messages()
+    print(messages)
 
+    # await TelegramSession.update_messages()
+    # await TelegramSession.client.disconnect()
 # Run the async function
 asyncio.run(main())
