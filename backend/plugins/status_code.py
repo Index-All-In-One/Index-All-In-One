@@ -6,3 +6,4 @@ class PluginReturnStatus(Enum):
     WRONG_CREDS = 2
     EXCEPTION = 3
     NO_PLUGIN = 4
+    TWO_STEP_1 = 5
