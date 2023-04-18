@@ -47,13 +47,14 @@ class _LinkNewInfoPageState extends State<LinkNewInfoPage> {
       appBar: AppBar(
         title: const Text('Link New Account/Application'),
       ),
-      body: Column(children: [
-        Expanded(
-            child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: buildNewAccountForm(widget.pluginName)))
-      ]),
+      body: SingleChildScrollView(
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: buildNewAccountForm(widget.pluginName),
+          )
+        ]),
+      ),
     );
   }
 }

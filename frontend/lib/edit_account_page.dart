@@ -16,13 +16,14 @@ class _EditAccountInfoPageState extends State<EditAccountInfoPage> {
       appBar: AppBar(
         title: const Text('Edit Account/Application'),
       ),
-      body: Column(children: [
-        Expanded(
-            child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: buildEditAccountForm(widget.pluginInstanceID)))
-      ]),
+      body: SingleChildScrollView(
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: buildEditAccountForm(widget.pluginInstanceID),
+          )
+        ]),
+      ),
     );
   }
 }
