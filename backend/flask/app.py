@@ -184,7 +184,7 @@ def mod_plugin_instance():
     else:
         # TODO: handle plugin init failure, show error msg
 
-        app.logger.error("Plugin instance init failed! Status: %d : %s, %s, %s", status.name, plugin_instance.plugin_name, plugin_instance_id, str(plugin_init_info))
+        app.logger.error("Plugin instance init failed! Status: %s : %s, %s, %s", status.name, plugin_instance.plugin_name, plugin_instance_id, str(plugin_init_info))
         abort (400, 'Plugin instance init function failed!')
         # no db commit here
 
