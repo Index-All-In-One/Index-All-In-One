@@ -133,9 +133,7 @@ def handle_request(DBSession, man_session, request):
         plugin_instance = man_session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == request.plugin_instance_id).first()
         if plugin_instance is not None:
             plugin_instance.active = False
-            logging.debug('Manager: Deactivate Success : %s ', request.plugin_instance_id)
-        else:
-            logging.debug('Manager: Deactivate PI not exist : %s ', request.plugin_instance_id)
+        logging.debug('Manager: Deactivate Success : %s ', request.plugin_instance_id)
 
     elif request.request_op == 'change_interval':
         logging.debug('Manager: Change interval start : %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)
