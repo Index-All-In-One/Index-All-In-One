@@ -75,6 +75,43 @@ def search():
 
     return jsonify(search_results)
 
+@app.route('/send_2step_code', methods=['POST'])
+def send_two_step_code():
+    json_data = json.loads(request.data)
+
+    plugin_name = json_data.get('plugin_name', None)
+    plugin_init_info = json_data.get('plugin_init_info', None)
+    plugin_instance_id = json_data.get('id', None)
+
+    if plugin_init_info is None:
+        return abort(400, 'Missing key: plugin_init_info')
+    if plugin_instance_id is None:
+        return abort(400, 'Missing key: id')
+
+    plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+    if plugin_instance is not None:
+        plugin_name=plugin_instance.plugin_name
+    elif plugin_name is None:
+        return abort(400, 'Missing key: plugin_name')
+
+    if plugin_name not in get_allowed_plugin_list():
+        return abort(400, 'Plugin not allowed!')
+
+    # TODO: add log support inside plugin init
+
+    try:
+        status = dispatch_plugin("init", plugin_name, [plugin_instance_id, plugin_init_info])
+    except Exception as e:
+        app.logger.error(e)
+        status = PluginReturnStatus.EXCEPTION
+
+    if status == PluginReturnStatus.NEED_TWO_STEP_CODE:
+        app.logger.debug("Plugin instance init two-step (1/2) Success, still need code! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
+        return 'Plugin instance need 2 step code!'
+    else:
+        app.logger.error("Plugin instance send two step code failed! Status: %s : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
+
+
 @app.route('/add_PI', methods=['POST'])
 def add_plugin_instance():
     json_data = json.loads(request.data)
@@ -122,9 +159,6 @@ def add_plugin_instance():
 
         app.logger.debug("Plugin instance init Success! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
         return 'Add plugin instance successfully!'
-    elif status == PluginReturnStatus.TWO_STEP_1:
-        app.logger.debug("Plugin instance init two-step (1/2) Success, still need code! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
-        return 'Plugin instance need 2 step code!'
     else:
         app.logger.error("Plugin instance init failed! Status: %s : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
         abort(400, 'Plugin instance init function failed!')

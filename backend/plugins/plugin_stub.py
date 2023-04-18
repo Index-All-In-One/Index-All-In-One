@@ -14,7 +14,8 @@ def plugin_stub_init(plugin_instance_id, plugin_init_info):
     print("Plugin stub init: ", plugin_instance_id, plugin_init_info)
 
     if "two_step_code" not in plugin_init_info:
-        return PluginReturnStatus.TWO_STEP_1
+        # send code here
+        return PluginReturnStatus.NEED_TWO_STEP_CODE
 
     return PluginReturnStatus.SUCCESS
 
