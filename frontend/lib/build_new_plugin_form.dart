@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import 'utils.dart';
 import 'apis.dart';
 
@@ -46,12 +47,17 @@ Widget buildNewAccountForm(String pluginName) {
                   ]))
               .toList(),
         };
-
+        String pluginInstanceID = const Uuid().v4();
         return FormWithSubmit(
           formSegments: [basicSegment, pluginSegment],
           successMessage: "Successfully linked $pluginName!",
           onSubmit: (Map<String, String> formData) async => onlyCareStatus(
-              () => sendAddPIRequest(pluginName, formData), "del_PI"),
+              () => sendAddPIRequest(pluginInstanceID, pluginName, formData),
+              "del_PI"),
+          onSendCode: (Map<String, String> formData) async => onlyCareStatus(
+              () =>
+                  send2StepCodeRequest(pluginInstanceID, pluginName, formData),
+              "send_2step_code"),
         );
       });
 }

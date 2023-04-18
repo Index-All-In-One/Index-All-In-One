@@ -60,6 +60,9 @@ Widget buildEditAccountForm(String pluginInstanceID) {
           successMessage: "Successfully modified!",
           onSubmit: (Map<String, String> formData) async => onlyCareStatus(
               () => sendEditPIRequest(pluginInstanceID, formData), "mod_PI"),
+          onSendCode: (Map<String, String> formData) async => onlyCareStatus(
+              () => send2StepCodeRequest(pluginInstanceID, null, formData),
+              "send_2step_code"),
         );
       });
 }

@@ -296,12 +296,14 @@ typedef FormSegment = Map<String, dynamic>;
 
 class FormWithSubmit extends StatefulWidget {
   final Future<bool> Function(Map<String, String> formData)? onSubmit;
+  final Future<bool> Function(Map<String, String> formData)? onSendCode;
   final String? successMessage;
   final List<FormSegment> formSegments;
 
   const FormWithSubmit({
     super.key,
     this.onSubmit,
+    this.onSendCode,
     this.successMessage,
     required this.formSegments,
   });
@@ -366,7 +368,7 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
                                 waitAndShowSnackBarMsg(
                                   context,
                                   () async {
-                                    final success = await widget.onSubmit
+                                    final success = await widget.onSendCode
                                             ?.call(_formData) ??
                                         true;
                                     return success;
