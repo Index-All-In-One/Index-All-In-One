@@ -25,7 +25,7 @@ def dispatch_plugin(function_name, plugin_name, plugin_args = []):
             update: fetch data from source and update opensearch
             init: store info when initialize the plugin
             del: clean stored info when delete the plugin
-            info_def: return a list of required info to initialize the plugin, with hint text. "password", "private_key" are special info that will be hidden in the UI. Supported field types: text, secret, int, two_step.
+            info_def: return a list of required info to initialize the plugin, with hint text. "password", "private_key" are special info that will be hidden in the UI. Supported field types: text, secret, int, two_step, secret_opt.
                 Format:
                 { "hint": "Enter your private key",
                 "field_def": [
