@@ -282,6 +282,9 @@ String? pluginInfoFieldTypeValidator(value, type, fieldDisplayName) {
     case 'two_step':
       //TODO: add two_step validation for submit
       break;
+    case 'secret_opt':
+      // secret_opt can be empty
+      break;
     default:
       if (value == null || value.isEmpty) {
         return 'Please enter $fieldDisplayName';
@@ -356,7 +359,8 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
                     return pluginInfoFieldTypeValidator(
                         value, field['type']!, field['display_name']!);
                   },
-                  isCredential: field['type']! == 'secret',
+                  isCredential: (field['type']! == 'secret') ||
+                      (field['type']! == 'secret_opt'),
                   initialValue: field['value'] ?? '',
                   customButton: (field['type'] == 'two_step')
                       ? Padding(
