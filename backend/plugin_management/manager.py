@@ -29,6 +29,7 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
             logging.error(e)
             status = PluginReturnStatus.EXCEPTION
 
+
         if status == PluginReturnStatus.SUCCESS:
             logging.debug("[%d] Routine: %s %s %s %d run update successfully", counter, plugin_name, plugin_instance_id, run_id, update_interval)
         else:
@@ -43,6 +44,7 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
                     session.commit()
                 break
         counter += 1
+        print("\nHELLO5\n")
         time.sleep(update_interval)
 
 
