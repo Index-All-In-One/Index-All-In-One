@@ -172,6 +172,7 @@ def plugin_telegram_init(plugin_instance_id, plugin_init_info):
     
     # add credentials of plugin instance
     phone_number = plugin_init_info["phone_number"]
+    password = None
     if password in plugin_init_info:
         password = plugin_init_info["password"]
     TelegramSession = Telegram_Instance(plugin_instance_id, phone_number, password)
