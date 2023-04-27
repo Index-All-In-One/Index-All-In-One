@@ -12,5 +12,3 @@ venv.bak/
 # Editors
 .vscode
 *.session
-
-*.session
