@@ -44,7 +44,6 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
                     session.commit()
                 break
         counter += 1
-        print("\nHELLO5\n")
         time.sleep(update_interval)
 
 

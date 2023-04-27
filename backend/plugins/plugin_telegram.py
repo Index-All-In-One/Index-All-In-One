@@ -7,21 +7,20 @@ from opensearch.conn import OpenSearch_Conn
 
 from plugins.status_code import PluginReturnStatus
 import logging
-# logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+# logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 API_ID = 27390216
 API_HASH = 'b59c778394e993b6bb4a1b8ada427520'
+DIR_NAME = "instance/telegram_sessions"
 
 class Telegram_Instance:
-    def __init__(self, plugin_instance_id, phone_number, password=None):
-
+    def __init__(self, plugin_instance_id, phone_number):
         self.plugin_instance_id = plugin_instance_id
         self.phone_number = phone_number
-        self.password = password
-
-        self.client = TelegramClient(self.plugin_instance_id, API_ID, API_HASH)
+        # self.password = password
         self.opensearch_conn = OpenSearch_Conn()
-        
+        self.client = None
 
     def login_opensearch(self, host='localhost', port=9200, username='admin', password='admin',
 use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
@@ -33,14 +32,36 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         except:
             logging.debug("Opensearch login failed.")
 
-    async def login_telegram(self, two_step_code=None):
+    async def connect_telegram(self):
+        session_name = DIR_NAME + "/" + self.plugin_instance_id
+        
+        if not os.path.exists(DIR_NAME):
+            os.makedirs(DIR_NAME)
+        if os.path.exists(session_name):
+            os.remove(session_name)
+
+        if not self.client:
+            self.client = TelegramClient(session_name, API_ID, API_HASH)
+
+        await self.client.connect()
+
+    async def disconnect_telegram(self):
+        await self.client.disconnect()
+
+    async def start_telegram(self, two_step_code=None):
+        assert(self.client)
+
         try:
             # self.client = TelegramClient(self.plugin_instance_id, self.api_id, self.api_hash)
-            if two_step_code and not await self.client.is_user_authorized():
-                await self.client.sign_in(phone=self.phone_number, code=two_step_code)
+            if two_step_code:
+                await self.client.start(self.phone_number, code_callback=lambda: two_step_code)
+
+            elif await self.client.is_user_authorized():
+                await self.client.start(self.phone_number)
 
             else:
-                await self.client.start(self.phone_number)
+                logging.debug("Telegram login failed.")
+                return False
 
             logging.debug("Logged in Telegram as {}!".format(self.phone_number))
             return True
@@ -48,8 +69,13 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             logging.debug("Telegram login failed.")
             return False
 
-    async def disconnect_telegram(self):
-        await self.client.disconnect()
+    async def send_code(self):
+        try:
+            logging.info("Before send code, client.is_connected(): {}".format(self.client.is_connected()))
+            await self.client.send_code_request(self.phone_number)
+            logging.info("Code sent")
+        except Exception as e:
+            logging.error("Failed to send code, error {}".format(e))
 
     async def get_messages(self):
 
@@ -63,7 +89,6 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             elif dialog.is_channel:
                 conv_type = 'Channel'
             else:
-                # print(f'Private chat: {dialog.title} (ID: {dialog.id})')
                 conv_type = 'private chat'
 
             dialog_title = dialog.title
@@ -74,15 +99,11 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                 if isinstance(message, Message):
                     # doc_id
                     message_id = message.id
-                    # print(message_id)
                     doc_id = str(dialog_id) + "_" + str(message_id)
                     # doc_name
                     sender = await message.get_sender()
-                    
                     sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
                     doc_name = sender_name
-
-                    # print(sender_name)
                     # link
                     link = ""
                     if dialog.is_group:
@@ -122,9 +143,8 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         return doc_ids, messages
                     
     async def update_messages(self):
-        print("YESS")
+
         doc_ids, messages = await self.get_messages()
-        print("\nupdate_messages\n")
         ops_doc_ids = self.opensearch_conn.get_doc_ids(plugin_instance_id=self.plugin_instance_id)
         # if doc in OpenSearch but not in mailbox, delete doc
         _, doc_ids_to_be_delete = self.not_in(ops_doc_ids, doc_ids)
@@ -145,11 +165,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         mask = [item in list2 for item in list1]
         res = [list1[i] for i in range(len(mask)) if not mask[i]]
         return mask, res
-    
-    async def send_code(self):
-        await self.client.connect()
-        await self.client.send_code_request(self.phone_number)
-
+        
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import orm, Column, Integer, String
@@ -169,27 +185,39 @@ class TelegramCredentials(model):
         self.phone_number = phone_number
 
 def plugin_telegram_init(plugin_instance_id, plugin_init_info):
+
+    async def init(TelegramSession: Telegram_Instance, code=None):
+        status = None
+        await TelegramSession.connect_telegram()
+        if not code:
+            await TelegramSession.send_code()
+        else:
+            status = await TelegramSession.start_telegram(code)
+        await TelegramSession.disconnect_telegram()
+
+        return status
+
+    # Create the directory if it doesn't exist
+    if not os.path.exists(DIR_NAME):
+        os.makedirs(DIR_NAME)
     
     # add credentials of plugin instance
     phone_number = plugin_init_info["phone_number"]
-    if password in plugin_init_info:
-        password = plugin_init_info["password"]
-    TelegramSession = Telegram_Instance(plugin_instance_id, phone_number, password)
-    
+    TelegramSession = Telegram_Instance(plugin_instance_id, phone_number)
+
     # two step plugin, step 1 send_code
     if "two_step_code" not in plugin_init_info:
-        asyncio.run(TelegramSession.send_code())
-        return PluginReturnStatus.NEED_TWO_STEP_CODE    
+        logging.info(f'Telegram plugin instance {plugin_instance_id} send code')
+        asyncio.run(init(TelegramSession))
+        return PluginReturnStatus.NEED_TWO_STEP_CODE
 
     # two step plugin, step 2 login
     two_step_code = plugin_init_info["two_step_code"]
-    status = asyncio.run(TelegramSession.login_telegram(two_step_code))
+    status = asyncio.run(init(TelegramSession, two_step_code))
 
     if not status:
         logging.error(f'init telegram plugin instance {plugin_instance_id} failed, wrong credentials')
         return PluginReturnStatus.EXCEPTION
-    else:
-        asyncio.run(TelegramSession.disconnect_telegram())
 
     # create an engine that connects to the database
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
@@ -199,13 +227,12 @@ def plugin_telegram_init(plugin_instance_id, plugin_init_info):
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
     # create a new TelegramCredential object and add it to the database
-    plugin_instance_credentials = TelegramCredentials(plugin_instance_id, API_ID, API_HASH, phone_number)
+    plugin_instance_credentials = TelegramCredentials(plugin_instance_id, phone_number)
     session.add(plugin_instance_credentials)
     session.commit()
 
     logging.info(f'Telegram plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
     return PluginReturnStatus.SUCCESS
-
 
 def plugin_telegram_del(plugin_instance_id):
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
@@ -218,6 +245,11 @@ def plugin_telegram_del(plugin_instance_id):
     return PluginReturnStatus.SUCCESS
 
 def plugin_telegram_update(plugin_instance_id, opensearch_hostname='localhost'):
+    async def update(TelegramSession):
+        await TelegramSession.connect_telegram()
+        await TelegramSession.start_telegram()
+        await TelegramSession.update_messages()
+        await TelegramSession.disconnect_telegram()
 
     logging.debug(f'Telegram plugin instance {plugin_instance_id} updating, db name: {DB_NAME}')
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
@@ -226,18 +258,13 @@ def plugin_telegram_update(plugin_instance_id, opensearch_hostname='localhost'):
     # get credential of plugin_instance_id
     creds = session.query(TelegramCredentials).filter(TelegramCredentials.plugin_instance_id==plugin_instance_id).first()
     session.commit()
-    # login
     phone_number = creds.phone_number
-    password = creds.password
 
-    TelegramSession = Telegram_Instance(plugin_instance_id, phone_number, password)
-    
-    asyncio.run(TelegramSession.login_telegram())
+    # update
+    TelegramSession = Telegram_Instance(plugin_instance_id, phone_number)
     TelegramSession.login_opensearch(host=opensearch_hostname)
-    print("\nHELLO3\n")
-    asyncio.run(TelegramSession.update_messages())
-    print("\nHELLO5\n")
-    asyncio.run(TelegramSession.disconnect_telegram())
+    asyncio.run(update(TelegramSession))
+
     return PluginReturnStatus.SUCCESS
 
 def plugin_telegram_info_def():
@@ -248,11 +275,11 @@ def plugin_telegram_info_def():
                     "display_name": "phone_number", \
                     "type": "text",
                 }, \
-                {
-                    "field_name": "password", \
-                    "display_name": "Password", \
-                    "type": "secret",
-                }, \
+                # {
+                #     "field_name": "password", \
+                #     "display_name": "Password", \
+                #     "type": "secret_opt",
+                # }, \
                 {
                     "field_name": "two_step_code", \
                     "display_name": "2FA Code", \
@@ -260,19 +287,60 @@ def plugin_telegram_info_def():
                 }, \
             ],}
 
-async def main():
+
+async def test1():
 
     phone_number = '+18056375418'
+    # Create the directory if it doesn't exist
+    if not os.path.exists(DIR_NAME):
+        os.makedirs(DIR_NAME)
 
-    # Create a new Telegram_Instance and start it
-    TelegramSession = Telegram_Instance('1', phone_number)
-    TelegramSession.login_opensearch()
-    await TelegramSession.login_telegram()
-    # Display the messages in the chat
-    _, messages =  await TelegramSession.get_messages()
-    print(messages)
+    client = TelegramClient( DIR_NAME + "/1", API_ID, API_HASH)
+    await client.connect()
+    await client.send_code_request(phone_number)
+    await client.disconnect()
 
-    await TelegramSession.update_messages()
-    await TelegramSession.client.disconnect()
-# Run the async function
-asyncio.run(main())
+async def test2():
+    phone_number = '+18056375418'
+    code = 92200
+    # hash = 'f54fb2b6589a19ede2'
+
+    if not os.path.exists(DIR_NAME):
+        os.makedirs(DIR_NAME)
+
+    client = TelegramClient( DIR_NAME + "/1", API_ID, API_HASH)  
+    await client.connect()
+    await client.start(phone_number, code_callback=lambda: code)
+    await client.log_out()
+    await client.disconnect()
+
+async def test3():
+    if not os.path.exists(DIR_NAME):
+        os.makedirs(DIR_NAME)
+
+    plugin_instance_id = "1"
+    phone_number = '+18056375418'
+    TelegramSession = Telegram_Instance(plugin_instance_id, phone_number)
+    await TelegramSession.connect_telegram()
+    await TelegramSession.send_code()
+    await TelegramSession.disconnect_telegram()
+
+    return 0
+
+async def test4():
+    plugin_instance_id = "1"
+    phone_number = '+18056375418'
+    code = 18555
+
+    TelegramSession = Telegram_Instance(plugin_instance_id, phone_number)
+    await TelegramSession.connect_telegram()
+    await TelegramSession.start_telegram(code)
+    await TelegramSession.disconnect_telegram()
+
+    return 0
+
+if __name__ == "__main__":
+    # asyncio.run(test1())
+    # asyncio.run(test2())
+    # asyncio.run(test3())
+    asyncio.run(test4())
