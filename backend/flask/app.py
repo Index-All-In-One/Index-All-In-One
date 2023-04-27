@@ -160,6 +160,7 @@ def add_plugin_instance():
         app.logger.debug("Plugin instance init Success! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
         return 'Add plugin instance successfully!'
     else:
+        # TODO: handle plugin init failure
         app.logger.error("Plugin instance init failed! Status: %s : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
         abort(400, 'Plugin instance init function failed!')
 
