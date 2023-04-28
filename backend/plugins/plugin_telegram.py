@@ -330,17 +330,19 @@ async def test3():
 async def test4():
     plugin_instance_id = "1"
     phone_number = '+18056375418'
-    code = 18555
+    code = 89365
 
     TelegramSession = Telegram_Instance(plugin_instance_id, phone_number)
     await TelegramSession.connect_telegram()
     await TelegramSession.start_telegram(code)
+    res = await TelegramSession.get_messages()
     await TelegramSession.disconnect_telegram()
 
-    return 0
+    return res
 
 if __name__ == "__main__":
     # asyncio.run(test1())
     # asyncio.run(test2())
     # asyncio.run(test3())
-    asyncio.run(test4())
+    res = asyncio.run(test4())
+    print(res)
