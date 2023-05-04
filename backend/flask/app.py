@@ -75,6 +75,43 @@ def search():
 
     return jsonify(search_results)
 
+@app.route('/send_2step_code', methods=['POST'])
+def send_two_step_code():
+    json_data = json.loads(request.data)
+
+    plugin_name = json_data.get('plugin_name', None)
+    plugin_init_info = json_data.get('plugin_init_info', None)
+    plugin_instance_id = json_data.get('id', None)
+
+    if plugin_init_info is None:
+        return abort(400, 'Missing key: plugin_init_info')
+    if plugin_instance_id is None:
+        return abort(400, 'Missing key: id')
+
+    plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+    if plugin_instance is not None:
+        plugin_name=plugin_instance.plugin_name
+    elif plugin_name is None:
+        return abort(400, 'Missing key: plugin_name')
+
+    if plugin_name not in get_allowed_plugin_list():
+        return abort(400, 'Plugin not allowed!')
+
+    # TODO: add log support inside plugin init
+
+    try:
+        status = dispatch_plugin("init", plugin_name, [plugin_instance_id, plugin_init_info])
+    except Exception as e:
+        app.logger.error(e)
+        status = PluginReturnStatus.EXCEPTION
+
+    if status == PluginReturnStatus.NEED_TWO_STEP_CODE:
+        app.logger.debug("Plugin instance init two-step (1/2) Success, still need code! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
+        return 'Plugin instance need 2 step code!'
+    else:
+        app.logger.error("Plugin instance send two step code failed! Status: %s : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
+
+
 @app.route('/add_PI', methods=['POST'])
 def add_plugin_instance():
     json_data = json.loads(request.data)
@@ -105,7 +142,6 @@ def add_plugin_instance():
         plugin_instance_id=str(uuid.uuid4())
 
     new_plugin_instance = PluginInstance(plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, source_name=source_name, update_interval=interval, enabled=True, active=False, plugin_init_info=json.dumps(plugin_init_info))
-    sqlalchemy_db.session.add(new_plugin_instance)
 
     # TODO: add log support inside plugin init
 
@@ -116,7 +152,7 @@ def add_plugin_instance():
         status = PluginReturnStatus.EXCEPTION
 
     if status == PluginReturnStatus.SUCCESS:
-        sqlalchemy_db.session.commit()
+        sqlalchemy_db.session.add(new_plugin_instance)
         new_request = Request(request_op="activate", plugin_name=plugin_name, plugin_instance_id=plugin_instance_id, update_interval=interval)
         sqlalchemy_db.session.add(new_request)
         sqlalchemy_db.session.commit()
@@ -124,7 +160,8 @@ def add_plugin_instance():
         app.logger.debug("Plugin instance init Success! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
         return 'Add plugin instance successfully!'
     else:
-        app.logger.error("Plugin instance init failed! Status: %d : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
+        # TODO: handle plugin init failure
+        app.logger.error("Plugin instance init failed! Status: %s : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
         abort(400, 'Plugin instance init function failed!')
 
 
@@ -137,12 +174,6 @@ def mod_plugin_instance():
     plugin_init_info = json_data.get('plugin_init_info', None)
     plugin_instance_id = json_data.get('id', None)
 
-    if source_name is None:
-        return abort(400, 'Missing key: source_name')
-    if interval is None:
-        return abort(400, 'Missing key: interval')
-    if plugin_init_info is None:
-        return abort(400, 'Missing key: plugin_init_info')
     if plugin_instance_id is None:
         return abort(400, 'Missing key: plugin_instance_id')
 
@@ -150,20 +181,30 @@ def mod_plugin_instance():
     if plugin_instance is None:
         return abort(400, "Plugin instance id does not exist!")
 
-    plugin_instance.source_name = source_name
-    interval_changed = (plugin_instance.update_interval != interval)
-    plugin_instance.update_interval = interval
-    plugin_init_info_str=json.dumps(plugin_init_info)
-    info_changed = (plugin_instance.plugin_init_info != plugin_init_info_str)
-    plugin_instance.plugin_init_info = plugin_init_info_str
+    if source_name is not None:
+        plugin_instance.source_name = source_name
+    if interval is not None:
+        interval_changed = (plugin_instance.update_interval != interval)
+        plugin_instance.update_interval = interval
+    else:
+        interval_changed = False
+    if plugin_init_info is not None:
+        plugin_init_info_str=json.dumps(plugin_init_info)
+        info_changed = (plugin_instance.plugin_init_info != plugin_init_info_str)
+        plugin_instance.plugin_init_info = plugin_init_info_str
+    else:
+        info_changed = False
 
     # TODO: add log support inside plugin init
 
-    try:
-        status = dispatch_plugin("init", plugin_instance.plugin_name, [plugin_instance_id, plugin_init_info])
-    except Exception as e:
-        app.logger.error(e)
-        status = PluginReturnStatus.EXCEPTION
+    if(info_changed):
+        try:
+            status = dispatch_plugin("init", plugin_instance.plugin_name, [plugin_instance_id, plugin_init_info])
+        except Exception as e:
+            app.logger.error(e)
+            status = PluginReturnStatus.EXCEPTION
+    else:
+        status = PluginReturnStatus.SUCCESS
 
     if status == PluginReturnStatus.SUCCESS:
         sqlalchemy_db.session.commit()
@@ -178,7 +219,7 @@ def mod_plugin_instance():
     else:
         # TODO: handle plugin init failure, show error msg
 
-        app.logger.error("Plugin instance init failed! Status: %d : %s, %s, %s", status.name, plugin_instance.plugin_name, plugin_instance_id, str(plugin_init_info))
+        app.logger.error("Plugin instance init failed! Status: %s : %s, %s, %s", status.name, plugin_instance.plugin_name, plugin_instance_id, str(plugin_init_info))
         abort (400, 'Plugin instance init function failed!')
         # no db commit here
 

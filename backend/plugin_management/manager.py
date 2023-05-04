@@ -32,6 +32,7 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
             logging.error(e)
             status = PluginReturnStatus.EXCEPTION
 
+
         if status == PluginReturnStatus.SUCCESS:
             logging.debug("[%d] Routine: %s %s %s %d run update successfully", counter, plugin_name, plugin_instance_id, run_id, update_interval)
         else:
@@ -53,6 +54,7 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
             break
 
         counter += 1
+        print("\nHELLO5\n")
         time.sleep(update_interval)
 
 
@@ -133,9 +135,7 @@ def handle_request(DBSession, man_session, request):
         plugin_instance = man_session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == request.plugin_instance_id).first()
         if plugin_instance is not None:
             plugin_instance.active = False
-            logging.debug('Manager: Deactivate Success : %s ', request.plugin_instance_id)
-        else:
-            logging.debug('Manager: Deactivate PI not exist : %s ', request.plugin_instance_id)
+        logging.debug('Manager: Deactivate Success : %s ', request.plugin_instance_id)
 
     elif request.request_op == 'change_interval':
         logging.debug('Manager: Change interval start : %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)

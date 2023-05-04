@@ -7,6 +7,7 @@ DEBUG = os.getenv('DEBUG', '').lower() in ['1', 'true', 'yes']
 # plugin_name: plugin_display_name
 allowed_plugins_display = { \
     "gmail":    "Gmail", \
+    "telegram": "Telegram",\
     }
 
 def get_allowed_plugin_display_list():
@@ -25,7 +26,22 @@ def dispatch_plugin(function_name, plugin_name, plugin_args = []):
             update: fetch data from source and update opensearch
             init: store info when initialize the plugin
             del: clean stored info when delete the plugin
-            info_def: return a list of required info to initialize the plugin, with hint text. "password", "private_key" are special info that will be hidden in the UI. Format: { "hint": "Enter your private key", "field_type": {"username": "text", "password": "secret", "private_key": "secret",}}. Supported field types: text, secret, int.
+            info_def: return a list of required info to initialize the plugin, with hint text. "password", "private_key" are special info that will be hidden in the UI. Supported field types: text, secret, int, two_step, secret_opt.
+                Format:
+                { "hint": "Enter your private key",
+                "field_def": [
+                    {
+                        "field_name": "username",
+                        "display_name": "Username",
+                        "type": "text",
+                    },
+                    {
+                        "field_name": "password",
+                        "display_name": "Password",
+                        "type": "secret",
+                    },
+                ]}.
+
         Each function should return a status code. Format: (status, other_return_values, ...)
     """
 

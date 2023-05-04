@@ -12,6 +12,11 @@ def plugin_stub_init(plugin_instance_id, plugin_init_info):
     # do init jobs, such as store credentials in database
     # plugin_init_info is a dict, defined in plugin_stub_info_def
     print("Plugin stub init: ", plugin_instance_id, plugin_init_info)
+
+    if "two_step_code" not in plugin_init_info:
+        # send code here
+        return PluginReturnStatus.NEED_TWO_STEP_CODE
+
     return PluginReturnStatus.SUCCESS
 
 def plugin_stub_del(plugin_instance_id):
@@ -31,5 +36,10 @@ def plugin_stub_info_def():
                     "field_name": "password", \
                     "display_name": "Password", \
                     "type": "secret",
+                }, \
+                {
+                    "field_name": "two_step_code", \
+                    "display_name": "2FA Code", \
+                    "type": "two_step",
                 }, \
             ],}
