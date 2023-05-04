@@ -50,7 +50,10 @@ Widget buildEditAccountForm(String pluginInstanceID) {
                     MapEntry("display_name", pluginInitInfo["display_name"]!),
                     MapEntry("type", pluginInitInfo["type"]!),
                     MapEntry(
-                        "value", ifIntOrBoolToString(pluginInitInfo["value"]!)),
+                        "value",
+                        (pluginInitInfo["type"] != "two_step")
+                            ? (ifIntOrBoolToString(pluginInitInfo["value"]!))
+                            : ""),
                   ]))
               .toList(),
         };
