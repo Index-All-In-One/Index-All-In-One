@@ -400,32 +400,36 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
             ],
             const SizedBox(height: 16),
           ],
-          ElevatedButton(
-            onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
-                waitAndShowSnackBarMsg(
-                  context,
-                  () async {
-                    final success = await widget.onSubmit
-                            ?.call({..._formData, ..._formDataTwoStep}) ??
-                        true;
-                    return success;
-                  },
-                  widget.successMessage ?? 'Form submitted successfully',
-                  'An error occurred while submitting the form',
-                  true,
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  _formKey.currentState!.save();
+                  waitAndShowSnackBarMsg(
+                    context,
+                    () async {
+                      final success = await widget.onSubmit
+                              ?.call({..._formData, ..._formDataTwoStep}) ??
+                          true;
+                      return success;
+                    },
+                    widget.successMessage ?? 'Form submitted successfully',
+                    'An error occurred while submitting the form',
+                    true,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                padding: const EdgeInsets.all(24),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
+              child: const Text('Submit'),
             ),
-            child: const Text('Submit'),
           ),
         ],
       ),
