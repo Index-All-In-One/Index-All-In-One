@@ -278,7 +278,7 @@ def plugin_telegram_update(plugin_instance_id, opensearch_hostname='localhost'):
     return PluginReturnStatus.SUCCESS
 
 def plugin_telegram_info_def():
-    return PluginReturnStatus.SUCCESS, {"hint": "Enter password if you set one before.", \
+    return PluginReturnStatus.SUCCESS, {"hint": "If you have ever set a password, you need to enter it; otherwise, you don't need to input it.", \
             "field_def": [\
                 {
                     "field_name": "phone_number", \
@@ -292,7 +292,7 @@ def plugin_telegram_info_def():
                 }, \
                 {
                     "field_name": "password", \
-                    "display_name": "Password", \
+                    "display_name": "Password (Conditional)", \
                     "type": "secret_opt",
                 }, \
             ],}
