@@ -17,10 +17,6 @@
             "type": "text",
             "analyzer": "standard"
         },
-        "source": {
-            "type": "text",
-            "analyzer": "standard"
-        },
         "created_date": {
             "type" : "date",
             "format" : "strict_date_time_no_millis"

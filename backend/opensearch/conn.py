@@ -62,7 +62,7 @@ class OpenSearch_Conn:
             keywords.append({"match": {"content": full_text_keywords}})
 
         body = {
-            "size": 100,
+            "size": 200,
             "query": {
                 "bool": {
                     "should": keywords

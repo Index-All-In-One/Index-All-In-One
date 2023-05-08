@@ -1,5 +1,6 @@
-# Editors
-.vscode
+<<<<<<<<< Temporary merge branch 1
+.DS_Store
+# Misc
 
 # Environments
 .env
@@ -10,5 +11,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# Misc
-.DS_Store
+# Editors
+.vscode
+>>>>>>>>> Temporary merge branch 2

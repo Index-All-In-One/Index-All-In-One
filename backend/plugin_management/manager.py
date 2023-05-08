@@ -16,6 +16,9 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_instance_id, run_id, update_interval):
     counter = 0
+    plugin_instance = session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first();
+    plugin_instance.status_message = None
+    session.commit()
     while True:
         running_instance = session.query(RunningPluginInstance).filter(RunningPluginInstance.run_id == run_id).first()
         if running_instance is None:
@@ -29,20 +32,29 @@ def plugin_instance_routine(session, opensearch_hostname, plugin_name, plugin_in
             logging.error(e)
             status = PluginReturnStatus.EXCEPTION
 
+
         if status == PluginReturnStatus.SUCCESS:
             logging.debug("[%d] Routine: %s %s %s %d run update successfully", counter, plugin_name, plugin_instance_id, run_id, update_interval)
         else:
-            # TODO: handle plugin update failure
             logging.error("[%d] Routine: %s %s %s %d run update failed! Status: %s", counter, plugin_name, plugin_instance_id, run_id, update_interval, status.name)
-            if status == PluginReturnStatus.EXCEPTION:
-                # TODO: leave message in database
-                all_running_instance = session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == plugin_instance_id)
-                PI_instance = session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
-                if all_running_instance is not None and PI_instance is not None:
-                    PI_instance.active = False
-                    session.commit()
+
+            plugin_instance = session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+            if(plugin_instance is None):
                 break
+
+            if status == PluginReturnStatus.EXCEPTION:
+                plugin_instance.status_message = "Running Exception"
+            elif status == PluginReturnStatus.WRONG_CREDS:
+                plugin_instance.status_message = "Wrong Credentials"
+            elif status == PluginReturnStatus.OTHER_ERROR:
+                plugin_instance.status_message = "Unknown Error"
+
+            plugin_instance.active = False
+            session.commit()
+            break
+
         counter += 1
+        print("\nHELLO5\n")
         time.sleep(update_interval)
 
 
@@ -98,7 +110,7 @@ def handle_request(DBSession, man_session, request):
     if request is None:
         return
     if request.request_op == 'activate':
-        logging.debug('Manager: Activating plugin instance Request: %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)
+        logging.debug('Manager: Activate start : %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)
 
         plugin_instance = man_session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == request.plugin_instance_id).first()
 
@@ -111,18 +123,38 @@ def handle_request(DBSession, man_session, request):
 
             routine_thread = threading.Thread(target=plugin_instance_routine, args=(DBSession(), opensearch_hostname, request.plugin_name, request.plugin_instance_id, run_id, request.update_interval))
             routine_thread.start()
+            logging.debug('Manager: Activate Success : %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)
+        else:
+            logging.debug('Manager: Activate PI not exist : %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)
 
     elif request.request_op == 'deactivate':
-        logging.debug('Manager: Deactivating plugin instance Request: %s ', request.plugin_instance_id)
+        logging.debug('Manager: Deactivate Start : %s ', request.plugin_instance_id)
 
         man_session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == request.plugin_instance_id).delete()
 
         plugin_instance = man_session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == request.plugin_instance_id).first()
         if plugin_instance is not None:
             plugin_instance.active = False
+        logging.debug('Manager: Deactivate Success : %s ', request.plugin_instance_id)
 
     elif request.request_op == 'change_interval':
-        pass
+        logging.debug('Manager: Change interval start : %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)
+
+        plugin_instance = man_session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == request.plugin_instance_id).first()
+
+        if plugin_instance is not None and plugin_instance.active == True:
+            man_session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == request.plugin_instance_id).delete()
+            run_id=str(uuid.uuid4())
+            running_plugin_instance = RunningPluginInstance(plugin_instance_id=request.plugin_instance_id, run_id=run_id)
+            man_session.add(running_plugin_instance)
+            plugin_instance.active = True
+            man_session.commit()
+
+            routine_thread = threading.Thread(target=plugin_instance_routine, args=(DBSession(), opensearch_hostname, request.plugin_name, request.plugin_instance_id, run_id, request.update_interval))
+            routine_thread.start()
+            logging.debug('Manager: Change interval success : %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)
+        else:
+            logging.debug('Manager: Change interval PI not exist or not active : %s %s %d', request.plugin_name, request.plugin_instance_id, request.update_interval)
     else:
         logging.debug('Manager: Unknown request: %s', request.request_op)
 
@@ -138,6 +170,7 @@ def loop_for_request(DBSession):
 
 if __name__ == "__main__":
     opensearch_hostname = os.environ.get('OPENSEARCH_HOSTNAME', 'localhost')
+    #clear all previous running plugin instances in init_db
     DBSession = init_db("PI.db")
     sleep_interval = 5
     if len(sys.argv) > 1:

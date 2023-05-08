@@ -184,7 +184,7 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info):
     status = GmailSession.login_email()
     if not status:
         logging.error(f'init Gmail plugin instance {plugin_instance_id} failed, wrong credentials')
-        return PluginReturnStatus.EXCEPTION
+        return PluginReturnStatus.WRONG_CREDS
 
     # create an engine that connects to the database
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
@@ -193,9 +193,15 @@ def plugin_gmail_init(plugin_instance_id, plugin_init_info):
     # create a session factory that uses the engine
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
-    # create a new GmailCredentials object and add it to the database
-    plugin_instance_credentials = GmailCredentials(plugin_instance_id, username, password)
-    session.add(plugin_instance_credentials)
+    # create new or update GmailCredentials object and add it to the database
+    plugin_instance_credentials = session.query(GmailCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
+    if plugin_instance_credentials is None:
+        plugin_instance_credentials = GmailCredentials(plugin_instance_id, username, password)
+        session.add(plugin_instance_credentials)
+    else:
+        plugin_instance_credentials.username = username
+        plugin_instance_credentials.password = password
+
     session.commit()
 
     logging.info(f'Gmail plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
@@ -224,12 +230,14 @@ def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     username = creds.username
     password = creds.password
     GmailSession = Gmail_Instance(plugin_instance_id, username, password)
-    GmailSession.login_email()
+    if not GmailSession.login_email():
+       logging.error(f'update Gmail plugin instance {plugin_instance_id} failed, wrong credentials')
+       return PluginReturnStatus.WRONG_CREDS
     GmailSession.login_opensearch(host=opensearch_hostname)
     GmailSession.update_email()
     return PluginReturnStatus.SUCCESS
 
-def plugin_gmail_info_list():
+def plugin_gmail_info_def():
     return PluginReturnStatus.SUCCESS, {"hint": "Please enter your app password, not Gmail's login password. If you don't have, create one first.", \
             "field_def": [\
                 { \
