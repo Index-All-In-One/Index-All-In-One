@@ -49,7 +49,14 @@ def add_cors_headers(response):
 
 @app.route('/search_count', methods=['POST'])
 def search_count():
-    count = get_search_count(opensearch_conn, request)
+    docs = extract_docs_from_response(get_search_results(opensearch_conn, request, include_fields=['plugin_instance_id']))
+
+    count = 0
+    for doc in docs:
+        plugin_instance = sqlalchemy_db.session.query(PluginInstance.source_name).filter_by(plugin_instance_id=doc['plugin_instance_id']).first()
+        if plugin_instance is not None:
+            count += 1
+
     return jsonify({'count': count})
 
 @app.route('/search', methods=['POST'])
