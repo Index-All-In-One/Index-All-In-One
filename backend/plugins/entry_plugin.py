@@ -8,7 +8,7 @@ DEBUG = os.getenv('DEBUG', '').lower() in ['1', 'true', 'yes']
 allowed_plugins_display = { \
     "gmail":    "Gmail", \
     "telegram": "Telegram",\
-    'gdrive': "Google Drive",\
+    'gdrive': "Google Drive (Developing)",\
     }
 
 def get_allowed_plugin_display_list():
