@@ -1,6 +1,7 @@
 import asyncio, re, os, sys, datetime
 from telethon import TelegramClient
-from telethon.tl.types import PeerUser, PeerChat, PeerChannel, Message
+from telethon.tl.types import PeerUser, PeerChat, PeerChannel, Message, Channel, InputPeerChannel
+from telethon.tl.functions.channels import GetFullChannelRequest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from opensearch.conn import OpenSearch_Conn
@@ -89,7 +90,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             elif dialog.is_channel:
                 conv_type = 'Channel'
             else:
-                conv_type = 'private chat'
+                conv_type = 'Private Chat'
 
             dialog_title = dialog.title
             dialog_id = dialog.entity.id
@@ -99,15 +100,43 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                 if isinstance(message, Message):
                     # doc_id
                     message_id = message.id
-                    doc_id = str(dialog_id) + "_" + str(message_id)
-                    # link
-                    link = ""
-                    if dialog.is_group:
-                        link = "https://t.me/c/{}/{}".format(dialog_id, message_id)
-                    elif dialog.is_channel:
-                        link = ""
+                    if dialog.is_group or dialog.is_channel:
+                        doc_id = "-" + str(dialog_id) + "_" + str(message_id)
                     else:
-                        link = "https://web.telegram.org/z/#{}".format(dialog_id)
+                        doc_id = str(dialog_id) + "_" + str(message_id)
+                    # doc_name
+                    doc_name = dialog_name
+                    # link & doc_name
+                    link = ""
+                    dialog_public_name = getattr(dialog.entity, 'username', None)
+                    if dialog.is_group:
+                        chat = await self.client.get_entity(message.peer_id)
+                        if isinstance(chat, Channel) and chat.megagroup:
+                            if dialog_public_name:
+                                link = "https://t.me/{}/{}".format(dialog_public_name, message_id)
+                            else:
+                                link = "https://t.me/c/{}/{}".format(dialog_id, message_id)
+                        else:
+                            if chat.migrated_to:
+                                supergroup = await self.client.get_entity(InputPeerChannel(chat.migrated_to.channel_id, chat.migrated_to.access_hash))
+                                doc_name = supergroup.title
+
+                            if dialog_public_name:
+                                link = "https://t.me/{}".format(dialog_public_name)
+                            else:
+                                link = "https://web.telegram.org/a/#-{}".format(dialog_id)
+
+                    elif dialog.is_channel:
+                        if dialog_public_name:
+                            link = "https://t.me/{}/{}".format(dialog_public_name, message_id)
+                        else:
+                            link = "https://t.me/c/{}/{}".format(dialog_id, message_id)
+                    else:
+                        if dialog_public_name:
+                            link = "https://t.me/{}".format(dialog_public_name)
+                        else:
+                            link = "https://web.telegram.org/a/#{}".format(dialog_id)
+
                     # created_date
                     created_date = message.date.strftime('%Y-%m-%dT%H:%M:%SZ')
                     # modified_date
@@ -116,16 +145,14 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                         modified_date = message.edit_date.strftime('%Y-%m-%dT%H:%M:%SZ')
                     # content
                     content = message.message
-                    # doc_name
+                    # summary
                     sender = await message.get_sender()
                     if dialog.is_channel:
                         sender_name = ""
                     else:
                         sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
-                    doc_name = dialog_name
-                    # summary
-                    content_summary = content[:100] + '...' if len(content) > 100 else content
-                    summary = "Dialog: {}, Type: {}, Sender: {}, Message: {}".format(dialog_name, conv_type, sender_name, content_summary)
+                    content_summary = content[:600] + '...' if len(content) > 600 else content
+                    summary = "Dialog: {}, Type: {}, Sender: {},\nMessage: {}".format(dialog_name, conv_type, sender_name, content_summary)
                     # file_size
                     file_size = len(message.raw_text.encode('utf-8'))
 
