@@ -99,7 +99,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             dialog_id = dialog.entity.id
             dialog_name = dialog.name
 
-            limit = 100
+            limit = 150
             offset_id = 0
             max_id = 0
             min_id = 0
@@ -122,6 +122,11 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                     break
 
                 all_messages.extend(history.messages)
+
+                if len(history.messages) < limit:
+                    await asyncio.sleep(0.04)
+                    break
+
                 offset_id = history.messages[-1].id
                 await asyncio.sleep(1)  # Adding a small delay to avoid hitting rate limits
 
