@@ -54,7 +54,40 @@ Future<http.Response> sendPluginInfoFieldsRequest(String pluginName) async {
   return response;
 }
 
-Future<http.Response> sendAddPIRequest(
+Future<http.Response> sendPIInfoValuesRequest(String pluginInstanceID) async {
+  var url = Uri.parse('$baseUrl/PI_info_value');
+
+  var response = await http.post(url, body: {'id': pluginInstanceID});
+  return response;
+}
+
+Future<http.Response> send2StepCodeRequest(String pluginInstanceID,
+    String? pluginName, Map<String, String> formData) async {
+  final url = Uri.parse('$baseUrl/send_2step_code');
+
+  formData.remove('source_name');
+  formData.remove('interval');
+  final Map<String, dynamic> requestData = {
+    'plugin_init_info': formData,
+    'id': pluginInstanceID,
+  };
+  if (pluginName != null) {
+    requestData['plugin_name'] = pluginName;
+  }
+
+  try {
+    var response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(requestData),
+    );
+    return response;
+  } catch (e) {}
+
+  return Future.value(fakeResponse);
+}
+
+Future<http.Response> sendAddPIRequest(String? pluginInstanceID,
     String pluginName, Map<String, String> formData) async {
   final url = Uri.parse('$baseUrl/add_PI');
 
@@ -67,6 +100,36 @@ Future<http.Response> sendAddPIRequest(
     'source_name': sourceName,
     'interval': interval,
     'plugin_init_info': formData,
+  };
+  if (pluginInstanceID != null) {
+    requestData['id'] = pluginInstanceID;
+  }
+
+  try {
+    var response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(requestData),
+    );
+    return response;
+  } catch (e) {}
+
+  return Future.value(fakeResponse);
+}
+
+Future<http.Response> sendEditPIRequest(
+    String pluginInstanceID, Map<String, String> formData) async {
+  final url = Uri.parse('$baseUrl/mod_PI');
+
+  final sourceName = formData['source_name']!;
+  final interval = int.parse(formData['interval']!);
+  formData.remove('source_name');
+  formData.remove('interval');
+  final Map<String, dynamic> requestData = {
+    'source_name': sourceName,
+    'interval': interval,
+    'plugin_init_info': formData,
+    'id': pluginInstanceID,
   };
 
   try {
@@ -103,6 +166,16 @@ Future<http.Response> sendEnablePIRequest(String pluginInstanceID) async {
 
 Future<http.Response> sendDisablePIRequest(String pluginInstanceID) async {
   final url = Uri.parse('$baseUrl/disable_PI');
+  try {
+    var response = await http.post(url, body: {'id': pluginInstanceID});
+    return response;
+  } catch (e) {}
+
+  return Future.value(fakeResponse);
+}
+
+Future<http.Response> sendRestartPIRequest(String pluginInstanceID) async {
+  final url = Uri.parse('$baseUrl/restart_PI');
   try {
     var response = await http.post(url, body: {'id': pluginInstanceID});
     return response;

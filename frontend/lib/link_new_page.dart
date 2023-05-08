@@ -12,21 +12,28 @@ class LinkNewPage extends StatefulWidget {
 class _LinkNewPageState extends State<LinkNewPage> {
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final double maxWidth = (screenWidth >= 1250) ? screenWidth * 0.4 : 500;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Link New Account/Application'),
       ),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: const Text(
-              'Plugin List',
-              style: TextStyle(fontSize: 18),
-            ),
+      body: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: const Text(
+                  'Plugin List',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+              Expanded(child: buildPluginList()),
+            ],
           ),
-          Expanded(child: buildPluginList()),
-        ],
+        ),
       ),
     );
   }
@@ -43,17 +50,21 @@ class LinkNewInfoPage extends StatefulWidget {
 class _LinkNewInfoPageState extends State<LinkNewInfoPage> {
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final double maxWidth = (screenWidth >= 1250) ? screenWidth * 0.4 : 500;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Link New Account/Application'),
       ),
-      body: Column(children: [
-        Expanded(
-            child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: buildNewAccountForm(widget.pluginName)))
-      ]),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: buildNewAccountForm(widget.pluginName),
+          ),
+        ),
+      ),
     );
   }
 }

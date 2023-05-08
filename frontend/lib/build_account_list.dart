@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'utils.dart';
 import 'apis.dart';
+import 'edit_account_page.dart';
 
 List<String> accountsFieldKeys = [
   "plugin_name",
@@ -48,26 +49,60 @@ Widget buildAccountList(Function() refreshCallback) {
                 Expanded returnWidget;
                 switch (key) {
                   case 'op':
+                    bool enabled = singleQueryResult["enabled"]!;
                     returnWidget = Expanded(
                         child: Center(
-                      child: IconButtonWithConfirm(
-                        icon: const Icon(Icons.delete),
-                        operationShort: "Delete",
-                        operationPhrase: "delete this Account/Application",
-                        operationExecution: () {
-                          waitAndShowSnackBarMsg(
-                            context,
-                            () async => onlyCareStatus(
-                                () => sendDelPIRequest(
-                                    singleQueryResult['id'].toString()),
-                                "del_PI"),
-                            "Deleted successfully!",
-                            "Failed to delete.",
-                            false,
-                            refreshFuncion: refreshCallback,
-                          );
-                        },
-                      ),
+                      child: Wrap(children: [
+                        if (enabled)
+                          IconButtonWithHover(
+                            hoverText: "Restart",
+                            icon: const Icon(Icons.refresh),
+                            onPressed: () {
+                              waitAndShowSnackBarMsg(
+                                context,
+                                () async => onlyCareStatus(
+                                    () => sendRestartPIRequest(
+                                        singleQueryResult['id'].toString()),
+                                    "restart_PI"),
+                                "Restart successfully!",
+                                "Failed to restart.",
+                                false,
+                                refreshFuncion: delayedRefresh,
+                              );
+                            },
+                          ),
+                        IconButtonWithHover(
+                          hoverText: "Edit",
+                          icon: const Icon(Icons.edit),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => EditAccountInfoPage(
+                                      pluginInstanceID:
+                                          singleQueryResult['id'].toString())),
+                            );
+                          },
+                        ),
+                        IconButtonWithConfirm(
+                          icon: const Icon(Icons.delete),
+                          operationShort: "Delete",
+                          operationPhrase: "delete this Account/Application",
+                          operationExecution: () {
+                            waitAndShowSnackBarMsg(
+                              context,
+                              () async => onlyCareStatus(
+                                  () => sendDelPIRequest(
+                                      singleQueryResult['id'].toString()),
+                                  "del_PI"),
+                              "Deleted successfully!",
+                              "Failed to delete.",
+                              false,
+                              refreshFuncion: refreshCallback,
+                            );
+                          },
+                        ),
+                      ]),
                     ));
                     break;
 
@@ -115,12 +150,24 @@ Widget buildAccountList(Function() refreshCallback) {
                     bool enabled = singleQueryResult["enabled"]!;
                     bool active = singleQueryResult["active"]!;
                     returnWidget = Expanded(
-                      child: Center(
-                          child: TextWithHover(
-                              text: (active
-                                  ? "OK"
-                                  : (enabled ? "Error" : "Stopped")))),
-                    );
+                        child: Center(
+                      child: Wrap(
+                          alignment: WrapAlignment.start,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            TextWithHover(
+                                text: (active
+                                    ? "OK"
+                                    : (enabled ? "Error" : "Stopped"))),
+                            if (!active &&
+                                enabled &&
+                                singleQueryResult["status_msg"] != null)
+                              PopUpIconButton(
+                                title: "Error Message",
+                                content: Text(singleQueryResult["status_msg"]!),
+                              )
+                          ]),
+                    ));
                     break;
                   default:
                     String queryValueString =

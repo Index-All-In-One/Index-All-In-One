@@ -272,11 +272,24 @@ void showErrorAlert(String errorMesssage, BuildContext context) {
 String? pluginInfoFieldTypeValidator(value, type, fieldDisplayName) {
   switch (type) {
     case 'int':
+      if (value == null || value.isEmpty) {
+        return 'Please enter $fieldDisplayName';
+      }
       if (int.tryParse(value) == null) {
         return 'Please enter a valid integer for $fieldDisplayName';
       }
       break;
+    case 'two_step':
+      //TODO: add two_step validation for submit
+      break;
+    case 'secret_opt':
+      // secret_opt can be empty
+      break;
     default:
+      if (value == null || value.isEmpty) {
+        return 'Please enter $fieldDisplayName';
+      }
+      break;
   }
   return null;
 }
@@ -286,12 +299,14 @@ typedef FormSegment = Map<String, dynamic>;
 
 class FormWithSubmit extends StatefulWidget {
   final Future<bool> Function(Map<String, String> formData)? onSubmit;
+  final Future<bool> Function(Map<String, String> formData)? onSendCode;
   final String? successMessage;
   final List<FormSegment> formSegments;
 
   const FormWithSubmit({
     super.key,
     this.onSubmit,
+    this.onSendCode,
     this.successMessage,
     required this.formSegments,
   });
@@ -303,6 +318,7 @@ class FormWithSubmit extends StatefulWidget {
 class _FormWithSubmitState extends State<FormWithSubmit> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, String> _formData = {};
+  final Map<String, String> _formDataTwoStep = {};
 
   @override
   Widget build(BuildContext context) {
@@ -333,47 +349,87 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
                     style: const TextStyle(fontSize: 16),
                   )),
               Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: TextFormFieldWithStyle(
-                    fieldName: field['field_name']!,
-                    formData: _formData,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter ${field['display_name']!}';
-                      }
-                      return pluginInfoFieldTypeValidator(
-                          value, field['type']!, field['display_name']!);
-                    },
-                    isCredential: field['type']! == 'secret',
-                  )),
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: TextFormFieldWithStyle(
+                  fieldName: field['field_name']!,
+                  formData: (field['type'] == 'two_step')
+                      ? _formDataTwoStep
+                      : _formData,
+                  validator: (value) {
+                    return pluginInfoFieldTypeValidator(
+                        value, field['type']!, field['display_name']!);
+                  },
+                  isCredential: (field['type']! == 'secret') ||
+                      (field['type']! == 'secret_opt'),
+                  initialValue: field['value'] ?? '',
+                  customButton: (field['type'] == 'two_step')
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              if (_formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                                waitAndShowSnackBarMsg(
+                                  context,
+                                  () async {
+                                    final success = await widget.onSendCode
+                                            ?.call(_formData) ??
+                                        true;
+                                    return success;
+                                  },
+                                  'Sent code successfully',
+                                  'An error occurred while sending the code',
+                                  false,
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text('Send Code'),
+                          ),
+                        )
+                      : null,
+                ),
+              ),
             ],
             const SizedBox(height: 16),
           ],
-          ElevatedButton(
-            onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
-                waitAndShowSnackBarMsg(
-                  context,
-                  () async {
-                    final success =
-                        await widget.onSubmit?.call(_formData) ?? true;
-                    return success;
-                  },
-                  widget.successMessage ?? 'Form submitted successfully',
-                  'An error occurred while submitting the form',
-                  true,
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  _formKey.currentState!.save();
+                  waitAndShowSnackBarMsg(
+                    context,
+                    () async {
+                      final success = await widget.onSubmit
+                              ?.call({..._formData, ..._formDataTwoStep}) ??
+                          true;
+                      return success;
+                    },
+                    widget.successMessage ?? 'Form submitted successfully',
+                    'An error occurred while submitting the form',
+                    true,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                padding: const EdgeInsets.all(24),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
+              child: const Text('Submit'),
             ),
-            child: const Text('Submit'),
           ),
         ],
       ),
@@ -386,6 +442,8 @@ class TextFormFieldWithStyle extends StatefulWidget {
   final String? Function(String?)? validator;
   final Map<String, String> _formData;
   final bool isCredential;
+  final String initialValue;
+  final Widget? customButton;
 
   const TextFormFieldWithStyle({
     super.key,
@@ -393,6 +451,8 @@ class TextFormFieldWithStyle extends StatefulWidget {
     this.validator,
     required Map<String, String> formData,
     this.isCredential = false,
+    this.initialValue = "",
+    this.customButton,
   }) : _formData = formData;
 
   @override
@@ -411,6 +471,7 @@ class _TextFormFieldWithStyleState extends State<TextFormFieldWithStyle> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      initialValue: widget.initialValue,
       obscureText: !_showField,
       cursorColor: Colors.blue,
       decoration: InputDecoration(
@@ -425,7 +486,7 @@ class _TextFormFieldWithStyleState extends State<TextFormFieldWithStyle> {
                   });
                 },
               )
-            : null,
+            : (widget.customButton),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
