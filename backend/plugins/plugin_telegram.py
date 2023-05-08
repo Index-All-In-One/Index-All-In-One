@@ -2,6 +2,7 @@ import asyncio, re, os, sys, datetime
 from telethon import TelegramClient
 from telethon.tl.types import PeerUser, PeerChat, PeerChannel, Message, Channel, InputPeerChannel
 from telethon.tl.functions.channels import GetFullChannelRequest
+from telethon.tl.functions.messages import GetHistoryRequest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from opensearch.conn import OpenSearch_Conn
@@ -83,8 +84,10 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         # Iterate over all the dialogs and print the title and ID of each chat
         messages = []
         doc_ids = []
+        sender_cache = {}
         logging.debug(f'Telegram plugin instance {self.plugin_instance_id} get_messages')
         async for dialog in self.client.iter_dialogs():
+
             if dialog.is_group:
                 conv_type = 'Group'
             elif dialog.is_channel:
@@ -96,80 +99,119 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             dialog_id = dialog.entity.id
             dialog_name = dialog.name
 
-            async for message in self.client.iter_messages(dialog_id):
+            limit = 100
+            offset_id = 0
+            max_id = 0
+            min_id = 0
+            add_offset = 0
+            all_messages = []
+
+            while True:
+                history = await self.client(GetHistoryRequest(
+                    peer=dialog_id,
+                    offset_id=offset_id,
+                    offset_date=None,
+                    add_offset=add_offset,
+                    limit=limit,
+                    max_id=max_id,
+                    min_id=min_id,
+                    hash=0
+                ))
+
+                if not history.messages:
+                    break
+
+                all_messages.extend(history.messages)
+                offset_id = history.messages[-1].id
+                await asyncio.sleep(1)  # Adding a small delay to avoid hitting rate limits
+
+            for message in all_messages:
                 if isinstance(message, Message):
-                    # doc_id
-                    message_id = message.id
-                    if dialog.is_group or dialog.is_channel:
-                        doc_id = "-" + str(dialog_id) + "_" + str(message_id)
-                    else:
-                        doc_id = str(dialog_id) + "_" + str(message_id)
-                    # doc_name
-                    doc_name = dialog_name
-                    # link & doc_name
-                    link = ""
-                    dialog_public_name = getattr(dialog.entity, 'username', None)
-                    if dialog.is_group:
-                        chat = await self.client.get_entity(message.peer_id)
-                        if isinstance(chat, Channel) and chat.megagroup:
+                    # TODO: support more message type
+                    if message.message:
+                        # doc_id
+                        message_id = message.id
+                        if dialog.is_group or dialog.is_channel:
+                            doc_id = "-" + str(dialog_id) + "_" + str(message_id)
+                        else:
+                            doc_id = str(dialog_id) + "_" + str(message_id)
+                        # doc_name
+                        doc_name = dialog_name
+                        # link & doc_name
+                        link = ""
+                        dialog_public_name = getattr(dialog.entity, 'username', None)
+                        if dialog.is_group:
+                            chat = await self.client.get_entity(message.peer_id)
+                            if isinstance(chat, Channel) and chat.megagroup:
+                                if dialog_public_name:
+                                    link = "https://t.me/{}/{}".format(dialog_public_name, message_id)
+                                else:
+                                    link = "https://t.me/c/{}/{}".format(dialog_id, message_id)
+                            else:
+                                if chat.migrated_to:
+                                    supergroup = await self.client.get_entity(InputPeerChannel(chat.migrated_to.channel_id, chat.migrated_to.access_hash))
+                                    doc_name = supergroup.title
+
+                                if dialog_public_name:
+                                    link = "https://t.me/{}".format(dialog_public_name)
+                                else:
+                                    link = "https://web.telegram.org/a/#-{}".format(dialog_id)
+
+                        elif dialog.is_channel:
                             if dialog_public_name:
                                 link = "https://t.me/{}/{}".format(dialog_public_name, message_id)
                             else:
                                 link = "https://t.me/c/{}/{}".format(dialog_id, message_id)
                         else:
-                            if chat.migrated_to:
-                                supergroup = await self.client.get_entity(InputPeerChannel(chat.migrated_to.channel_id, chat.migrated_to.access_hash))
-                                doc_name = supergroup.title
-
                             if dialog_public_name:
                                 link = "https://t.me/{}".format(dialog_public_name)
                             else:
-                                link = "https://web.telegram.org/a/#-{}".format(dialog_id)
+                                link = "https://web.telegram.org/a/#{}".format(dialog_id)
 
-                    elif dialog.is_channel:
-                        if dialog_public_name:
-                            link = "https://t.me/{}/{}".format(dialog_public_name, message_id)
-                        else:
-                            link = "https://t.me/c/{}/{}".format(dialog_id, message_id)
-                    else:
-                        if dialog_public_name:
-                            link = "https://t.me/{}".format(dialog_public_name)
-                        else:
-                            link = "https://web.telegram.org/a/#{}".format(dialog_id)
-
-                    # created_date
-                    created_date = message.date.strftime('%Y-%m-%dT%H:%M:%SZ')
-                    # modified_date
-                    modified_date = message.date.strftime('%Y-%m-%dT%H:%M:%SZ')
-                    if message.edit_date is not None:
-                        modified_date = message.edit_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-                    # content
-                    content = message.message
-                    # summary
-                    sender = await message.get_sender()
-                    if dialog.is_channel:
+                        # created_date
+                        created_date = message.date.strftime('%Y-%m-%dT%H:%M:%SZ')
+                        # modified_date
+                        modified_date = message.date.strftime('%Y-%m-%dT%H:%M:%SZ')
+                        if message.edit_date is not None:
+                            modified_date = message.edit_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+                        # content
+                        content = message.message
+                        # summary
                         sender_name = ""
-                    else:
-                        sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
-                    content_summary = content[:600] + '...' if len(content) > 600 else content
-                    summary = "Dialog: {}, Type: {}, Sender: {},\nMessage: {}".format(dialog_name, conv_type, sender_name, content_summary)
-                    # file_size
-                    file_size = len(message.raw_text.encode('utf-8'))
+                        if dialog.is_channel or message.from_id is None:
+                            sender_name = ""
+                        else:
+                            sender_id = message.from_id.user_id
+                            if sender_id not in sender_cache:
+                                sender = await message.get_sender()
+                                sender_cache[sender_id] = sender
+                                await asyncio.sleep(0.04)
+                            else:
+                                sender = sender_cache[sender_id]
+                            if sender is not None:
+                                sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
+                            else:
+                                sender_name = ""
 
-                    body = {
-                        "doc_id": doc_id,
-                        "doc_name": doc_name,
-                        "doc_type": 'Telegram',
-                        "link": link,
-                        "created_date": created_date,
-                        "modified_date": modified_date,
-                        "summary": summary,
-                        "file_size": int(file_size),
-                        "plugin_instance_id": self.plugin_instance_id,
-                        "content": content
-                    }
-                    doc_ids.append(doc_id)
-                    messages.append(body)
+                        content_summary = content[:600] + '...' if len(content) > 600 else content
+                        summary = "Dialog: {}, Type: {}, Sender: {},\nMessage:\n{}".format(dialog_name, conv_type, sender_name, content_summary)
+                        # file_size
+                        file_size = len(message.raw_text.encode('utf-8'))
+
+                        body = {
+                            "doc_id": doc_id,
+                            "doc_name": doc_name,
+                            "doc_type": 'Telegram',
+                            "link": link,
+                            "created_date": created_date,
+                            "modified_date": modified_date,
+                            "summary": summary,
+                            "file_size": int(file_size),
+                            "plugin_instance_id": self.plugin_instance_id,
+                            "content": content
+                        }
+                        doc_ids.append(doc_id)
+                        messages.append(body)
 
         return doc_ids, messages
 
