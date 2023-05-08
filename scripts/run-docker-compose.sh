@@ -54,7 +54,7 @@ elif [[ $action == "stop" ]]; then
 elif [[ $action == "clean" ]]; then
     echo "Cleaning docker-compose"
 
-    docker-compose -f docker-compose/docker-compose.yml down --volume --remove-orphans
+    docker-compose -f docker-compose/docker-compose.yml down --volumes --remove-orphans
 elif [[ $action == "logs" ]]; then
     echo "Showing docker-compose logs"
 
