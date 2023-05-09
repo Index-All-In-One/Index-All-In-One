@@ -168,10 +168,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                             else:
                                 link = "https://t.me/c/{}/{}".format(dialog_id, message_id)
                         else:
-                            if dialog_public_name:
-                                link = "https://t.me/{}".format(dialog_public_name)
-                            else:
-                                link = "https://web.telegram.org/a/#{}".format(dialog_id)
+                            link = "https://web.telegram.org/a/#{}".format(dialog_id)
 
                         # created_date
                         created_date = message.date.strftime('%Y-%m-%dT%H:%M:%SZ')
