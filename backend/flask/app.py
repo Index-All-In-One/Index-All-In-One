@@ -398,4 +398,4 @@ def get_plugin_instance_info_value():
         return abort(400, 'Plugin info_def function failed!')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=5235)
