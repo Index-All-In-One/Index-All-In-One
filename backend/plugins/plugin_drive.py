@@ -93,15 +93,23 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                 else:
 
                     summary = "Owner: {}, Last Modifying User: {}".format(file['owners'][0]['displayName'], file['lastModifyingUser']['displayName'])
+                    
+                    # created_date
+                    created_date_dt = datetime.datetime.fromisoformat(file['createdDate'].replace('Z', '+00:00'))
+                    created_date = created_date_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                    # modified_date
+                    modified_date_dt = datetime.datetime.fromisoformat(file['modifiedDate'].replace('Z', '+00:00'))
+                    modified_date = modified_date_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                    
                     body = {
                         "doc_id": file['id'],
                         "doc_name": file['title'],
                         "doc_type": file['mimeType'],
                         "link": "",
-                        "created_date": file['createdDate'],
-                        "modified_date": file['modifiedDate'],
+                        "created_date": created_date,
+                        "modified_date": modified_date,
                         "summary": summary,
-                        "file_size": int(file['fileSize']),
+                        "file_size": min(2**31-1, int(file['fileSize'])),
                         "plugin_instance_id": self.plugin_instance_id,
                         "content": ""
                     }
@@ -110,9 +118,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
 
             return doc_ids, docs
 
-
-        doc_ids, docs = get_files_recursive()
-        return doc_ids, docs
+        return get_files_recursive()
 
     def update_messages(self):
         doc_ids, docs = self.get_messages()
@@ -201,6 +207,7 @@ def plugin_drive_update(plugin_instance_id, opensearch_hostname='localhost'):
     # update
     DriveSession = Drive_Instance(plugin_instance_id)
     DriveSession.login_opensearch(host=opensearch_hostname)
+    DriveSession.connect_drive()
     DriveSession.update_messages()
 
     return PluginReturnStatus.SUCCESS
@@ -227,9 +234,10 @@ def test1():
 def test2():
     plugin_instance_id = "1"
 
-    plugin_drive_init(plugin_instance_id)
+    # plugin_drive_init(plugin_instance_id)
     plugin_drive_update(plugin_instance_id)
 
 if __name__ == "__main__":
-    test1()
+    # test1()
+    test2()
 
