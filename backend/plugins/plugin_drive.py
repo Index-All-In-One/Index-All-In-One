@@ -50,9 +50,13 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                 self.gauth.Refresh()
                 self.gauth.SaveCredentialsFile(self.creds_path)
             else:
-                self.gauth.Authorize()
+                try:
+                    self.gauth.Authorize()
+                except:
+                    return False
         
         self.drive = GoogleDrive(self.gauth)
+        return True
 
     # Define a function to list files recursively
     def list_files_recursive(self, folder_id, indent=""):
@@ -113,12 +117,12 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
     def update_messages(self):
         doc_ids, docs = self.get_messages()
         ops_doc_ids = self.opensearch_conn.get_doc_ids(plugin_instance_id=self.plugin_instance_id)
-        # if doc in OpenSearch but not in mailbox, delete doc
+        # if doc in OpenSearch but not in source, delete doc
         _, doc_ids_to_be_delete = self.not_in(ops_doc_ids, doc_ids)
         for doc_id in doc_ids_to_be_delete:
             response = self.opensearch_conn.delete_doc(doc_id=doc_id,plugin_instance_id=self.plugin_instance_id)
 
-        # if doc in telegram but not in OpenSearch, insert doc
+        # if doc in source but not in OpenSearch, insert doc
         mask, doc_ids_to_be_insert = self.not_in(doc_ids, ops_doc_ids)
 
         docs = [docs[i] for i in range(len(mask)) if not mask[i]]
@@ -147,7 +151,7 @@ class DriveCredentials(model):
     id = Column(Integer, primary_key=True)
     plugin_instance_id = Column(String(50), nullable=True)
 
-    def __init__(self, plugin_instance_id, phone_number):
+    def __init__(self, plugin_instance_id):
         self.plugin_instance_id = plugin_instance_id
 
 def plugin_drive_init(plugin_instance_id, plugin_init_info=None):
@@ -156,7 +160,7 @@ def plugin_drive_init(plugin_instance_id, plugin_init_info=None):
     status = DriveSession.connect_drive()
 
     if not status:
-        logging.error(f'init telegram plugin instance {plugin_instance_id} failed, wrong credentials')
+        logging.error(f'init google drive plugin instance {plugin_instance_id} failed, wrong credentials')
         return PluginReturnStatus.EXCEPTION
 
     # create an engine that connects to the database
@@ -166,7 +170,7 @@ def plugin_drive_init(plugin_instance_id, plugin_init_info=None):
     # create a session factory that uses the engine
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
-    # create a new TelegramCredential object and add it to the database
+    # create a new DriveCredentials object and add it to the database
     plugin_instance_credentials = DriveCredentials(plugin_instance_id)
     session.add(plugin_instance_credentials)
     session.commit()
@@ -204,10 +208,9 @@ def plugin_drive_update(plugin_instance_id, opensearch_hostname='localhost'):
 
 def plugin_drive_info_def():
     return PluginReturnStatus.SUCCESS, {"hint": "Please enter your api_idand api_hash. If you don't have one, create one first.", \
-            "field_def": [\
+            "field_def": [
 
             ],}
-
 
 
 def test1():
@@ -228,5 +231,5 @@ def test2():
     plugin_drive_update(plugin_instance_id)
 
 if __name__ == "__main__":
-    test2()
+    test1()
 
