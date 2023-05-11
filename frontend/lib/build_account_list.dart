@@ -5,7 +5,7 @@ import 'apis.dart';
 import 'edit_account_page.dart';
 
 List<String> accountsFieldKeys = [
-  "plugin_name",
+  "plugin_display_name",
   "source_name",
   "update_interval",
   "enabled",
@@ -15,7 +15,7 @@ List<String> accountsFieldKeys = [
 
 Map<String, String> accountsFieldDisplayNames = {
   "op": "Operation", //special field
-  "plugin_name": "Application Name",
+  "plugin_display_name": "Application Name",
   "source_name": "Source Title",
   "update_interval": "Update Interval(s)",
   "enabled": "Enabled",
