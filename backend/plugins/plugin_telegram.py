@@ -356,12 +356,12 @@ def plugin_telegram_info_def():
             "field_def": [\
                 {
                     "field_name": "phone_number", \
-                    "display_name": "phone_number", \
+                    "display_name": "Phone Number", \
                     "type": "text",
                 }, \
                 {
                     "field_name": "two_step_code", \
-                    "display_name": "2FA Code", \
+                    "display_name": "Verification Code", \
                     "type": "two_step",
                 }, \
                 {
