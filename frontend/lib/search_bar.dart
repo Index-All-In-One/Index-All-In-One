@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
-class SearchBar extends StatefulWidget {
+class MySearchBar extends StatefulWidget {
   final String hintText;
   final Function(String) onSearch;
 
-  const SearchBar({super.key, required this.hintText, required this.onSearch});
+  const MySearchBar(
+      {super.key, required this.hintText, required this.onSearch});
 
   @override
-  State<SearchBar> createState() => _SearchBarState();
+  State<MySearchBar> createState() => _MySearchBarState();
 }
 
-class _SearchBarState extends State<SearchBar> {
+class _MySearchBarState extends State<MySearchBar> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
 
