@@ -16,7 +16,7 @@ List<String> accountsFieldKeys = [
 Map<String, String> accountsFieldDisplayNames = {
   "op": "Operation", //special field
   "plugin_name": "Application Name",
-  "source_name": "Source Title",
+  "source_name": "Source Name",
   "update_interval": "Update Interval(s)",
   "enabled": "Enabled",
   "active": "Status",

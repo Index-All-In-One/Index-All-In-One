@@ -25,7 +25,7 @@ Widget buildNewAccountForm(String pluginName) {
           "field_def": [
             Map.fromEntries([
               const MapEntry("field_name", "source_name"),
-              const MapEntry("display_name", "Source name"),
+              const MapEntry("display_name", "Source Name"),
               const MapEntry("type", "text"),
             ]),
             Map.fromEntries([
