@@ -13,6 +13,10 @@ from plugins.status_code import PluginReturnStatus
 from opensearch.conn import OpenSearch_Conn
 from utils_flask import *
 
+from flask import Flask, request, jsonify
+
+gdrive_client_id = os.getenv('GDRIVE_CLIENT_ID', None)
+gdrive_client_secret = os.getenv('GDRIVE_CLIENT_SECRET', None)
 
 opensearch_hostname = os.environ.get('OPENSEARCH_HOSTNAME', 'localhost')
 opensearch_conn = OpenSearch_Conn()
@@ -46,6 +50,40 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
     response.headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS'
     return response
+
+
+@app.route('/GOAuthCB', methods=['GET'])
+def google_oauth_callback():
+    if gdrive_client_id is None:
+        abort(400, "Missing GDRIVE_CLIENT_ID")
+    if gdrive_client_secret is None:
+        abort(400, "Missing GDRIVE_CLIENT_SECRET")
+
+    auth_code = request.args.get('code', None)
+    state = request.args.get('state', None)
+    if auth_code is None:
+        abort(400, "Missing auth_code")
+    if state is None:
+        abort(400, "Missing state")
+
+    custom_values = json.loads(state)
+    plugin_instance_id = custom_values.get('id', None)
+    redirect_uri = custom_values.get('redirect_uri', None)
+    if plugin_instance_id is None:
+        abort(400, "Missing plugin_instance_id")
+    if redirect_uri is None:
+        abort(400, "Missing redirect_uri")
+
+    tokens = exchange_auth_code(auth_code, redirect_uri, gdrive_client_id, gdrive_client_secret)
+    access_token = tokens.get('access_token')
+    refresh_token = tokens.get('refresh_token')
+
+    app.logger.info("access_token: %s", access_token)
+    app.logger.info("refresh_token: %s", refresh_token)
+    app.logger.info("plugin_instance_id: %s", plugin_instance_id)
+    # Store the access_token, and refresh_token according to the plugin_instance_id
+
+    return jsonify(tokens)
 
 @app.route('/search_count', methods=['POST'])
 def search_count():

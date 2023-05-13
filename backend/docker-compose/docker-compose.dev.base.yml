@@ -53,6 +53,8 @@ services:
       dockerfile: ./docker-flask/Dockerfile.dev
     environment:
       DEBUG: "true"
+      GDRIVE_CLIENT_ID: ${GDRIVE_CLIENT_ID}
+      GDRIVE_CLIENT_SECRET: ${GDRIVE_CLIENT_SECRET}
     ports:
       - "127.0.0.1:5235:5235"
     networks:
