@@ -73,6 +73,8 @@ services:
       dockerfile: ./docker-pm-manager/Dockerfile.dev
     environment:
       DEBUG: "true"
+      GOAUTH_CLIENT_ID: ${GOAUTH_CLIENT_ID}
+      GOAUTH_CLIENT_SECRET: ${GOAUTH_CLIENT_SECRET}
     networks:
       - backend-net-debug
     volumes:
