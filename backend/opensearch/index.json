@@ -30,7 +30,7 @@
             "analyzer": "standard"
         },
         "file_size": {
-            "type" : "integer"
+            "type" : "long"
         },
         "plugin_instance_id": {
             "type" : "text",
