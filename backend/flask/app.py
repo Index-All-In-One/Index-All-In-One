@@ -54,10 +54,10 @@ def add_cors_headers(response):
 
 @app.route('/GOAuthCB', methods=['GET'])
 def google_oauth_callback():
-    if goauth_client_id is None:
-        abort(400, "Missing GOAUTH_CLIENT_ID")
-    if goauth_client_secret is None:
-        abort(400, "Missing GOAUTH_CLIENT_SECRET")
+    if goauth_client_id is None or goauth_client_id=="":
+        abort(400, "Please provide GOAUTH_CLIENT_ID to use this feature")
+    if goauth_client_secret is None or goauth_client_secret=="":
+        abort(400, "Please provide GOAUTH_CLIENT_SECRET to use this feature")
 
     auth_code = request.args.get('code', None)
     state = request.args.get('state', None)
