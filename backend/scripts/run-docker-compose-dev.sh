@@ -45,7 +45,7 @@ elif [[ $action == "clean" ]]; then
 
     docker-compose -f docker-compose/docker-compose.dev.$DOCKER_DEV_FILE_NAME.yml down --volumes --remove-orphans
 elif [[ $action == "logs" ]]; then
-    echo "Showing docker-compose logs"
+    echo "Showing docker-compose logs $2"
 
     docker-compose -f docker-compose/docker-compose.dev.$DOCKER_DEV_FILE_NAME.yml logs --follow $2
 elif [[ $action == "rebuild" ]]; then
