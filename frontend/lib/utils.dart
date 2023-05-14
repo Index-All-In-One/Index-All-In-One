@@ -6,8 +6,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'globals.dart' as globals;
 
-Future<void> googleOAuth(
-    String pluginInstanceID, String scope, Function onError) async {
+Future<void> googleOAuth(String pluginInstanceID, String? pluginName,
+    String scope, Function onError) async {
   if (globals.gOAuthClientId == "") {
     onError("Set a Google Drive Client ID first to use this feature.");
     return;
@@ -18,6 +18,7 @@ Future<void> googleOAuth(
 
   final String state = jsonEncode({
     'id': pluginInstanceID,
+    if (pluginName != null) 'plugin_name': pluginName,
     'redirect_uri': redirectUri,
   });
 
@@ -337,6 +338,7 @@ class FormWithSubmit extends StatefulWidget {
   final String? successMessage;
   final List<FormSegment> formSegments;
   final String pluginInstanceID;
+  final String? pluginName;
 
   const FormWithSubmit({
     super.key,
@@ -345,6 +347,7 @@ class FormWithSubmit extends StatefulWidget {
     this.successMessage,
     required this.formSegments,
     this.pluginInstanceID = "empty_plugin_instance_id",
+    this.pluginName,
   });
 
   @override
@@ -390,9 +393,8 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
                     ? ElevatedButton(
                         child: const Text('Google Sign In'),
                         onPressed: () async {
-                          await googleOAuth(
-                              widget.pluginInstanceID, field['scope']!,
-                              (error) {
+                          await googleOAuth(widget.pluginInstanceID,
+                              widget.pluginName, field['scope']!, (error) {
                             clearAndShowSnackBarMsg(context, error,
                                 bgColor: Colors.red);
                           });
