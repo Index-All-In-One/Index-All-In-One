@@ -22,7 +22,7 @@ class Drive_Instance:
         self.gauth.settings['client_config_file'] = CLIENT_SECRET
         self.drive = None
 
-        self.creds_path = "instance/drive/{}.txt".format(plugin_instance_id)
+        self.creds_path = "instance/drive/{}.json".format(plugin_instance_id)
         
 
     def login_opensearch(self, host='localhost', port=9200, username='admin', password='admin',
@@ -58,24 +58,6 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         self.drive = GoogleDrive(self.gauth)
         return True
 
-    # Define a function to list files recursively
-    def list_files_recursive(self, folder_id, indent=""):
-
-        assert(self.drive is not None)
-        # Get all files and directories in the specified folder
-        query = "'{}' in parents and trashed=false".format(folder_id)
-        file_list = self.drive.ListFile({'q': query}).GetList()
-
-        # Process each file or directory in the folder
-        for file in file_list:
-            if file['mimeType'] == 'application/vnd.google-apps.folder':
-                # If this is a directory, print its name and list its contents
-                print("{}{}/".format(indent, file['title']))
-                self.list_files_recursive(file['id'], indent + "    ")
-            else:
-                # If this is a file, print its name
-                print("{}{}".format(indent, file['title']))
-
     def get_messages(self):
         def get_files_recursive(folder_id='root'):
             assert(self.drive is not None)
@@ -101,17 +83,21 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                     modified_date_dt = datetime.datetime.fromisoformat(file['modifiedDate'].replace('Z', '+00:00'))
                     modified_date = modified_date_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
                     
+                    content = ""
+                    if file['mimeType'] == 'text/plain':
+                        content = file.GetContentString()[:100]
+
                     body = {
                         "doc_id": file['id'],
                         "doc_name": file['title'],
                         "doc_type": file['mimeType'],
-                        "link": "",
+                        "link": file['alternateLink'],
                         "created_date": created_date,
                         "modified_date": modified_date,
                         "summary": summary,
-                        "file_size": min(2**31-1, int(file['fileSize'])),
+                        "file_size": file['fileSize'],
                         "plugin_instance_id": self.plugin_instance_id,
-                        "content": ""
+                        "content": content,
                     }
                     doc_ids.append(file['id'])
                     docs.append(body)
@@ -238,6 +224,6 @@ def test2():
     plugin_drive_update(plugin_instance_id)
 
 if __name__ == "__main__":
-    # test1()
-    test2()
+    test1()
+    # test2()
 
