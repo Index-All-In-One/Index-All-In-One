@@ -14,19 +14,15 @@ if [[ $# -gt 0 ]]; then
   case $1 in
     run)
         action="run"
-        shift
         ;;
     stop)
         action="stop"
-        shift
         ;;
     clean)
         action="clean"
-        shift
         ;;
     logs)
         action="logs"
-        shift
         ;;
     *)
         echo "Invalid operation: $1"
@@ -56,7 +52,7 @@ elif [[ $action == "clean" ]]; then
 
     docker-compose -f docker-compose/docker-compose.yml down --volumes --remove-orphans
 elif [[ $action == "logs" ]]; then
-    echo "Showing docker-compose logs"
+    echo "Showing docker-compose logs $2"
 
-    docker-compose -f docker-compose/docker-compose.yml logs --follow
+    docker-compose -f docker-compose/docker-compose.yml logs --follow $2
 fi
