@@ -44,6 +44,8 @@ Widget buildNewAccountForm(String pluginName) {
                     MapEntry("field_name", fieldDef["field_name"]!),
                     MapEntry("display_name", fieldDef["display_name"]!),
                     MapEntry("type", fieldDef["type"]!),
+                    if (fieldDef["type"] == "g_oauth")
+                      MapEntry("scope", fieldDef["scope"]!),
                   ]))
               .toList(),
         };
@@ -58,6 +60,7 @@ Widget buildNewAccountForm(String pluginName) {
               () =>
                   send2StepCodeRequest(pluginInstanceID, pluginName, formData),
               "send_2step_code"),
+          pluginInstanceID: pluginInstanceID,
         );
       });
 }

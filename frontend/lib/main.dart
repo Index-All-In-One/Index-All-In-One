@@ -3,7 +3,6 @@ import 'search_page.dart';
 import 'old_search_bar.dart';
 import 'settings_page.dart';
 import 'link_new_page.dart';
-import 'edit_account_page.dart';
 
 Future<void> main() async {
   runApp(const MyApp());

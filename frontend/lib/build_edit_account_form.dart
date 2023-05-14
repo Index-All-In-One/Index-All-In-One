@@ -66,6 +66,7 @@ Widget buildEditAccountForm(String pluginInstanceID) {
           onSendCode: (Map<String, String> formData) async => onlyCareStatus(
               () => send2StepCodeRequest(pluginInstanceID, null, formData),
               "send_2step_code"),
+          pluginInstanceID: pluginInstanceID,
         );
       });
 }
