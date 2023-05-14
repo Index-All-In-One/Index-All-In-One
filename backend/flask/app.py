@@ -68,11 +68,19 @@ def google_oauth_callback():
 
     custom_values = json.loads(state)
     plugin_instance_id = custom_values.get('id', None)
+    plugin_name = custom_values.get('plugin_name', None)
     redirect_uri = custom_values.get('redirect_uri', None)
     if plugin_instance_id is None:
         abort(400, "Missing plugin_instance_id")
     if redirect_uri is None:
         abort(400, "Missing redirect_uri")
+
+    plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+    if plugin_instance is not None:
+        plugin_name=plugin_instance.plugin_name
+    elif plugin_name is None:
+        return abort(400, 'Missing key: plugin_name')
+
 
     tokens = exchange_auth_code(auth_code, redirect_uri, goauth_client_id, goauth_client_secret)
     access_token = tokens.get('access_token')
@@ -82,8 +90,10 @@ def google_oauth_callback():
     app.logger.info("refresh_token: %s", refresh_token)
     app.logger.info("plugin_instance_id: %s", plugin_instance_id)
     # Store the access_token, and refresh_token according to the plugin_instance_id
+    # plugin_init_info = ?
+    # call plugin_xxx_init
 
-    return jsonify(tokens)
+    return "Google OAuth Success!"
 
 @app.route('/search_count', methods=['POST'])
 def search_count():
