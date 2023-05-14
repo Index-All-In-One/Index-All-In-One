@@ -21,16 +21,12 @@ def plugin_gdrive_del(plugin_instance_id):
     return PluginReturnStatus.SUCCESS
 
 def plugin_gdrive_info_def():
-    return PluginReturnStatus.SUCCESS, {"hint": "This is the hint of gdrive plugin", \
+    return PluginReturnStatus.SUCCESS, {"hint": "Please authorize with google before submit.", \
             "field_def":[ \
                 { \
-                    "field_name": "username", \
-                    "display_name": "Username", \
-                    "type": "text",
-                }, \
-                {
-                    "field_name": "password", \
-                    "display_name": "Password", \
-                    "type": "secret",
+                    "field_name": "gdrive_oauth", \
+                    "display_name": "Google Authorization", \
+                    "type": "g_oauth", \
+                    "scope": "https://www.googleapis.com/auth/drive",
                 }, \
             ],}

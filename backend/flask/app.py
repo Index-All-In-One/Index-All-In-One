@@ -15,8 +15,8 @@ from utils_flask import *
 
 from flask import Flask, request, jsonify
 
-gdrive_client_id = os.getenv('GDRIVE_CLIENT_ID', None)
-gdrive_client_secret = os.getenv('GDRIVE_CLIENT_SECRET', None)
+goauth_client_id = os.getenv('GOAUTH_CLIENT_ID', None)
+goauth_client_secret = os.getenv('GOAUTH_CLIENT_SECRET', None)
 
 opensearch_hostname = os.environ.get('OPENSEARCH_HOSTNAME', 'localhost')
 opensearch_conn = OpenSearch_Conn()
@@ -54,10 +54,10 @@ def add_cors_headers(response):
 
 @app.route('/GOAuthCB', methods=['GET'])
 def google_oauth_callback():
-    if gdrive_client_id is None:
-        abort(400, "Missing GDRIVE_CLIENT_ID")
-    if gdrive_client_secret is None:
-        abort(400, "Missing GDRIVE_CLIENT_SECRET")
+    if goauth_client_id is None:
+        abort(400, "Missing GOAUTH_CLIENT_ID")
+    if goauth_client_secret is None:
+        abort(400, "Missing GOAUTH_CLIENT_SECRET")
 
     auth_code = request.args.get('code', None)
     state = request.args.get('state', None)
@@ -74,7 +74,7 @@ def google_oauth_callback():
     if redirect_uri is None:
         abort(400, "Missing redirect_uri")
 
-    tokens = exchange_auth_code(auth_code, redirect_uri, gdrive_client_id, gdrive_client_secret)
+    tokens = exchange_auth_code(auth_code, redirect_uri, goauth_client_id, goauth_client_secret)
     access_token = tokens.get('access_token')
     refresh_token = tokens.get('refresh_token')
 

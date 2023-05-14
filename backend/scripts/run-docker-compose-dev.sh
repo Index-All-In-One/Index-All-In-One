@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # set up environment variables
-export GDRIVE_CLIENT_ID
-export GDRIVE_CLIENT_SECRET
+export GOAUTH_CLIENT_ID
+export GOAUTH_CLIENT_SECRET
 DOCKER_DEV_FILE_NAME=${DOCKER_DEV_FILE_NAME:-"default"}
 
 action="run" # set default behavior to "run"

@@ -18,12 +18,12 @@ def get_search_count(opensearch_conn, request):
     response = get_search_results(opensearch_conn, request, include_fields=None)
     return response['hits']['total']['value']
 
-def exchange_auth_code(auth_code, redirect_uri, gdrive_client_id, gdrive_client_secret):
+def exchange_auth_code(auth_code, redirect_uri, goauth_client_id, goauth_client_secret):
     url = "https://oauth2.googleapis.com/token"
     payload = {
         "code": auth_code,
-        "client_id": gdrive_client_id,
-        "client_secret": gdrive_client_secret,
+        "client_id": goauth_client_id,
+        "client_secret": goauth_client_secret,
         "redirect_uri": redirect_uri,
         "grant_type": "authorization_code"
     }
