@@ -125,7 +125,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             if part.get_content_type() == "text/plain":
                 text_content = part.get_payload(decode=True).decode(part.get_content_charset())
 
-        text_summary = text_content[:100] + '...' if len(text_content) > 100 else text_content
+        text_summary = text_content[:600] + '...' if len(text_content) > 600 else text_content
 
         # send_date = send_date.split(' (')[0]
         # send_date = datetime.datetime.strptime(send_date, '%a, %d %b %Y %H:%M:%S %z')

@@ -1,6 +1,8 @@
 import asyncio, re, os, sys, datetime
 from telethon import TelegramClient
-from telethon.tl.types import PeerUser, PeerChat, PeerChannel, Message
+from telethon.tl.types import PeerUser, PeerChat, PeerChannel, Message, Channel, InputPeerChannel
+from telethon.tl.functions.channels import GetFullChannelRequest
+from telethon.tl.functions.messages import GetHistoryRequest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from opensearch.conn import OpenSearch_Conn
@@ -15,10 +17,10 @@ API_HASH = 'b59c778394e993b6bb4a1b8ada427520'
 DIR_NAME = "instance/telegram_sessions"
 
 class Telegram_Instance:
-    def __init__(self, plugin_instance_id, phone_number):
+    def __init__(self, plugin_instance_id, phone_number, password=None):
         self.plugin_instance_id = plugin_instance_id
         self.phone_number = phone_number
-        # self.password = password
+        self.password = password
         self.opensearch_conn = OpenSearch_Conn()
         self.client = None
 
@@ -34,7 +36,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
 
     async def connect_telegram(self):
         session_name = DIR_NAME + "/" + self.plugin_instance_id
-        
+
         if not os.path.exists(DIR_NAME):
             os.makedirs(DIR_NAME)
         if os.path.exists(session_name):
@@ -54,7 +56,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         try:
             # self.client = TelegramClient(self.plugin_instance_id, self.api_id, self.api_hash)
             if two_step_code:
-                await self.client.start(self.phone_number, code_callback=lambda: two_step_code)
+                await self.client.start(self.phone_number, code_callback=lambda: two_step_code, password=self.password)
 
             elif await self.client.is_user_authorized():
                 await self.client.start(self.phone_number)
@@ -82,66 +84,142 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         # Iterate over all the dialogs and print the title and ID of each chat
         messages = []
         doc_ids = []
+        sender_cache = {}
         logging.debug(f'Telegram plugin instance {self.plugin_instance_id} get_messages')
         async for dialog in self.client.iter_dialogs():
+
             if dialog.is_group:
                 conv_type = 'Group'
             elif dialog.is_channel:
                 conv_type = 'Channel'
             else:
-                conv_type = 'private chat'
+                conv_type = 'Private Chat'
 
             dialog_title = dialog.title
             dialog_id = dialog.entity.id
             dialog_name = dialog.name
-            
-            async for message in self.client.iter_messages(dialog_id):
+
+            limit = 150
+            offset_id = 0
+            max_id = 0
+            min_id = 0
+            add_offset = 0
+            all_messages = []
+
+            while True:
+                history = await self.client(GetHistoryRequest(
+                    peer=dialog_id,
+                    offset_id=offset_id,
+                    offset_date=None,
+                    add_offset=add_offset,
+                    limit=limit,
+                    max_id=max_id,
+                    min_id=min_id,
+                    hash=0
+                ))
+
+                if not history.messages:
+                    break
+
+                all_messages.extend(history.messages)
+
+                if len(history.messages) < limit:
+                    await asyncio.sleep(0.04)
+                    break
+
+                offset_id = history.messages[-1].id
+                await asyncio.sleep(1)  # Adding a small delay to avoid hitting rate limits
+
+            for message in all_messages:
                 if isinstance(message, Message):
-                    # doc_id
-                    message_id = message.id
-                    doc_id = str(dialog_id) + "_" + str(message_id)
-                    # doc_name
-                    sender = await message.get_sender()
-                    sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
-                    doc_name = sender_name
-                    # link
-                    link = ""
-                    if dialog.is_group:
-                        link = "https://t.me/c/{}/{}".format(dialog_id, message_id)
-                    elif dialog.is_channel:
+                    # TODO: support more message type
+                    if message.message:
+                        # doc_id
+                        message_id = message.id
+                        if dialog.is_group or dialog.is_channel:
+                            doc_id = "-" + str(dialog_id) + "_" + str(message_id)
+                        else:
+                            doc_id = str(dialog_id) + "_" + str(message_id)
+                        # doc_name
+                        doc_name = dialog_name
+                        # link & doc_name
                         link = ""
-                    else:
-                        link = "https://web.telegram.org/z/#{}".format(dialog_id)
-                    # created_date
-                    created_date = message.date.strftime('%Y-%m-%dT%H:%M:%SZ')
-                    # modified_date
-                    modified_date = message.date.strftime('%Y-%m-%dT%H:%M:%SZ')
-                    if message.edit_date is not None:
-                        modified_date = message.edit_date.strftime('%Y-%m-%dT%H:%M:%SZ')
-                    # content
-                    content = message.message
-                    # summary
-                    summary = "Dialog: {}, Type: {}, Sender: {}".format(dialog_name, conv_type, sender_name)
-                    # file_size
-                    file_size = len(message.raw_text.encode('utf-8'))
-                    
-                    body = {
-                        "doc_id": doc_id,
-                        "doc_name": doc_name,
-                        "doc_type": 'Telegram',
-                        "link": link,
-                        "created_date": created_date,
-                        "modified_date": modified_date,
-                        "summary": summary,
-                        "file_size": int(file_size),
-                        "plugin_instance_id": self.plugin_instance_id,
-                        "content": content
-                    }
-                    doc_ids.append(doc_id)
-                    messages.append(body)
+                        dialog_public_name = getattr(dialog.entity, 'username', None)
+                        if dialog.is_group:
+                            chat = await self.client.get_entity(message.peer_id)
+                            if isinstance(chat, Channel) and chat.megagroup:
+                                if dialog_public_name:
+                                    link = "https://t.me/{}/{}".format(dialog_public_name, message_id)
+                                else:
+                                    link = "https://t.me/c/{}/{}".format(dialog_id, message_id)
+                            else:
+                                if chat.migrated_to:
+                                    supergroup = await self.client.get_entity(InputPeerChannel(chat.migrated_to.channel_id, chat.migrated_to.access_hash))
+                                    doc_name = supergroup.title
+
+                                if dialog_public_name:
+                                    link = "https://t.me/{}".format(dialog_public_name)
+                                else:
+                                    link = "https://web.telegram.org/a/#-{}".format(dialog_id)
+
+                        elif dialog.is_channel:
+                            if dialog_public_name:
+                                link = "https://t.me/{}/{}".format(dialog_public_name, message_id)
+                            else:
+                                link = "https://t.me/c/{}/{}".format(dialog_id, message_id)
+                        else:
+                            if dialog_public_name:
+                                link = "https://t.me/{}".format(dialog_public_name)
+                            else:
+                                link = "https://web.telegram.org/a/#{}".format(dialog_id)
+
+                        # created_date
+                        created_date = message.date.strftime('%Y-%m-%dT%H:%M:%SZ')
+                        # modified_date
+                        modified_date = message.date.strftime('%Y-%m-%dT%H:%M:%SZ')
+                        if message.edit_date is not None:
+                            modified_date = message.edit_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+                        # content
+                        content = message.message
+                        # summary
+                        sender_name = ""
+                        if dialog.is_channel or message.from_id is None:
+                            sender_name = ""
+                        else:
+                            sender_id = message.from_id.user_id
+                            if sender_id not in sender_cache:
+                                sender = await message.get_sender()
+                                sender_cache[sender_id] = sender
+                                await asyncio.sleep(0.04)
+                            else:
+                                sender = sender_cache[sender_id]
+                            if sender is not None:
+                                sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
+                            else:
+                                sender_name = ""
+
+                        content_summary = content[:600] + '...' if len(content) > 600 else content
+                        summary = "Dialog: {}, Type: {}, Sender: {},\nMessage:\n{}".format(dialog_name, conv_type, sender_name, content_summary)
+                        # file_size
+                        file_size = len(message.raw_text.encode('utf-8'))
+
+                        body = {
+                            "doc_id": doc_id,
+                            "doc_name": doc_name,
+                            "doc_type": 'Telegram',
+                            "link": link,
+                            "created_date": created_date,
+                            "modified_date": modified_date,
+                            "summary": summary,
+                            "file_size": int(file_size),
+                            "plugin_instance_id": self.plugin_instance_id,
+                            "content": content
+                        }
+                        doc_ids.append(doc_id)
+                        messages.append(body)
 
         return doc_ids, messages
-                    
+
     async def update_messages(self):
 
         doc_ids, messages = await self.get_messages()
@@ -155,7 +233,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         # if doc in telegram but not in OpenSearch, insert doc
         mask, doc_ids_to_be_insert = self.not_in(doc_ids, ops_doc_ids)
 
-        
+
         messages = [messages[i] for i in range(len(mask)) if not mask[i]]
         for i in range(len(messages)):
             response = self.opensearch_conn.insert_doc(messages[i])
@@ -165,7 +243,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         mask = [item in list2 for item in list1]
         res = [list1[i] for i in range(len(mask)) if not mask[i]]
         return mask, res
-        
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import orm, Column, Integer, String
@@ -177,12 +255,14 @@ class TelegramCredentials(model):
     __tablename__ = 'telegram_credentials'
 
     id = Column(Integer, primary_key=True)
-    plugin_instance_id = Column(String(50), nullable=True)
+    plugin_instance_id = Column(String(50), nullable=False)
     phone_number = Column(String(50), nullable=False)
+    password = Column(String(50), nullable=True)
 
-    def __init__(self, plugin_instance_id, phone_number):
+    def __init__(self, plugin_instance_id, phone_number, password=None):
         self.plugin_instance_id = plugin_instance_id
         self.phone_number = phone_number
+        self.password = password
 
 def plugin_telegram_init(plugin_instance_id, plugin_init_info):
 
@@ -200,10 +280,13 @@ def plugin_telegram_init(plugin_instance_id, plugin_init_info):
     # Create the directory if it doesn't exist
     if not os.path.exists(DIR_NAME):
         os.makedirs(DIR_NAME)
-    
+
     # add credentials of plugin instance
     phone_number = plugin_init_info["phone_number"]
-    TelegramSession = Telegram_Instance(plugin_instance_id, phone_number)
+    password = plugin_init_info["password"]
+    if password=="":
+        password = None
+    TelegramSession = Telegram_Instance(plugin_instance_id, phone_number, password)
 
     # two step plugin, step 1 send_code
     if "two_step_code" not in plugin_init_info:
@@ -227,7 +310,7 @@ def plugin_telegram_init(plugin_instance_id, plugin_init_info):
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
     # create a new TelegramCredential object and add it to the database
-    plugin_instance_credentials = TelegramCredentials(plugin_instance_id, phone_number)
+    plugin_instance_credentials = TelegramCredentials(plugin_instance_id, phone_number, password)
     session.add(plugin_instance_credentials)
     session.commit()
 
@@ -259,31 +342,32 @@ def plugin_telegram_update(plugin_instance_id, opensearch_hostname='localhost'):
     creds = session.query(TelegramCredentials).filter(TelegramCredentials.plugin_instance_id==plugin_instance_id).first()
     session.commit()
     phone_number = creds.phone_number
+    password = creds.password
 
     # update
-    TelegramSession = Telegram_Instance(plugin_instance_id, phone_number)
+    TelegramSession = Telegram_Instance(plugin_instance_id, phone_number, password)
     TelegramSession.login_opensearch(host=opensearch_hostname)
     asyncio.run(update(TelegramSession))
 
     return PluginReturnStatus.SUCCESS
 
 def plugin_telegram_info_def():
-    return PluginReturnStatus.SUCCESS, {"hint": "Please enter your api_idand api_hash. If you don't have one, create one first.", \
+    return PluginReturnStatus.SUCCESS, {"hint": "If you have ever set a password, you need to enter it; otherwise, you don't need to input it.", \
             "field_def": [\
                 {
                     "field_name": "phone_number", \
-                    "display_name": "phone_number", \
+                    "display_name": "Phone Number", \
                     "type": "text",
                 }, \
-                # {
-                #     "field_name": "password", \
-                #     "display_name": "Password", \
-                #     "type": "secret_opt",
-                # }, \
                 {
                     "field_name": "two_step_code", \
-                    "display_name": "2FA Code", \
+                    "display_name": "Verification Code", \
                     "type": "two_step",
+                }, \
+                {
+                    "field_name": "password", \
+                    "display_name": "Password (Conditional)", \
+                    "type": "secret_opt",
                 }, \
             ],}
 
@@ -308,7 +392,7 @@ async def test2():
     if not os.path.exists(DIR_NAME):
         os.makedirs(DIR_NAME)
 
-    client = TelegramClient( DIR_NAME + "/1", API_ID, API_HASH)  
+    client = TelegramClient( DIR_NAME + "/1", API_ID, API_HASH)
     await client.connect()
     await client.start(phone_number, code_callback=lambda: code)
     await client.log_out()
