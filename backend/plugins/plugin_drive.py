@@ -67,40 +67,48 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             doc_ids = []
             docs = []
             for file in file_list:
-                if file['mimeType'] == 'application/vnd.google-apps.folder':
 
+                doc_id = file['id']
+                doc_name = file['title']
+                doc_type = file['mimeType']
+                link = file['alternateLink']
+
+                # created_date
+                created_date_dt = datetime.datetime.fromisoformat(file['createdDate'].replace('Z', '+00:00'))
+                created_date = created_date_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                # modified_date
+                modified_date_dt = datetime.datetime.fromisoformat(file['modifiedDate'].replace('Z', '+00:00'))
+                modified_date = modified_date_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+                
+                file_size = 0
+                summary = "Owner: {}, Last Modifying User: {}".format(file['owners'][0]['displayName'], file['lastModifyingUser']['displayName'])
+                
+                content  = ""
+                if doc_type == 'text/plain':
+                    content = file.GetContentString()[:100]
+
+                if doc_type == 'application/vnd.google-apps.folder':
                     doc_ids_r, docs_r = get_files_recursive(file['id'])
                     doc_ids += doc_ids_r
                     docs += docs_r
+
                 else:
+                    file_size = file['fileSize']
 
-                    summary = "Owner: {}, Last Modifying User: {}".format(file['owners'][0]['displayName'], file['lastModifyingUser']['displayName'])
-                    
-                    # created_date
-                    created_date_dt = datetime.datetime.fromisoformat(file['createdDate'].replace('Z', '+00:00'))
-                    created_date = created_date_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-                    # modified_date
-                    modified_date_dt = datetime.datetime.fromisoformat(file['modifiedDate'].replace('Z', '+00:00'))
-                    modified_date = modified_date_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-                    
-                    content = ""
-                    if file['mimeType'] == 'text/plain':
-                        content = file.GetContentString()[:100]
-
-                    body = {
-                        "doc_id": file['id'],
-                        "doc_name": file['title'],
-                        "doc_type": file['mimeType'],
-                        "link": file['alternateLink'],
-                        "created_date": created_date,
-                        "modified_date": modified_date,
-                        "summary": summary,
-                        "file_size": file['fileSize'],
-                        "plugin_instance_id": self.plugin_instance_id,
-                        "content": content,
-                    }
-                    doc_ids.append(file['id'])
-                    docs.append(body)
+                body = {
+                    "doc_id": doc_id,
+                    "doc_name": doc_name,
+                    "doc_type": doc_type,
+                    "link": link,
+                    "created_date": created_date,
+                    "modified_date": modified_date,
+                    "summary": summary,
+                    "file_size": file_size,
+                    "plugin_instance_id": self.plugin_instance_id,
+                    "content": content,
+                }
+                doc_ids.append(doc_id)
+                docs.append(body)
 
             return doc_ids, docs
 
