@@ -13,7 +13,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 CLIENT_SECRET = "instance/drive/client_secret.json"
 
-class Drive_Instance:
+class Gdrive_Instance:
     def __init__(self, plugin_instance_id):
         self.plugin_instance_id = plugin_instance_id
         self.opensearch_conn = OpenSearch_Conn()
@@ -143,10 +143,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import orm, Column, Integer, String
 
 model = orm.declarative_base()
-DB_NAME = "p_drive.db"
+DB_NAME = "p_gdrive.db"
 
-class DriveCredentials(model):
-    __tablename__ = 'drive_credentials'
+class GdriveCredentials(model):
+    __tablename__ = 'gdrive_credentials'
 
     id = Column(Integer, primary_key=True)
     plugin_instance_id = Column(String(50), nullable=True)
@@ -154,9 +154,9 @@ class DriveCredentials(model):
     def __init__(self, plugin_instance_id):
         self.plugin_instance_id = plugin_instance_id
 
-def plugin_drive_init(plugin_instance_id, plugin_init_info=None):
+def plugin_gdrive_init(plugin_instance_id, plugin_init_info=None):
 
-    DriveSession = Drive_Instance(plugin_instance_id)
+    DriveSession = Gdrive_Instance(plugin_instance_id)
     status = DriveSession.connect_drive()
 
     if not status:
@@ -171,35 +171,35 @@ def plugin_drive_init(plugin_instance_id, plugin_init_info=None):
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
     # create a new DriveCredentials object and add it to the database
-    plugin_instance_credentials = DriveCredentials(plugin_instance_id)
+    plugin_instance_credentials = GdriveCredentials(plugin_instance_id)
     session.add(plugin_instance_credentials)
     session.commit()
 
     logging.info(f'Google Drive plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
     return PluginReturnStatus.SUCCESS
 
-def plugin_drive_del(plugin_instance_id):
+def plugin_gdrive_del(plugin_instance_id):
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
     # delete the source
-    creds = session.query(DriveCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
+    creds = session.query(GdriveCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
     session.delete(creds)
     session.commit()
     return PluginReturnStatus.SUCCESS
 
-def plugin_drive_update(plugin_instance_id, opensearch_hostname='localhost'):
+def plugin_gdrive_update(plugin_instance_id, opensearch_hostname='localhost'):
 
     logging.debug(f'Google Drive plugin instance {plugin_instance_id} updating, db name: {DB_NAME}')
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
     # get credential of plugin_instance_id
-    creds = session.query(DriveCredentials).filter(DriveCredentials.plugin_instance_id==plugin_instance_id).first()
+    creds = session.query(GdriveCredentials).filter(GdriveCredentials.plugin_instance_id==plugin_instance_id).first()
     session.commit()
 
     # update
-    DriveSession = Drive_Instance(plugin_instance_id)
+    DriveSession = Gdrive_Instance(plugin_instance_id)
     DriveSession.login_opensearch(host=opensearch_hostname)
     DriveSession.connect_drive()
     DriveSession.update_messages()
@@ -207,7 +207,7 @@ def plugin_drive_update(plugin_instance_id, opensearch_hostname='localhost'):
     return PluginReturnStatus.SUCCESS
 
 
-def plugin_drive_info_def():
+def plugin_gdrive_info_def():
     return PluginReturnStatus.SUCCESS, {"hint": "Please enter your api_idand api_hash. If you don't have one, create one first.", \
             "field_def": [
 
@@ -217,7 +217,7 @@ def plugin_drive_info_def():
 def test1():
 
     plugin_instance_id = "1"
-    DriveSession = Drive_Instance(plugin_instance_id)
+    DriveSession = Gdrive_Instance(plugin_instance_id)
     DriveSession.connect_drive()
     DriveSession.login_opensearch()
     _, docs = DriveSession.get_messages()
@@ -225,13 +225,5 @@ def test1():
     with open("res.txt", 'w') as f:
         f.write(str(docs))
 
-def test2():
-    plugin_instance_id = "1"
-
-    # plugin_drive_init(plugin_instance_id)
-    plugin_drive_update(plugin_instance_id)
-
 if __name__ == "__main__":
     test1()
-    # test2()
-
