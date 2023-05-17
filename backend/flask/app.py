@@ -85,6 +85,10 @@ def google_oauth_callback():
     tokens = exchange_auth_code(auth_code, redirect_uri, goauth_client_id, goauth_client_secret)
     access_token = tokens.get('access_token')
     refresh_token = tokens.get('refresh_token')
+    if plugin_instance_id is None:
+        abort(400, "Missing access_token")
+    if redirect_uri is None:
+        abort(400, "Missing refresh_token")
 
     app.logger.info("access_token: %s", access_token)
     app.logger.info("refresh_token: %s", refresh_token)

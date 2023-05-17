@@ -201,10 +201,11 @@ class GdriveCredentials(model):
     def __init__(self, plugin_instance_id):
         self.plugin_instance_id = plugin_instance_id
 
-def plugin_gdrive_init(plugin_instance_id, plugin_init_info):
+def plugin_gdrive_init(plugin_instance_id, plugin_init_info=None):
 
-    generate_client_secret(plugin_instance_id, plugin_init_info)
-    generate_creds(plugin_instance_id, plugin_init_info)
+    if plugin_init_info:
+        generate_client_secret(plugin_instance_id, plugin_init_info)
+        generate_creds(plugin_instance_id, plugin_init_info)
 
     DriveSession = Gdrive_Instance(plugin_instance_id)
     status = DriveSession.connect_drive()
