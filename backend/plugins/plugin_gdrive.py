@@ -1,4 +1,4 @@
-import asyncio, re, os, sys, datetime
+import asyncio, re, os, sys, datetime, json
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
@@ -10,19 +10,20 @@ import logging
 # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-import json
+SECRET_DIR = "instance/drive"
 
 class Gdrive_Instance:
-    def __init__(self, plugin_instance_id, client_id, client_secret, access_token, refresh_token):
+    def __init__(self, plugin_instance_id):
+        
+        self.CLIENT_SECRET_PATH = os.path.join(SECRET_DIR, "client_secret_{}.json".format(plugin_instance_id))
+        self.CREDS_PATH = os.path.join(SECRET_DIR, "creds_{}.json".format(plugin_instance_id))
+
         self.plugin_instance_id = plugin_instance_id
         self.opensearch_conn = OpenSearch_Conn()
+        self.gauth = GoogleAuth(settings_file=self.CLIENT_SECRET_PATH)
+        self.gauth.settings['client_config_file'] = self.CLIENT_SECRET_PATH
+        self.drive = None
 
-        self.gauth = GoogleAuth()
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.access_token = access_token
-        self.refresh_token = refresh_token
-        
     def login_opensearch(self, host='localhost', port=9200, username='admin', password='admin',
 use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False):
 
@@ -33,20 +34,25 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         except:
             logging.debug("Opensearch login failed.")
 
-    def connect_gdrive(self):
-        self.gauth.LoadCredentialsFile(self.creds_path)
+    def connect_drive(self):
+        self.gauth.LoadCredentialsFile(self.CREDS_PATH)
         if self.gauth.credentials is None:
-            # Authenticate the user if no credentials found
-            self.gauth.LocalWebserverAuth()
+            logging.debug("Invalid CredentialFile")
+            return False
+
+
+        # if self.gauth.credentials is None:
+        #     # Authenticate the user if no credentials found
+        #     self.gauth.LocalWebserverAuth()
             
-            # Generate and save a new token
-            self.gauth.SaveCredentialsFile(self.creds_path)
+        #     # Generate and save a new token
+        #     self.gauth.SaveCredentialsFile(self.CREDS)
         else:
             # Use the saved credentials and token instead of authenticating again
             if self.gauth.access_token_expired:
 
                 self.gauth.Refresh()
-                self.gauth.SaveCredentialsFile(self.creds_path)
+                self.gauth.SaveCredentialsFile(self.CREDS_PATH)
             else:
                 try:
                     self.gauth.Authorize()
@@ -54,16 +60,6 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                     return False
         
         self.drive = GoogleDrive(self.gauth)
-        return True
-    
-    def connect_drive(self, creds):
-        assert(self.gauth)
-        try:
-            self.gauth.LoadCredentials(creds)
-            self.drive = GoogleDrive(self.gauth)
-        except:
-            logging.debug("Error login Google Drive, invalid tokens")
-            return False
         return True
 
     def get_messages(self):
@@ -144,38 +140,51 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         res = [list1[i] for i in range(len(mask)) if not mask[i]]
         return mask, res
     
-    def get_token(self):
-        token = {
-            "access_token": self.access_token, 
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-            "refresh_token": self.refresh_token,
+
+def generate_client_secret(plugin_instance_id, plugin_init_info):
+    os.makedirs(SECRET_DIR, exist_ok=True)
+
+    client_secret = {
+        "installed": {
+            "client_id": plugin_init_info["client_id"],
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
             "token_uri": "https://oauth2.googleapis.com/token",
-            "user_agent": None,
-            "token_expiry": "2023-05-17T00:10:56Z",
-            "revoke_uri": "https://oauth2.googleapis.com/revoke",
-            "id_token": None,
-            "id_token_jwt": None,
-            "token_response": {
-                "access_token": self.access_token,
-                "expires_in": 3599,
-                "refresh_token": self.refresh_token,
-                "scope": "https://www.googleapis.com/auth/drive",
-                "token_type": "Bearer"
-            },
-            "scopes": [
-                "https://www.googleapis.com/auth/drive"
-            ],
-            "token_info_uri": "https://oauth2.googleapis.com/tokeninfo",
-            "invalid": False,
-            "_class": "OAuth2Credentials",
-            "_module": "oauth2client.client"
+            "client_secret": plugin_init_info["client_secret"],
+            "redirect_uris": plugin_init_info["redirect_uris"]
         }
-        return json.dumps(token)
+    }
+    client_secret_file = "client_secret_{}.json".format(plugin_instance_id)
+    client_secret_file = os.path.join(SECRET_DIR, client_secret_file)
+    with open(client_secret_file, 'w') as f:
+        json.dump(client_secret, f)
 
+def generate_creds(plugin_instance_id, plugin_init_info):
+    os.makedirs(SECRET_DIR, exist_ok=True)
 
-
-
+    client_token = {
+        "access_token": plugin_init_info["access_token"],
+        "client_id": "648578717595-gsinm4bqjdfogqmpbqok8ip6h109vu9v.apps.googleusercontent.com",
+        "client_secret": "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",
+        "refresh_token": plugin_init_info["refresh_token"],
+        "token_expiry": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "user_agent": None,
+        "revoke_uri": "https://oauth2.googleapis.com/revoke",
+        "id_token": None,
+        "id_token_jwt": None,
+        "scopes": [
+            "https://www.googleapis.com/auth/drive"
+        ],
+        "token_info_uri": "https://oauth2.googleapis.com/tokeninfo",
+        "invalid": False,
+        "_class": "OAuth2Credentials",
+        "_module": "oauth2client.client"
+    }
+    token_file = "creds_{}.json".format(plugin_instance_id)
+    token_file = os.path.join(SECRET_DIR, token_file)
+    with open(token_file, 'w') as f:
+        json.dump(client_token, f)
+        
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import orm, Column, Integer, String
@@ -188,92 +197,46 @@ class GdriveCredentials(model):
 
     id = Column(Integer, primary_key=True)
     plugin_instance_id = Column(String(50), nullable=True)
-    access_token = Column(String(100), nullable=False)
-    refresh_token = Column(String(100), nullable=False)
 
-    def __init__(self, plugin_instance_id, access_token, refresh_token):
+    def __init__(self, plugin_instance_id):
         self.plugin_instance_id = plugin_instance_id
-        self.access_token = access_token
-        self.refresh_token = refresh_token
 
+def plugin_gdrive_init(plugin_instance_id, plugin_init_info):
 
-def plugin_gdrive_init(plugin_instance_id, plugin_init_info=None):
+    generate_client_secret(plugin_instance_id, plugin_init_info)
+    generate_creds(plugin_instance_id, plugin_init_info)
 
-    def db_init(plugin_instance_id, access_token, refresh_token):
-        # create an engine that connects to the database
-        engine = create_engine(f'sqlite:///instance/{DB_NAME}')
-        model.metadata.bind = engine
-        model.metadata.create_all(engine)
-        # create a session factory that uses the engine
-        DBSession = sessionmaker(bind=engine)
-        session = DBSession()
-        # create new or update GmailCredentials object and add it to the database
-        plugin_instance_credentials = session.query(GdriveCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
-        if plugin_instance_credentials is None:
-            plugin_instance_credentials = GdriveCredentials(plugin_instance_id, access_token, refresh_token)
-        # create an engine that connects to the database
-        else:
-            plugin_instance_credentials.plugin_instance_id = plugin_instance_id
-            plugin_instance_credentials.access_token = access_token
-            plugin_instance_credentials.refresh_token = refresh_token
-        
-        session.commit()
+    DriveSession = Gdrive_Instance(plugin_instance_id)
+    status = DriveSession.connect_drive()
 
-    def gauth_callback():
-        access_token = plugin_init_info["access_token"]
-        refresh_token = plugin_init_info["refresh_token"]
-        logging.info(f"access_token: {access_token}")
-        logging.info(f"refresh_token: {refresh_token}")
+    if not status:
+        logging.error(f'init google drive plugin instance {plugin_instance_id} failed, wrong credentials')
+        return PluginReturnStatus.EXCEPTION
 
-        session = Gdrive_Instance(plugin_instance_id, access_token, refresh_token)
-        status = session.connect_drive()
-        if not status:
-            logging.error(f'init google drive plugin instance {plugin_instance_id} failed, wrong credentials')
-            return PluginReturnStatus.EXCEPTION
-        
-        try:
-            db_init(plugin_instance_id, access_token, refresh_token)
-        
-        except Exception as e:
-            logging.error(f'init google drive plugin instance {plugin_instance_id} failed. Incomplete client_secrets, {e}')
-            return PluginReturnStatus.EXCEPTION
-        
-        logging.info(f'Google Drive plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
-        return PluginReturnStatus.SUCCESS
+    # create an engine that connects to the database
+    engine = create_engine(f'sqlite:///instance/{DB_NAME}')
+    model.metadata.bind = engine
+    model.metadata.create_all(engine)
+    # create a session factory that uses the engine
+    DBSession = sessionmaker(bind=engine)
+    session = DBSession()
+    # create a new DriveCredentials object and add it to the database
+    plugin_instance_credentials = GdriveCredentials(plugin_instance_id)
+    session.add(plugin_instance_credentials)
+    session.commit()
 
-    def verify():
-        # create an engine that connects to the database
-        engine = create_engine(f'sqlite:///instance/{DB_NAME}')
-        model.metadata.bind = engine
-        model.metadata.create_all(engine)
-        # create a session factory that uses the engine
-        DBSession = sessionmaker(bind=engine)
-        session = DBSession()
-        # create new or update GmailCredentials object and add it to the database
-        plugin_instance_credentials = session.query(GdriveCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
-        if plugin_instance_credentials is None:
-            logging.error(f'init google drive plugin instance {plugin_instance_id} failed, token do not exist')
-            return PluginReturnStatus.EXCEPTION
-        
-        logging.info(f'Google Drive plugin instance {plugin_instance_id} token exists, db name: {DB_NAME}')
-        return PluginReturnStatus.SUCCESS
-    
-
-    # in `/GOAuthCB`:
-    # - get `auth_token` and `plugin_instance_id` .
-    # - construct plugin_init_info with `auth_token`
-    # - call plugin_xxx_init to store them
-    if plugin_init_info:
-        return gauth_callback()
-
-    # In link new account, submit (call `add_PI`):
-    # - call plugin_xxx_init with only `plugin_instance_id` to verify that we already get token.
-    else:
-        return verify()
-
-
+    logging.info(f'Google Drive plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
+    return PluginReturnStatus.SUCCESS
 
 def plugin_gdrive_del(plugin_instance_id):
+    
+    CLIENT_SECRET_PATH = os.path.join(SECRET_DIR, "client_secret_{}.json".format(plugin_instance_id))
+    CREDS_PATH = os.path.join(SECRET_DIR,  "creds_{}.json".format(plugin_instance_id))
+    
+    if os.path.exists(CLIENT_SECRET_PATH):
+        os.remove(CLIENT_SECRET_PATH)
+        os.remove(CREDS_PATH)
+
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
@@ -282,7 +245,6 @@ def plugin_gdrive_del(plugin_instance_id):
     session.delete(creds)
     session.commit()
     return PluginReturnStatus.SUCCESS
-
 
 def plugin_gdrive_update(plugin_instance_id, opensearch_hostname='localhost'):
 
@@ -293,62 +255,48 @@ def plugin_gdrive_update(plugin_instance_id, opensearch_hostname='localhost'):
     # get credential of plugin_instance_id
     creds = session.query(GdriveCredentials).filter(GdriveCredentials.plugin_instance_id==plugin_instance_id).first()
     session.commit()
-    access_token = creds.access_token
-    refresh_token = creds.refresh_token
 
     # update
-    session = Gdrive_Instance(plugin_instance_id, access_token, refresh_token)
-    session.connect_drive()
-    session.login_opensearch(host=opensearch_hostname)
-    session.update_messages()
+    DriveSession = Gdrive_Instance(plugin_instance_id)
+    DriveSession.login_opensearch(host=opensearch_hostname)
+    DriveSession.connect_drive()
+    DriveSession.update_messages()
 
     return PluginReturnStatus.SUCCESS
 
 def plugin_gdrive_info_def():
-    return PluginReturnStatus.SUCCESS, {
-            "field_def": [\
-                {
-                    "field_name": "access_token", \
-                    "display_name": "access_token", \
-                    "type": "text_opt",
-                }, \
-                {
-                    "field_name": "refresh_token", \
-                    "display_name": "refresh_token", \
-                    "type": "text_opt",
-                }, \
+    return PluginReturnStatus.SUCCESS, {"hint": "Please enter your api_idand api_hash. If you don't have one, create one first.", \
+            "field_def": [
+
             ],}
+
 
 def test1():
 
     plugin_instance_id = "1"
-    access_token= "ya29.a0AWY7CklNleuczWsksjwaq4dyvYPKMzdvKl-tj4oCJ_jo0NxysTdQuezNuWamZap2BLmbVDfu1U_9QBxdpqLasFqfhD5a42Q_iuZPcWYJUL1OVRlbhoIqhALYOLLSf6GtdMR4DfXAM4XHgYASSD2sYfPsQ0BDaCgYKAfYSARISFQG1tDrppGRHgcfi1YApJwEuaS5yEQ0163"
-    refresh_token= "1//06MLfjX4NeBNwCgYIARAAGAYSNwF-L9Irb_lrYguaf5zI9afyraJ26G2TtWyHUeZkDmLvmg5ZaysKcn5CQlfk7Qs8B6Z3Mbd7DT8"
-    client_id = "648578717595-gsinm4bqjdfogqmpbqok8ip6h109vu9v.apps.googleusercontent.com",
-    client_secret = "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",
+    DriveSession = Gdrive_Instance(plugin_instance_id)
+    DriveSession.connect_drive()
+    DriveSession.login_opensearch()
+    _, docs = DriveSession.get_messages()
 
-    client_secrets = {
-        "installed": {
-            "client_id": "648578717595-gsinm4bqjdfogqmpbqok8ip6h109vu9v.apps.googleusercontent.com",
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "client_secret": "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",
-            "redirect_uris": [
-                "http://localhost"
-            ]
-        }
-    }
+    with open("res.txt", 'w') as f:
+        f.write(str(docs))
 
-    session = Gdrive_Instance(plugin_instance_id, client_id, client_secret, access_token, refresh_token)
-    # session.gauth.settings = client_secrets
-    token = session.get_token()
-    res = session.connect_drive(token)
-    print(res)
-    session.login_opensearch()
-    _, docs = session.get_messages()
+def test2():
+    plugin_instance_id = "123"
+    plugin_init_info = {'client_id': '648578717595-gsinm4bqjdfogqmpbqok8ip6h109vu9v.apps.googleusercontent.com', 'client_secret': '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', 'access_token': 'ya29.a0AWY7Ckmo7k546ESHKa2K-BjFqReIkvUaFOlWFNXe2QLRC4IoMrPS1VCbMBd_W4mzFOLtYscrc-292SAV1WJ52lkqlNfeVuIwMNKomByq6y-CIHHESdMi4uwlhNO7hL_aD5hDPYlr9xxERKnvA_Xx1b9fOIv6aCgYKAVYSARISFQG1tDrpOnkBIt4AlI9vjykRm0QxpQ0163', 'refresh_token': '1//06542bxugeX1YCgYIARAAGAYSNwF-L9IrYWVXOots0vEgp7xHaYrttYsph9TEX18OFyoRv1qBk6RPlKdmYb1iih6F_ywKo32gmao', 'redirect_uris': ['http://localhost']}
+    generate_client_secret(plugin_instance_id, plugin_init_info)
+    generate_creds(plugin_instance_id, plugin_init_info)
+
+    DriveSession = Gdrive_Instance(plugin_instance_id)
+
+    status = DriveSession.connect_drive()
+    print(status)
+    DriveSession.login_opensearch()
+    _, docs = DriveSession.get_messages()
 
     with open("res.txt", 'w') as f:
         f.write(str(docs))
 
 if __name__ == "__main__":
-    test1()
+    test2()

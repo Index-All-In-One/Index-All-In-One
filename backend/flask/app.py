@@ -92,8 +92,17 @@ def google_oauth_callback():
     # Store the access_token, and refresh_token according to the plugin_instance_id
 
     # call plugin_xxx_init
+    plugin_init_info = {
+        "client_id": goauth_client_id,
+        "client_secret": goauth_client_secret,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "redirect_uris": [
+            "http://localhost"
+        ]
+    }
     try:
-        status = dispatch_plugin("init", "gdrive", [plugin_instance_id, tokens])
+        status = dispatch_plugin("init", "gdrive", [plugin_instance_id, plugin_init_info])
     except Exception as e:
         app.logger.error(f'Error init Google Drive, {e}')
         status = PluginReturnStatus.EXCEPTION
