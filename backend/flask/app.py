@@ -85,13 +85,32 @@ def google_oauth_callback():
     tokens = exchange_auth_code(auth_code, redirect_uri, goauth_client_id, goauth_client_secret)
     access_token = tokens.get('access_token')
     refresh_token = tokens.get('refresh_token')
+    if plugin_instance_id is None:
+        abort(400, "Missing access_token")
+    if redirect_uri is None:
+        abort(400, "Missing refresh_token")
 
     app.logger.info("access_token: %s", access_token)
     app.logger.info("refresh_token: %s", refresh_token)
     app.logger.info("plugin_instance_id: %s", plugin_instance_id)
     # Store the access_token, and refresh_token according to the plugin_instance_id
-    # plugin_init_info = ?
+
     # call plugin_xxx_init
+    plugin_init_info = {
+        "client_id": goauth_client_id,
+        "client_secret": goauth_client_secret,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "redirect_uris": [
+            "http://localhost"
+        ]
+    }
+    try:
+        status = dispatch_plugin("init", "gdrive", [plugin_instance_id, plugin_init_info])
+    except Exception as e:
+        app.logger.error(f'Error init Google Drive, {e}')
+        status = PluginReturnStatus.EXCEPTION
+    
 
     return "Google OAuth Success!"
 
@@ -454,4 +473,4 @@ def get_plugin_instance_info_value():
         return abort(400, 'Plugin info_def function failed!')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=5235)
