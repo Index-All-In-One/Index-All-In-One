@@ -27,7 +27,7 @@ def dispatch_plugin(function_name, plugin_name, plugin_args = []):
             update: fetch data from source and update opensearch
             init: store info when initialize the plugin
             del: clean stored info when delete the plugin
-            info_def: return a list of required info to initialize the plugin, with hint text. "password", "private_key" are special info that will be hidden in the UI. Supported field types: text, secret, int, two_step, secret_opt.
+            info_def: return a list of required info to initialize the plugin, with hint text. "password", "private_key" are special info that will be hidden in the UI. Supported field types: text, secret, int, two_step(with a send code button), secret_opt(can be empty), g_oauth(extra key "scope").
                 Format:
                 { "hint": "Enter your private key",
                 "field_def": [
@@ -40,6 +40,12 @@ def dispatch_plugin(function_name, plugin_name, plugin_args = []):
                         "field_name": "password",
                         "display_name": "Password",
                         "type": "secret",
+                    },
+                    {
+                        "field_name": "gdrive_oauth",
+                        "display_name": "Google Authorization",
+                        "type": "g_oauth",
+                        "scope": "https://www.googleapis.com/auth/drive",
                     },
                 ]}.
 

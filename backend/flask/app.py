@@ -13,6 +13,10 @@ from plugins.status_code import PluginReturnStatus
 from opensearch.conn import OpenSearch_Conn
 from utils_flask import *
 
+from flask import Flask, request, jsonify
+
+goauth_client_id = os.getenv('GOAUTH_CLIENT_ID', None)
+goauth_client_secret = os.getenv('GOAUTH_CLIENT_SECRET', None)
 
 opensearch_hostname = os.environ.get('OPENSEARCH_HOSTNAME', 'localhost')
 opensearch_conn = OpenSearch_Conn()
@@ -46,6 +50,74 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
     response.headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS'
     return response
+
+
+@app.route('/GOAuthCB', methods=['GET'])
+def google_oauth_callback():
+    if goauth_client_id is None or goauth_client_id=="":
+        abort(400, "Please provide GOAUTH_CLIENT_ID to use this feature")
+    if goauth_client_secret is None or goauth_client_secret=="":
+        abort(400, "Please provide GOAUTH_CLIENT_SECRET to use this feature")
+
+    auth_code = request.args.get('code', None)
+    state = request.args.get('state', None)
+    if auth_code is None:
+        abort(400, "Missing auth_code")
+    if state is None:
+        abort(400, "Missing state")
+
+    custom_values = json.loads(state)
+    plugin_instance_id = custom_values.get('id', None)
+    plugin_name = custom_values.get('plugin_name', None)
+    redirect_uri = custom_values.get('redirect_uri', None)
+    if plugin_instance_id is None:
+        abort(400, "Missing plugin_instance_id")
+    if redirect_uri is None:
+        abort(400, "Missing redirect_uri")
+
+    plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == plugin_instance_id).first()
+    if plugin_instance is not None:
+        plugin_name=plugin_instance.plugin_name
+    elif plugin_name is None:
+        return abort(400, 'Missing key: plugin_name')
+
+
+    tokens = exchange_auth_code(auth_code, redirect_uri, goauth_client_id, goauth_client_secret)
+    access_token = tokens.get('access_token')
+    refresh_token = tokens.get('refresh_token')
+    if access_token is None:
+        abort(400, "Missing access_token")
+    if refresh_token is None:
+        abort(400, "Missing refresh_token")
+
+    app.logger.info("access_token: %s", access_token)
+    app.logger.info("refresh_token: %s", refresh_token)
+    app.logger.info("plugin_instance_id: %s", plugin_instance_id)
+    # Store the access_token, and refresh_token according to the plugin_instance_id
+
+    # call plugin_xxx_init
+    plugin_init_info = {
+        "client_id": goauth_client_id,
+        "client_secret": goauth_client_secret,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "redirect_uris": [
+            redirect_uri,
+        ]
+    }
+    try:
+        status = dispatch_plugin("init", "gdrive", [plugin_instance_id, plugin_init_info])
+    except Exception as e:
+        app.logger.error(f'Error init Google Drive, {e}')
+        status = PluginReturnStatus.EXCEPTION
+
+    if status == PluginReturnStatus.SUCCESS:
+        app.logger.debug("Plugin instance init Oauth Success, still need submit! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
+        return "Google OAuth Success!"
+    else:
+        app.logger.error("Plugin instance init Oauth failed! Status: %s : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
+        abort(400, "Plugin instance init Oauth failed! Status: " + status.name)
+
 
 @app.route('/search_count', methods=['POST'])
 def search_count():
@@ -117,6 +189,7 @@ def send_two_step_code():
         return 'Plugin instance need 2 step code!'
     else:
         app.logger.error("Plugin instance send two step code failed! Status: %s : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
+        abort(400, 'Plugin instance send two step code failed! Status: %s' % status.name)
 
 
 @app.route('/add_PI', methods=['POST'])
@@ -284,12 +357,17 @@ def restart_plugin_instance():
         if plugin_instance.enabled == False:
             return 'Plugin instance is disabled!'
 
-        new_request_1 = Request(request_op="deactivate", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
-        sqlalchemy_db.session.add(new_request_1)
+        if plugin_instance.active == True:
+            new_request = Request(request_op="change_interval", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
+            sqlalchemy_db.session.add(new_request)
+            sqlalchemy_db.session.commit()
+        else:
+            new_request1 = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
+            sqlalchemy_db.session.add(new_request1)
 
-        new_request_2 = Request(request_op="activate", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
-        sqlalchemy_db.session.add(new_request_2)
-        sqlalchemy_db.session.commit()
+            new_request2 = Request(request_op="activate", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
+            sqlalchemy_db.session.add(new_request2)
+            sqlalchemy_db.session.commit()
 
         app.logger.debug("Plugin instance restarted: %s", plugin_instance_id)
 
@@ -349,7 +427,7 @@ def list_accounts():
     for plugin_instance in all_PIs:
         all_accounts.append(
             {
-                "plugin_name": plugin_display_name_map[plugin_instance.plugin_name],
+                "plugin_display_name": plugin_display_name_map[plugin_instance.plugin_name],
                 "source_name": plugin_instance.source_name,
                 "update_interval": plugin_instance.update_interval,
                 "enabled": plugin_instance.enabled,
@@ -406,4 +484,4 @@ def get_plugin_instance_info_value():
         return abort(400, 'Plugin info_def function failed!')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=5235)

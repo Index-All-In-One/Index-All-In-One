@@ -238,7 +238,7 @@ def plugin_gmail_update(plugin_instance_id, opensearch_hostname='localhost'):
     return PluginReturnStatus.SUCCESS
 
 def plugin_gmail_info_def():
-    return PluginReturnStatus.SUCCESS, {"hint": "Please enter your app password, not Gmail's login password. If you don't have, create one first.", \
+    return PluginReturnStatus.SUCCESS, {"hint": "Please enter your Gmail App Password, not the password used for logging in. If you don't have an App Password yet, please create one first.", \
             "field_def": [\
                 { \
                     "field_name": "username", \
@@ -247,7 +247,7 @@ def plugin_gmail_info_def():
                 }, \
                 {
                     "field_name": "password", \
-                    "display_name": "Password", \
+                    "display_name": "App Password", \
                     "type": "secret",
                 }, \
             ],}
