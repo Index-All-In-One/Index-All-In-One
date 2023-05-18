@@ -110,7 +110,7 @@ def google_oauth_callback():
     except Exception as e:
         app.logger.error(f'Error init Google Drive, {e}')
         status = PluginReturnStatus.EXCEPTION
-    
+
 
     return "Google OAuth Success!"
 
@@ -351,12 +351,17 @@ def restart_plugin_instance():
         if plugin_instance.enabled == False:
             return 'Plugin instance is disabled!'
 
-        new_request_1 = Request(request_op="deactivate", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
-        sqlalchemy_db.session.add(new_request_1)
+        if plugin_instance.active == True:
+            new_request = Request(request_op="change_interval", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
+            sqlalchemy_db.session.add(new_request)
+            sqlalchemy_db.session.commit()
+        else:
+            new_request1 = Request(request_op="deactivate", plugin_instance_id=plugin_instance_id)
+            sqlalchemy_db.session.add(new_request1)
 
-        new_request_2 = Request(request_op="activate", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
-        sqlalchemy_db.session.add(new_request_2)
-        sqlalchemy_db.session.commit()
+            new_request2 = Request(request_op="activate", plugin_name=plugin_instance.plugin_name, plugin_instance_id=plugin_instance_id, update_interval=plugin_instance.update_interval)
+            sqlalchemy_db.session.add(new_request2)
+            sqlalchemy_db.session.commit()
 
         app.logger.debug("Plugin instance restarted: %s", plugin_instance_id)
 

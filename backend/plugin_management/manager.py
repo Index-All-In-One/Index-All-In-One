@@ -143,6 +143,7 @@ def handle_request(DBSession, man_session, request):
 
         if plugin_instance is not None and plugin_instance.active == True:
             man_session.query(RunningPluginInstance).filter(RunningPluginInstance.plugin_instance_id == request.plugin_instance_id).delete()
+
             run_id=str(uuid.uuid4())
             running_plugin_instance = RunningPluginInstance(plugin_instance_id=request.plugin_instance_id, run_id=run_id)
             man_session.add(running_plugin_instance)
