@@ -275,7 +275,7 @@ def plugin_gdrive_update(plugin_instance_id, opensearch_hostname='localhost'):
     return PluginReturnStatus.SUCCESS
 
 def plugin_gdrive_info_def():
-    return PluginReturnStatus.SUCCESS, {"hint": "Please authorize with google before submit.", \
+    return PluginReturnStatus.SUCCESS, {"hint": "Please authorize your Google Drive access before submitting.", \
             "field_def":[ \
                 { \
                     "field_name": "gdrive_oauth", \
