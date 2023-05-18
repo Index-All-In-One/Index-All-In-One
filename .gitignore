@@ -1,6 +1,6 @@
-<<<<<<<<< Temporary merge branch 1
-.DS_Store
 # Misc
+.DS_Store
+
 
 # Environments
 .env
@@ -13,4 +13,6 @@ venv.bak/
 
 # Editors
 .vscode
->>>>>>>>> Temporary merge branch 2
+
+# Credentiala
+*.pem
