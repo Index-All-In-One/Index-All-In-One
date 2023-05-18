@@ -3,10 +3,15 @@
 # run this script from the root of whole project
 
 # set up environment variables
-export SERVER_URL=${SERVER_URL:-"http://127.0.0.1:8000"}
-export LOCAL_ADDR=${LOCAL_ADDR:-"127.0.0.1:8000"}
+export DOMAIN_NAME=${DOMAIN_NAME:-"localhost"}
+export SERVER_URL=${SERVER_URL:-"https://$DOMAIN_NAME:8000"}
+export LOCAL_ADDR=${LOCAL_ADDR:-"127.0.0.1:8000"} # use 0.0.0.0:8000 for public access
 export BACKEND_LOCAL_PORT=${BACKEND_LOCAL_PORT:-"5235"}
 export FLUTTER_BASE_URL="$SERVER_URL/api"
+
+# get google oauth client id and secret from environment variables
+export GOAUTH_CLIENT_ID
+export GOAUTH_CLIENT_SECRET
 
 action="run" # set default behavior to "run"
 

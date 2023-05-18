@@ -7,5 +7,15 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy the built Flutter web app into the Nginx directory
 COPY build/web /usr/share/nginx/html
 
-# Expose port 80 for HTTP traffic
-EXPOSE 80
+# Copy the Nginx config template into the Nginx config directory
+COPY docker-nginx/nginx.prod.conf.template /etc/nginx/nginx.conf.template
+
+# Copy the ssl certificate and key
+COPY docker-nginx/ssl_cert/* /etc/ssl_cert/
+
+# Expose port 443 for HTTPS traffic
+EXPOSE 443
+
+COPY docker-nginx/start-nginx.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/start-nginx.sh
+CMD ["start-nginx.sh"]

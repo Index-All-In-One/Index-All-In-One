@@ -8,7 +8,9 @@ services:
       context: ../frontend
       dockerfile: ./docker-nginx/Dockerfile.prod
     ports:
-      - "${LOCAL_ADDR}:80"
+      - "${LOCAL_ADDR}:443"
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
     networks:
       - backend-net
 
@@ -32,11 +34,17 @@ services:
         service: flask
     ports:
       - "127.0.0.1:${BACKEND_LOCAL_PORT}:5235"
+    environment:
+      GOAUTH_CLIENT_ID: ${GOAUTH_CLIENT_ID}
+      GOAUTH_CLIENT_SECRET: ${GOAUTH_CLIENT_SECRET}
 
   pm-manager:
     extends:
         file: ../backend/docker-compose/docker-compose.prod.base.yml
         service: pm-manager
+    environment:
+      GOAUTH_CLIENT_ID: ${GOAUTH_CLIENT_ID}
+      GOAUTH_CLIENT_SECRET: ${GOAUTH_CLIENT_SECRET}
 
 volumes:
   opensearch-data1-1:
