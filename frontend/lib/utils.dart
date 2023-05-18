@@ -149,20 +149,25 @@ String boolToYesNo(bool value) {
   return value ? 'Yes' : 'No';
 }
 
-String formatFileSize(int fileSizeInt) {
-  String fileSizeString;
-  final double fileSizeDouble = fileSizeInt.toDouble();
-  if (fileSizeInt < 1024) {
-    fileSizeString = '${fileSizeInt}B';
-  } else if (fileSizeInt < 1024 * 1024) {
-    fileSizeString = '${(fileSizeDouble / 1024).toStringAsFixed(1)}K';
-  } else if (fileSizeInt < 1024 * 1024 * 1024) {
-    fileSizeString = '${(fileSizeDouble / 1024 / 1024).toStringAsFixed(1)}M';
+String formatFileSize(String fileSizeOrigin) {
+  int? fileSizeInt = int.tryParse(fileSizeOrigin);
+  if (fileSizeInt == null) {
+    return fileSizeOrigin;
   } else {
-    fileSizeString =
-        '${(fileSizeDouble / 1024 / 1024 / 1024).toStringAsFixed(1)}G';
+    String fileSizeString;
+    final double fileSizeDouble = fileSizeInt.toDouble();
+    if (fileSizeInt < 1024) {
+      fileSizeString = '${fileSizeInt}B';
+    } else if (fileSizeInt < 1024 * 1024) {
+      fileSizeString = '${(fileSizeDouble / 1024).toStringAsFixed(1)}K';
+    } else if (fileSizeInt < 1024 * 1024 * 1024) {
+      fileSizeString = '${(fileSizeDouble / 1024 / 1024).toStringAsFixed(1)}M';
+    } else {
+      fileSizeString =
+          '${(fileSizeDouble / 1024 / 1024 / 1024).toStringAsFixed(1)}G';
+    }
+    return fileSizeString;
   }
-  return fileSizeString;
 }
 
 class LinkText extends StatelessWidget {
