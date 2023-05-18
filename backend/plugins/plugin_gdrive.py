@@ -218,7 +218,7 @@ def plugin_gdrive_init(plugin_instance_id, plugin_init_info=None):
         status = DriveSession.connect_drive()
 
         if not status:
-            logging.error(f'Google Drive plugin instance {plugin_instance_id} init credential failed(Oauth)')
+            logging.error(f'Google Drive plugin instance {plugin_instance_id} initialize OAuth credential failed')
             return PluginReturnStatus.WRONG_CREDS
 
         # create a new DriveCredentials object and add it to the database
@@ -226,12 +226,12 @@ def plugin_gdrive_init(plugin_instance_id, plugin_init_info=None):
         session.add(plugin_instance_credentials)
         session.commit()
 
-        logging.info(f'Google Drive plugin instance {plugin_instance_id} initialized success(Oauth), db name: {DB_NAME}')
+        logging.info(f'Google Drive plugin instance {plugin_instance_id} initialize OAuth credential success, db name: {DB_NAME}')
     else:
         plugin_instance_credentials= session.query(GdriveCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
 
         if not plugin_instance_credentials:
-            logging.error(f'Google Drive plugin instance {plugin_instance_id} initialized without credentials!')
+            logging.error(f'Google Drive plugin instance {plugin_instance_id} initialized without OAuth credentials!')
             return PluginReturnStatus.EXCEPTION
 
         logging.info(f'Google Drive plugin instance {plugin_instance_id} initialized success, db name: {DB_NAME}')
