@@ -120,7 +120,7 @@ Widget buildSearchResults(String query) {
                       );
                       break;
                     case 'file_size':
-                      final fileSizeOrigin = singleQueryResult[key]!;
+                      final fileSizeOrigin = singleQueryResult[key]!.toString();
                       returnWidget = Expanded(
                         child: Center(
                           child: TextWithDifferentHover(
