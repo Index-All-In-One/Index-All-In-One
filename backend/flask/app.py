@@ -85,9 +85,9 @@ def google_oauth_callback():
     tokens = exchange_auth_code(auth_code, redirect_uri, goauth_client_id, goauth_client_secret)
     access_token = tokens.get('access_token')
     refresh_token = tokens.get('refresh_token')
-    if plugin_instance_id is None:
+    if access_token is None:
         abort(400, "Missing access_token")
-    if redirect_uri is None:
+    if refresh_token is None:
         abort(400, "Missing refresh_token")
 
     app.logger.info("access_token: %s", access_token)
@@ -102,7 +102,7 @@ def google_oauth_callback():
         "access_token": access_token,
         "refresh_token": refresh_token,
         "redirect_uris": [
-            "http://localhost"
+            redirect_uri,
         ]
     }
     try:
@@ -111,8 +111,13 @@ def google_oauth_callback():
         app.logger.error(f'Error init Google Drive, {e}')
         status = PluginReturnStatus.EXCEPTION
 
+    if status == PluginReturnStatus.SUCCESS:
+        app.logger.debug("Plugin instance init Oauth Success, still need submit! : %s, %s, %s", plugin_name, plugin_instance_id, str(plugin_init_info))
+        return "Google OAuth Success!"
+    else:
+        app.logger.error("Plugin instance init Oauth failed! Status: %s : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
+        abort(400, "Plugin instance init Oauth failed! Status: " + status.name)
 
-    return "Google OAuth Success!"
 
 @app.route('/search_count', methods=['POST'])
 def search_count():
@@ -184,6 +189,7 @@ def send_two_step_code():
         return 'Plugin instance need 2 step code!'
     else:
         app.logger.error("Plugin instance send two step code failed! Status: %s : %s, %s, %s", status.name, plugin_name, plugin_instance_id, str(plugin_init_info))
+        abort(400, 'Plugin instance send two step code failed! Status: %s' % status.name)
 
 
 @app.route('/add_PI', methods=['POST'])
