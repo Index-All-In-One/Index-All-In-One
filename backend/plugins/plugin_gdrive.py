@@ -14,7 +14,7 @@ SECRET_DIR = "instance/drive"
 
 class Gdrive_Instance:
     def __init__(self, plugin_instance_id):
-        
+
         self.CLIENT_SECRET_PATH = os.path.join(SECRET_DIR, "client_secret_{}.json".format(plugin_instance_id))
         self.CREDS_PATH = os.path.join(SECRET_DIR, "creds_{}.json".format(plugin_instance_id))
 
@@ -44,7 +44,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         # if self.gauth.credentials is None:
         #     # Authenticate the user if no credentials found
         #     self.gauth.LocalWebserverAuth()
-            
+
         #     # Generate and save a new token
         #     self.gauth.SaveCredentialsFile(self.CREDS)
         else:
@@ -58,7 +58,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                     self.gauth.Authorize()
                 except:
                     return False
-        
+
         self.drive = GoogleDrive(self.gauth)
         return True
 
@@ -67,7 +67,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             assert(self.drive is not None)
             query = "'{}' in parents and trashed=false".format(folder_id)
             file_list = self.drive.ListFile({'q': query}).GetList()
-            
+
             doc_ids = []
             docs = []
             for file in file_list:
@@ -83,10 +83,10 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                 # modified_date
                 modified_date_dt = datetime.datetime.fromisoformat(file['modifiedDate'].replace('Z', '+00:00'))
                 modified_date = modified_date_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-                
+
                 file_size = 0
                 summary = "Owner: {}, Last Modifying User: {}".format(file['owners'][0]['displayName'], file['lastModifyingUser']['displayName'])
-                
+
                 content  = ""
                 if doc_type == 'text/plain':
                     content = file.GetContentString()[:100]
@@ -139,7 +139,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         mask = [item in list2 for item in list1]
         res = [list1[i] for i in range(len(mask)) if not mask[i]]
         return mask, res
-    
+
 
 def generate_client_secret(plugin_instance_id, plugin_init_info):
     os.makedirs(SECRET_DIR, exist_ok=True)
@@ -184,7 +184,7 @@ def generate_creds(plugin_instance_id, plugin_init_info):
     token_file = os.path.join(SECRET_DIR, token_file)
     with open(token_file, 'w') as f:
         json.dump(client_token, f)
-        
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import orm, Column, Integer, String
@@ -202,18 +202,6 @@ class GdriveCredentials(model):
         self.plugin_instance_id = plugin_instance_id
 
 def plugin_gdrive_init(plugin_instance_id, plugin_init_info=None):
-
-    if plugin_init_info:
-        generate_client_secret(plugin_instance_id, plugin_init_info)
-        generate_creds(plugin_instance_id, plugin_init_info)
-
-    DriveSession = Gdrive_Instance(plugin_instance_id)
-    status = DriveSession.connect_drive()
-
-    if not status:
-        logging.error(f'init google drive plugin instance {plugin_instance_id} failed, wrong credentials')
-        return PluginReturnStatus.EXCEPTION
-
     # create an engine that connects to the database
     engine = create_engine(f'sqlite:///instance/{DB_NAME}')
     model.metadata.bind = engine
@@ -221,19 +209,40 @@ def plugin_gdrive_init(plugin_instance_id, plugin_init_info=None):
     # create a session factory that uses the engine
     DBSession = sessionmaker(bind=engine)
     session = DBSession()
-    # create a new DriveCredentials object and add it to the database
-    plugin_instance_credentials = GdriveCredentials(plugin_instance_id)
-    session.add(plugin_instance_credentials)
-    session.commit()
 
-    logging.info(f'Google Drive plugin instance {plugin_instance_id} initialized, db name: {DB_NAME}')
+    if plugin_init_info:
+        generate_client_secret(plugin_instance_id, plugin_init_info)
+        generate_creds(plugin_instance_id, plugin_init_info)
+
+        DriveSession = Gdrive_Instance(plugin_instance_id)
+        status = DriveSession.connect_drive()
+
+        if not status:
+            logging.error(f'Google Drive plugin instance {plugin_instance_id} init credential failed(Oauth)')
+            return PluginReturnStatus.WRONG_CREDS
+
+        # create a new DriveCredentials object and add it to the database
+        plugin_instance_credentials = GdriveCredentials(plugin_instance_id)
+        session.add(plugin_instance_credentials)
+        session.commit()
+
+        logging.info(f'Google Drive plugin instance {plugin_instance_id} initialized success(Oauth), db name: {DB_NAME}')
+    else:
+        plugin_instance_credentials= session.query(GdriveCredentials).filter_by(plugin_instance_id=plugin_instance_id).first()
+
+        if not plugin_instance_credentials:
+            logging.error(f'Google Drive plugin instance {plugin_instance_id} initialized without credentials!')
+            return PluginReturnStatus.EXCEPTION
+
+        logging.info(f'Google Drive plugin instance {plugin_instance_id} initialized success, db name: {DB_NAME}')
+
     return PluginReturnStatus.SUCCESS
 
 def plugin_gdrive_del(plugin_instance_id):
-    
+
     CLIENT_SECRET_PATH = os.path.join(SECRET_DIR, "client_secret_{}.json".format(plugin_instance_id))
     CREDS_PATH = os.path.join(SECRET_DIR,  "creds_{}.json".format(plugin_instance_id))
-    
+
     if os.path.exists(CLIENT_SECRET_PATH):
         os.remove(CLIENT_SECRET_PATH)
         os.remove(CREDS_PATH)
