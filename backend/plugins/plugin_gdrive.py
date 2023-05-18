@@ -163,8 +163,8 @@ def generate_creds(plugin_instance_id, plugin_init_info):
 
     client_token = {
         "access_token": plugin_init_info["access_token"],
-        "client_id": "648578717595-gsinm4bqjdfogqmpbqok8ip6h109vu9v.apps.googleusercontent.com",
-        "client_secret": "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",
+        "client_id": plugin_init_info["client_id"],
+        "client_secret": plugin_init_info["client_secret"],
         "refresh_token": plugin_init_info["refresh_token"],
         "token_expiry": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
         "token_uri": "https://oauth2.googleapis.com/token",
