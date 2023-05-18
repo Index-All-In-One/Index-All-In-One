@@ -483,6 +483,7 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
+                textStyle: const TextStyle(fontSize: 18),
               ),
               child: const Text('Submit'),
             ),
