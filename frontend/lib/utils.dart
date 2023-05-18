@@ -4,6 +4,41 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'globals.dart' as globals;
+
+Future<void> googleOAuth(String pluginInstanceID, String? pluginName,
+    String scope, Function onError) async {
+  if (globals.gOAuthClientId == "") {
+    onError("Set a Google Drive Client ID first to use this feature.");
+    return;
+  }
+
+  const String clientId = globals.gOAuthClientId;
+  const String redirectUri = '${globals.apiBaseUrl}/GOAuthCB';
+
+  final String state = jsonEncode({
+    'id': pluginInstanceID,
+    if (pluginName != null) 'plugin_name': pluginName,
+    'redirect_uri': redirectUri,
+  });
+
+  final authUrl = Uri.https('accounts.google.com', '/o/oauth2/v2/auth', {
+    'client_id': clientId,
+    'redirect_uri': redirectUri,
+    'scope': scope,
+    'response_type': 'code',
+    'access_type': 'offline',
+    'prompt':
+        'consent', // Forces the consent screen to show, thus creating a new refresh token.
+    'state': state,
+  });
+
+  if (await canLaunchUrl(authUrl)) {
+    await launchUrl(authUrl);
+  } else {
+    onError('Could not launch $authUrl');
+  }
+}
 
 class IconButtonWithHover extends StatelessWidget {
   final String hoverText;
@@ -114,20 +149,25 @@ String boolToYesNo(bool value) {
   return value ? 'Yes' : 'No';
 }
 
-String formatFileSize(int fileSizeInt) {
-  String fileSizeString;
-  final double fileSizeDouble = fileSizeInt.toDouble();
-  if (fileSizeInt < 1024) {
-    fileSizeString = '${fileSizeInt}B';
-  } else if (fileSizeInt < 1024 * 1024) {
-    fileSizeString = '${(fileSizeDouble / 1024).toStringAsFixed(1)}K';
-  } else if (fileSizeInt < 1024 * 1024 * 1024) {
-    fileSizeString = '${(fileSizeDouble / 1024 / 1024).toStringAsFixed(1)}M';
+String formatFileSize(String fileSizeOrigin) {
+  int? fileSizeInt = int.tryParse(fileSizeOrigin);
+  if (fileSizeInt == null) {
+    return fileSizeOrigin;
   } else {
-    fileSizeString =
-        '${(fileSizeDouble / 1024 / 1024 / 1024).toStringAsFixed(1)}G';
+    String fileSizeString;
+    final double fileSizeDouble = fileSizeInt.toDouble();
+    if (fileSizeInt < 1024) {
+      fileSizeString = '${fileSizeInt}B';
+    } else if (fileSizeInt < 1024 * 1024) {
+      fileSizeString = '${(fileSizeDouble / 1024).toStringAsFixed(1)}K';
+    } else if (fileSizeInt < 1024 * 1024 * 1024) {
+      fileSizeString = '${(fileSizeDouble / 1024 / 1024).toStringAsFixed(1)}M';
+    } else {
+      fileSizeString =
+          '${(fileSizeDouble / 1024 / 1024 / 1024).toStringAsFixed(1)}G';
+    }
+    return fileSizeString;
   }
-  return fileSizeString;
 }
 
 class LinkText extends StatelessWidget {
@@ -302,6 +342,8 @@ class FormWithSubmit extends StatefulWidget {
   final Future<bool> Function(Map<String, String> formData)? onSendCode;
   final String? successMessage;
   final List<FormSegment> formSegments;
+  final String pluginInstanceID;
+  final String? pluginName;
 
   const FormWithSubmit({
     super.key,
@@ -309,6 +351,8 @@ class FormWithSubmit extends StatefulWidget {
     this.onSendCode,
     this.successMessage,
     required this.formSegments,
+    this.pluginInstanceID = "empty_plugin_instance_id",
+    this.pluginName,
   });
 
   @override
@@ -350,52 +394,64 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
                   )),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
-                child: TextFormFieldWithStyle(
-                  fieldName: field['field_name']!,
-                  formData: (field['type'] == 'two_step')
-                      ? _formDataTwoStep
-                      : _formData,
-                  validator: (value) {
-                    return pluginInfoFieldTypeValidator(
-                        value, field['type']!, field['display_name']!);
-                  },
-                  isCredential: (field['type']! == 'secret') ||
-                      (field['type']! == 'secret_opt'),
-                  initialValue: field['value'] ?? '',
-                  customButton: (field['type'] == 'two_step')
-                      ? Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              if (_formKey.currentState!.validate()) {
-                                _formKey.currentState!.save();
-                                waitAndShowSnackBarMsg(
-                                  context,
-                                  () async {
-                                    final success = await widget.onSendCode
-                                            ?.call(_formData) ??
-                                        true;
-                                    return success;
+                child: (field['type'] == 'g_oauth')
+                    ? ElevatedButton(
+                        child: const Text('Google Sign In'),
+                        onPressed: () async {
+                          await googleOAuth(widget.pluginInstanceID,
+                              widget.pluginName, field['scope']!, (error) {
+                            clearAndShowSnackBarMsg(context, error,
+                                bgColor: Colors.red);
+                          });
+                        },
+                      )
+                    : TextFormFieldWithStyle(
+                        fieldName: field['field_name']!,
+                        formData: (field['type'] == 'two_step')
+                            ? _formDataTwoStep
+                            : _formData,
+                        validator: (value) {
+                          return pluginInfoFieldTypeValidator(
+                              value, field['type']!, field['display_name']!);
+                        },
+                        isCredential: (field['type']! == 'secret') ||
+                            (field['type']! == 'secret_opt'),
+                        initialValue: field['value'] ?? '',
+                        customButton: (field['type'] == 'two_step')
+                            ? Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      _formKey.currentState!.save();
+                                      waitAndShowSnackBarMsg(
+                                        context,
+                                        () async {
+                                          final success = await widget
+                                                  .onSendCode
+                                                  ?.call(_formData) ??
+                                              true;
+                                          return success;
+                                        },
+                                        'Sent code successfully',
+                                        'An error occurred while sending the code',
+                                        false,
+                                      );
+                                    }
                                   },
-                                  'Sent code successfully',
-                                  'An error occurred while sending the code',
-                                  false,
-                                );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text('Send Code'),
-                          ),
-                        )
-                      : null,
-                ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: const Text('Send Code'),
+                                ),
+                              )
+                            : null,
+                      ),
               ),
             ],
             const SizedBox(height: 16),
@@ -427,6 +483,7 @@ class _FormWithSubmitState extends State<FormWithSubmit> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
+                textStyle: const TextStyle(fontSize: 18),
               ),
               child: const Text('Submit'),
             ),

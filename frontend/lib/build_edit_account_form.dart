@@ -49,6 +49,8 @@ Widget buildEditAccountForm(String pluginInstanceID) {
                     MapEntry("field_name", pluginInitInfo["field_name"]!),
                     MapEntry("display_name", pluginInitInfo["display_name"]!),
                     MapEntry("type", pluginInitInfo["type"]!),
+                    if (pluginInitInfo["type"] == "g_oauth")
+                      MapEntry("scope", pluginInitInfo["scope"]!),
                     MapEntry(
                         "value",
                         (pluginInitInfo["type"] != "two_step")
@@ -66,6 +68,7 @@ Widget buildEditAccountForm(String pluginInstanceID) {
           onSendCode: (Map<String, String> formData) async => onlyCareStatus(
               () => send2StepCodeRequest(pluginInstanceID, null, formData),
               "send_2step_code"),
+          pluginInstanceID: pluginInstanceID,
         );
       });
 }

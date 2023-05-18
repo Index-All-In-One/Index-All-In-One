@@ -18,7 +18,7 @@ Future<bool> onlyCareStatus(
 }
 
 Future<http.Response> sendSearchRequest(String query) async {
-  var url = Uri.parse('$baseUrl/search');
+  var url = Uri.parse('$apiBaseUrl/search');
 
   var response = await http
       .post(url, body: {'keywords': query, 'full_text_keywords': query});
@@ -26,7 +26,7 @@ Future<http.Response> sendSearchRequest(String query) async {
 }
 
 Future<http.Response> sendSearchCountRequest(String query) async {
-  var url = Uri.parse('$baseUrl/search_count');
+  var url = Uri.parse('$apiBaseUrl/search_count');
 
   var response = await http
       .post(url, body: {'keywords': query, 'full_text_keywords': query});
@@ -34,28 +34,28 @@ Future<http.Response> sendSearchCountRequest(String query) async {
 }
 
 Future<http.Response> sendListAccountRequest() async {
-  var url = Uri.parse('$baseUrl/list_accounts');
+  var url = Uri.parse('$apiBaseUrl/list_accounts');
 
   var response = await http.get(url);
   return response;
 }
 
 Future<http.Response> sendPluginListRequest() async {
-  var url = Uri.parse('$baseUrl/plugin_list');
+  var url = Uri.parse('$apiBaseUrl/plugin_list');
 
   var response = await http.get(url);
   return response;
 }
 
 Future<http.Response> sendPluginInfoFieldsRequest(String pluginName) async {
-  var url = Uri.parse('$baseUrl/plugin_info_field_type');
+  var url = Uri.parse('$apiBaseUrl/plugin_info_field_type');
 
   var response = await http.post(url, body: {'plugin_name': pluginName});
   return response;
 }
 
 Future<http.Response> sendPIInfoValuesRequest(String pluginInstanceID) async {
-  var url = Uri.parse('$baseUrl/PI_info_value');
+  var url = Uri.parse('$apiBaseUrl/PI_info_value');
 
   var response = await http.post(url, body: {'id': pluginInstanceID});
   return response;
@@ -63,7 +63,7 @@ Future<http.Response> sendPIInfoValuesRequest(String pluginInstanceID) async {
 
 Future<http.Response> send2StepCodeRequest(String pluginInstanceID,
     String? pluginName, Map<String, String> formData) async {
-  final url = Uri.parse('$baseUrl/send_2step_code');
+  final url = Uri.parse('$apiBaseUrl/send_2step_code');
 
   formData.remove('source_name');
   formData.remove('interval');
@@ -89,7 +89,7 @@ Future<http.Response> send2StepCodeRequest(String pluginInstanceID,
 
 Future<http.Response> sendAddPIRequest(String? pluginInstanceID,
     String pluginName, Map<String, String> formData) async {
-  final url = Uri.parse('$baseUrl/add_PI');
+  final url = Uri.parse('$apiBaseUrl/add_PI');
 
   final sourceName = formData['source_name']!;
   final interval = int.parse(formData['interval']!);
@@ -119,7 +119,7 @@ Future<http.Response> sendAddPIRequest(String? pluginInstanceID,
 
 Future<http.Response> sendEditPIRequest(
     String pluginInstanceID, Map<String, String> formData) async {
-  final url = Uri.parse('$baseUrl/mod_PI');
+  final url = Uri.parse('$apiBaseUrl/mod_PI');
 
   final sourceName = formData['source_name']!;
   final interval = int.parse(formData['interval']!);
@@ -145,7 +145,7 @@ Future<http.Response> sendEditPIRequest(
 }
 
 Future<http.Response> sendDelPIRequest(String pluginInstanceID) async {
-  final url = Uri.parse('$baseUrl/del_PI');
+  final url = Uri.parse('$apiBaseUrl/del_PI');
   try {
     var response = await http.post(url, body: {'id': pluginInstanceID});
     return response;
@@ -155,7 +155,7 @@ Future<http.Response> sendDelPIRequest(String pluginInstanceID) async {
 }
 
 Future<http.Response> sendEnablePIRequest(String pluginInstanceID) async {
-  final url = Uri.parse('$baseUrl/enable_PI');
+  final url = Uri.parse('$apiBaseUrl/enable_PI');
   try {
     var response = await http.post(url, body: {'id': pluginInstanceID});
     return response;
@@ -165,7 +165,7 @@ Future<http.Response> sendEnablePIRequest(String pluginInstanceID) async {
 }
 
 Future<http.Response> sendDisablePIRequest(String pluginInstanceID) async {
-  final url = Uri.parse('$baseUrl/disable_PI');
+  final url = Uri.parse('$apiBaseUrl/disable_PI');
   try {
     var response = await http.post(url, body: {'id': pluginInstanceID});
     return response;
@@ -175,7 +175,7 @@ Future<http.Response> sendDisablePIRequest(String pluginInstanceID) async {
 }
 
 Future<http.Response> sendRestartPIRequest(String pluginInstanceID) async {
-  final url = Uri.parse('$baseUrl/restart_PI');
+  final url = Uri.parse('$apiBaseUrl/restart_PI');
   try {
     var response = await http.post(url, body: {'id': pluginInstanceID});
     return response;

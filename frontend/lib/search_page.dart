@@ -36,7 +36,7 @@ class _SearchPageState extends State<SearchPage> {
       ),
       body: Column(
         children: [
-          SearchBar(
+          MySearchBar(
             hintText: 'Search...',
             onSearch: onSearchFunction,
           ),
