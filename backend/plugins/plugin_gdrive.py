@@ -275,33 +275,3 @@ def plugin_gdrive_info_def():
                     "scope": "https://www.googleapis.com/auth/drive",
                 }, \
             ],}
-
-def test1():
-
-    plugin_instance_id = "1"
-    DriveSession = Gdrive_Instance(plugin_instance_id)
-    DriveSession.connect_drive()
-    DriveSession.login_opensearch()
-    _, docs = DriveSession.get_messages()
-
-    with open("res.txt", 'w') as f:
-        f.write(str(docs))
-
-def test2():
-    plugin_instance_id = "123"
-    plugin_init_info = {'client_id': '648578717595-gsinm4bqjdfogqmpbqok8ip6h109vu9v.apps.googleusercontent.com', 'client_secret': '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', 'access_token': 'ya29.a0AWY7Ckmo7k546ESHKa2K-BjFqReIkvUaFOlWFNXe2QLRC4IoMrPS1VCbMBd_W4mzFOLtYscrc-292SAV1WJ52lkqlNfeVuIwMNKomByq6y-CIHHESdMi4uwlhNO7hL_aD5hDPYlr9xxERKnvA_Xx1b9fOIv6aCgYKAVYSARISFQG1tDrpOnkBIt4AlI9vjykRm0QxpQ0163', 'refresh_token': '1//06542bxugeX1YCgYIARAAGAYSNwF-L9IrYWVXOots0vEgp7xHaYrttYsph9TEX18OFyoRv1qBk6RPlKdmYb1iih6F_ywKo32gmao', 'redirect_uris': ['http://localhost']}
-    generate_client_secret(plugin_instance_id, plugin_init_info)
-    generate_creds(plugin_instance_id, plugin_init_info)
-
-    DriveSession = Gdrive_Instance(plugin_instance_id)
-
-    status = DriveSession.connect_drive()
-    print(status)
-    DriveSession.login_opensearch()
-    _, docs = DriveSession.get_messages()
-
-    with open("res.txt", 'w') as f:
-        f.write(str(docs))
-
-if __name__ == "__main__":
-    test2()
