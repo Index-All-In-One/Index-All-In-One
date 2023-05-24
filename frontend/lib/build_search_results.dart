@@ -188,9 +188,6 @@ Widget buildSaerchResultsAsTileUseQueryResults(List<dynamic>? queryResults) {
             children: [
               const SizedBox(height: 4.0),
               Text(truncatedSummary),
-              LinkTextButtonWithHover(
-                link: singleQueryResult["link"],
-              ),
               Row(children: [
                 CopyLinkIconWithHover(link: singleQueryResult["link"]),
                 PopUpIconButton(
@@ -198,6 +195,9 @@ Widget buildSaerchResultsAsTileUseQueryResults(List<dynamic>? queryResults) {
                   content: Text(summary),
                 ),
               ]),
+              LinkTextButtonWithHover(
+                link: singleQueryResult["link"],
+              ),
             ],
           ),
           trailing: Column(

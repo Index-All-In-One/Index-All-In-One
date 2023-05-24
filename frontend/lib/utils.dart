@@ -156,6 +156,10 @@ class LinkTextButtonWithHover extends StatelessWidget {
       text: truncatedText,
       maxLines: maxLines,
       onPressed: () => launchUrl(Uri.parse(link), webOnlyWindowName: '_blank'),
+      style: const TextStyle(
+        color: Colors.green,
+        fontStyle: FontStyle.italic,
+      ),
     );
   }
 }
@@ -165,6 +169,8 @@ class TextButtonWithHover extends StatelessWidget {
   final String text;
   final Function() onPressed;
   final int maxLines;
+  final TextStyle? style;
+  final TextStyle? hoverStyle;
 
   const TextButtonWithHover({
     super.key,
@@ -172,6 +178,8 @@ class TextButtonWithHover extends StatelessWidget {
     required this.text,
     required this.onPressed,
     this.maxLines = 1,
+    this.style,
+    this.hoverStyle,
   });
 
   @override
@@ -184,8 +192,7 @@ class TextButtonWithHover extends StatelessWidget {
           text,
           maxLines: maxLines,
           overflow: TextOverflow.ellipsis,
-          style:
-              const TextStyle(color: Colors.green, fontStyle: FontStyle.italic),
+          style: style,
         ),
       ),
     );
