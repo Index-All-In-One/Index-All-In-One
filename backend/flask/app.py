@@ -125,7 +125,7 @@ def search_count():
 
     count = 0
     for doc in docs:
-        plugin_instance = sqlalchemy_db.session.query(PluginInstance.source_name).filter_by(plugin_instance_id=doc['plugin_instance_id']).first()
+        plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter_by(plugin_instance_id=doc['plugin_instance_id']).first()
         if plugin_instance is not None:
             count += 1
 
@@ -137,9 +137,11 @@ def search():
 
     search_results = []
     for doc in docs:
-        plugin_instance = sqlalchemy_db.session.query(PluginInstance.source_name).filter_by(plugin_instance_id=doc['plugin_instance_id']).first()
+        plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == doc['plugin_instance_id']).first()
         if plugin_instance is not None:
             source_name = plugin_instance.source_name
+            plugin_name = plugin_instance.plugin_name
+            app.logger.debug("source_name: %s, plugin_name: %s", source_name, plugin_name)
             search_results.append(
                 {
                     "doc_name": doc['doc_name'],
@@ -149,7 +151,8 @@ def search():
                     "created_date": doc['created_date'],
                     "modified_date": doc['modified_date'],
                     "summary": doc['summary'],
-                    "file_size": doc['file_size']
+                    "file_size": doc['file_size'],
+                    "plugin_name": plugin_name
                 })
 
     return jsonify(search_results)
