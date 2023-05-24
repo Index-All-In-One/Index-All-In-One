@@ -17,6 +17,8 @@ class _SearchPageState extends State<SearchPage> {
   Widget _searchResultsWidgetAsList = const ListTile();
   Widget _searchResultsFieldNameWidget = const ListTile();
   Widget _searchResultsWidgetAsTile = const ListTile();
+  double screenWidth = 0;
+  double maxWidth = 500;
 
   @override
   void initState() {
@@ -25,6 +27,8 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    screenWidth = MediaQuery.of(context).size.width;
+    maxWidth = (screenWidth >= 1250) ? screenWidth * 0.5 : 625;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Index All In One'),
@@ -45,7 +49,11 @@ class _SearchPageState extends State<SearchPage> {
           ),
           _searchResultsCountWidget,
           if (_displayAsList) _searchResultsFieldNameWidget,
-          Expanded(child: Container(child: _searchResultsWidget)),
+          Expanded(
+              child: Container(
+            alignment: Alignment.topLeft,
+            child: _searchResultsWidget,
+          )),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -69,7 +77,10 @@ class _SearchPageState extends State<SearchPage> {
   void onSearchFunction(String query) {
     if (query.isNotEmpty) {
       _searchResultsWidgetAsList = buildSearchResults(query);
-      _searchResultsWidgetAsTile = buildSearchResultsAsTiles(query);
+      _searchResultsWidgetAsTile = Container(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: buildSearchResultsAsTiles(query),
+      );
       setState(() {
         _searchResultsCountWidget = buildSearchResultCountFromRequest(query);
         _searchResultsFieldNameWidget = ListTile(
