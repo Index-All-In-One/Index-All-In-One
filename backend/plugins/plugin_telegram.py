@@ -84,7 +84,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         # Iterate over all the dialogs and print the title and ID of each chat
         messages = []
         doc_ids = []
-        sender_cache = {}
+        sender_name_cache = {}
         logging.debug(f'Telegram plugin instance {self.plugin_instance_id} get_messages')
         async for dialog in self.client.iter_dialogs():
 
@@ -191,13 +191,16 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                             sender_id = message.from_id
                             if sender_id is not None:
                                 sender_id_str = sender_id.stringify()
-                                try:
-                                    sender = await self.client.get_entity(sender_id)
-                                    await asyncio.sleep(0.04)
-                                    if sender is not None:
-                                        sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
-                                except Exception as e:
-                                    continue
+                                sender_name = sender_name_cache.get(sender_id_str)
+                                if sender_name is None:
+                                    try:
+                                        sender = await self.client.get_entity(sender_id)
+                                        await asyncio.sleep(0.04)
+                                        if sender is not None:
+                                            sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
+                                            sender_name_cache[sender_id_str] = sender_name
+                                    except Exception as e:
+                                        continue
 
                         content_summary = content[:600] + '...' if len(content) > 600 else content
 
