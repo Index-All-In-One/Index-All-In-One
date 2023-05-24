@@ -2,6 +2,18 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'globals.dart';
 
+Future<String> fetchThumbnail(String url) async {
+  //Extract thumbnail from url
+  var response = await http.get(Uri.parse(url));
+  if (response.statusCode == 200) {
+    var contentType = response.headers['content-type'];
+    if (contentType != null && contentType.contains('image')) {
+      return url;
+    }
+  }
+  return "";
+}
+
 var fakeResponse = http.Response(
     '{"message": "Fake response: Encounterd Error when sending Http request"}',
     500);

@@ -163,10 +163,13 @@ Widget buildSearchResultsAsTiles(String query) {
             Map<String, dynamic> singleQueryResult =
                 queryResults[index] as Map<String, dynamic>;
             String summary = singleQueryResult["summary"];
-            String truncatedSummary = summary.length > 200
+            String truncatedSummary = summary.length > 400
                 ? '${summary.substring(0, 400)}...'
                 : summary;
 
+            //Make tailing text smaller
+            var taillingStyle = const TextStyle(
+                color: Colors.grey, fontStyle: FontStyle.italic, fontSize: 10);
             return Container(
               margin:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -184,23 +187,53 @@ Widget buildSearchResultsAsTiles(String query) {
               child: ListTile(
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                title: Text(
-                  singleQueryResult["doc_name"],
+                // leading: TextWithHover(
+                //   text: singleQueryResult["source"],
+                // ),
+                title: TextWithHover(
+                  text: singleQueryResult["doc_name"],
+                  maxLines: 2,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(children: [
-                      CopyLinkIconWithHover(
-                        link: singleQueryResult["link"],
-                      ),
-                      LinkTextButtonWithHover(
-                        link: singleQueryResult["link"],
-                      ),
-                    ]),
                     const SizedBox(height: 4.0),
                     Text(truncatedSummary),
+                    LinkTextButtonWithHover(
+                      link: singleQueryResult["link"],
+                    ),
+                    Row(children: [
+                      CopyLinkIconWithHover(link: singleQueryResult["link"]),
+                      PopUpIconButton(
+                        title: "Summary",
+                        content: Text(summary),
+                      ),
+                    ]),
+                  ],
+                ),
+                trailing: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    TextWithHover(
+                        text: "${singleQueryResult["source"]}",
+                        style: taillingStyle),
+                    TextWithHover(
+                        text: "${singleQueryResult["doc_type"]}",
+                        style: taillingStyle),
+                    TextWithDifferentHover(
+                        hoverText: singleQueryResult["file_size"].toString(),
+                        text: formatFileSize(
+                            singleQueryResult["file_size"].toString()),
+                        style: taillingStyle),
+                    TextWithDifferentHover(
+                        hoverText:
+                            "Created Date: ${formatTimeMinute(singleQueryResult["created_date"])}\n"
+                            "Modified Date: ${formatTimeMinute(singleQueryResult["modified_date"])}",
+                        text: formatTimeMinute(
+                            singleQueryResult["modified_date"]),
+                        style: taillingStyle),
                   ],
                 ),
               ),

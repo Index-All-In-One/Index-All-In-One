@@ -6,6 +6,58 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'globals.dart' as globals;
 
+Future<String> fetchThumbnail(String url) async {
+  //Extract thumbnail from url
+  var response = await http.get(Uri.parse(url));
+  if (response.statusCode == 200) {
+    var contentType = response.headers['content-type'];
+    if (contentType != null && contentType.contains('image')) {
+      return url;
+    }
+  }
+  return "";
+}
+
+class ThumbnailIcon extends StatefulWidget {
+  final String url;
+
+  const ThumbnailIcon({required this.url, Key? key}) : super(key: key);
+
+  @override
+  State<ThumbnailIcon> createState() => _ThumbnailIconState();
+}
+
+class _ThumbnailIconState extends State<ThumbnailIcon> {
+  late Future<String> _thumbnailUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _thumbnailUrl = fetchThumbnail(widget.url);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: _thumbnailUrl,
+      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Icon(Icons.error);
+        } else {
+          return Image.network(
+            snapshot.data!,
+            width: 24, // Adjust the width as needed
+            height: 24, // Adjust the height as needed
+            fit: BoxFit.cover,
+          );
+        }
+      },
+    );
+  }
+}
+
 Future<void> googleOAuth(String pluginInstanceID, String? pluginName,
     String scope, Function onError) async {
   if (globals.gOAuthClientId == "") {
@@ -85,19 +137,22 @@ class CopyLinkIconWithHover extends StatelessWidget {
 
 class LinkTextButtonWithHover extends StatelessWidget {
   final String link;
+  final int maxLines;
 
   const LinkTextButtonWithHover({
     super.key,
     required this.link,
+    this.maxLines = 1,
   });
 
   @override
   Widget build(BuildContext context) {
     String truncatedText =
-        link.length > 50 ? '${link.substring(0, 50)}...' : link;
+        link.length > 60 ? '${link.substring(0, 60)}...' : link;
     return TextButtonWithHover(
       hoverText: link,
       text: truncatedText,
+      maxLines: maxLines,
       onPressed: () => launchUrl(Uri.parse(link), webOnlyWindowName: '_blank'),
     );
   }
@@ -107,12 +162,14 @@ class TextButtonWithHover extends StatelessWidget {
   final String hoverText;
   final String text;
   final Function() onPressed;
+  final int maxLines;
 
   const TextButtonWithHover({
     super.key,
     required this.hoverText,
     required this.text,
     required this.onPressed,
+    this.maxLines = 1,
   });
 
   @override
@@ -123,6 +180,8 @@ class TextButtonWithHover extends StatelessWidget {
         onPressed: onPressed,
         child: Text(
           text,
+          maxLines: maxLines,
+          overflow: TextOverflow.ellipsis,
           style:
               const TextStyle(color: Colors.green, fontStyle: FontStyle.italic),
         ),
@@ -263,6 +322,7 @@ class TextWithHover extends StatelessWidget {
         text,
         maxLines: maxLines,
         overflow: TextOverflow.ellipsis,
+        style: style,
       ),
     );
   }
@@ -292,6 +352,7 @@ class TextWithDifferentHover extends StatelessWidget {
         text,
         maxLines: maxLines,
         overflow: TextOverflow.ellipsis,
+        style: style,
       ),
     );
   }
