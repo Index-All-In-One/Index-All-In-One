@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'search_bar.dart';
 import 'build_search_results.dart';
 import 'utils.dart';
+import 'apis.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -15,8 +16,26 @@ class _SearchPageState extends State<SearchPage> {
   Widget _searchResultsWidget = ListView();
   bool _displayAsList = false;
   Widget _searchResultsWidgetAsList = const ListTile();
-  Widget _searchResultsFieldNameWidget = const ListTile();
   Widget _searchResultsWidgetAsTile = const ListTile();
+  late List<dynamic>? _queryResults;
+
+  final Widget _searchResultsFieldNameWidget = ListTile(
+    title: Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      color: Colors.grey[200],
+      child: Row(
+          children: documentFieldKeys
+              .map((key) => Expanded(
+                    child: Center(
+                        child: TextWithHover(
+                      text: documentFieldDisplayNames[key]!,
+                      maxLines: 1,
+                    )),
+                  ))
+              .toList()),
+    ),
+  );
+
   double screenWidth = 0;
   double maxWidth = 500;
 
@@ -74,31 +93,19 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
-  void onSearchFunction(String query) {
+  void onSearchFunction(String query) async {
     if (query.isNotEmpty) {
-      _searchResultsWidgetAsList = buildSearchResults(query);
+      _queryResults = await getQueryResults(query);
+      _searchResultsWidgetAsList =
+          buildSearchResultsAsListUseQueryResults(_queryResults);
       _searchResultsWidgetAsTile = Container(
         constraints: BoxConstraints(maxWidth: maxWidth),
-        child: buildSearchResultsAsTiles(query),
+        child: buildSaerchResultsAsTileUseQueryResults(_queryResults),
       );
+
       setState(() {
-        _searchResultsCountWidget = buildSearchResultCountFromRequest(query);
-        _searchResultsFieldNameWidget = ListTile(
-          title: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            color: Colors.grey[200],
-            child: Row(
-                children: documentFieldKeys
-                    .map((key) => Expanded(
-                          child: Center(
-                              child: TextWithHover(
-                            text: documentFieldDisplayNames[key]!,
-                            maxLines: 1,
-                          )),
-                        ))
-                    .toList()),
-          ),
-        );
+        _searchResultsCountWidget =
+            buildSearchResultCountFromQueryResults(_queryResults);
         if (_displayAsList) {
           _searchResultsWidget = _searchResultsWidgetAsList;
         } else {

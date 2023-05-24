@@ -719,7 +719,7 @@ class _BuildFromHttpRequestState extends State<BuildFromHttpRequest> {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
             return const Center(
-              child: Text('An error occurred in http request'),
+              child: Text('An error occurred in http(s) request'),
             );
           }
 

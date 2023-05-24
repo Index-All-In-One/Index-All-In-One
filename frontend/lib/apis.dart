@@ -29,6 +29,15 @@ Future<bool> onlyCareStatus(
   return true;
 }
 
+Future<List<dynamic>?> getQueryResults(String query) async {
+  var response = await sendSearchRequest(query);
+  if (response.statusCode != 200) {
+    return null;
+  }
+  List<dynamic> queryResults = jsonDecode(response.body).cast<dynamic>();
+  return queryResults;
+}
+
 Future<http.Response> sendSearchRequest(String query) async {
   var url = Uri.parse('$apiBaseUrl/search');
 
