@@ -182,24 +182,31 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                         # content
                         content = message.message
                         # summary
-                        sender_name = ""
-                        if dialog.is_channel or message.from_id is None:
-                            sender_name = ""
+
+                        sender = None
+                        sender_name = None
+                        if conv_type == 'Private Chat' and not message.out:
+                            sender_name = dialog_name
                         else:
-                            sender_id = message.from_id.user_id
-                            if sender_id not in sender_cache:
-                                sender = await message.get_sender()
-                                sender_cache[sender_id] = sender
-                                await asyncio.sleep(0.04)
-                            else:
-                                sender = sender_cache[sender_id]
-                            if sender is not None:
-                                sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
-                            else:
-                                sender_name = ""
+                            sender_id = message.from_id
+                            if sender_id is not None:
+                                sender_id_str = sender_id.stringify()
+                                try:
+                                    sender = await self.client.get_entity(sender_id)
+                                    await asyncio.sleep(0.04)
+                                    if sender is not None:
+                                        sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
+                                except Exception as e:
+                                    continue
 
                         content_summary = content[:600] + '...' if len(content) > 600 else content
-                        summary = "Dialog: {}, Type: {}, Sender: {},\nMessage:\n{}".format(dialog_name, conv_type, sender_name, content_summary)
+
+                        # set 'Sender:' when sender_name is not None
+                        if sender_name:
+                            summary = "Type: {}, Sender: {}\nMessage:\n{}".format(conv_type, sender_name, content_summary)
+                        else:
+                            summary = "Type: {}\nMessage:\n{}".format(conv_type, content_summary)
+
                         # file_size
                         file_size = len(message.raw_text.encode('utf-8'))
 
