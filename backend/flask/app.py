@@ -135,12 +135,24 @@ def search_count():
 def search():
     docs = extract_docs_from_response(get_search_results(opensearch_conn, request, include_fields=['doc_name', 'doc_type', 'link', 'plugin_instance_id', 'created_date', 'modified_date', 'summary', 'file_size']))
 
+    cached_names={}
     search_results = []
     for doc in docs:
-        plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == doc['plugin_instance_id']).first()
-        if plugin_instance is not None:
-            source_name = plugin_instance.source_name
-            plugin_name = plugin_instance.plugin_name
+        cache = cached_names.get(doc['plugin_instance_id'], None)
+        source_name = None
+        plugin_name = None
+        if cache is None:
+            plugin_instance = sqlalchemy_db.session.query(PluginInstance).filter(PluginInstance.plugin_instance_id == doc['plugin_instance_id']).first()
+            if plugin_instance is not None:
+                source_name = plugin_instance.source_name
+                plugin_name = plugin_instance.plugin_name
+                cached_names[doc['plugin_instance_id']] = (source_name, plugin_name)
+            else:
+                cached_names[doc['plugin_instance_id']] = (None, None)
+        else:
+            source_name, plugin_name = cache
+
+        if source_name is not None and plugin_name is not None:
             search_results.append(
                 {
                     "doc_name": doc['doc_name'],
