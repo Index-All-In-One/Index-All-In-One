@@ -114,7 +114,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         sender = self.decode_email_header(doc_content.get('From'))
         receiver = self.decode_email_header(doc_content.get('To'))
 
-        bcc = ''
+        bcc = None
         bcc_bytes = doc_content.get('Bcc')
         if bcc_bytes:
             bcc_bytes = email.header.decode_header(bcc_bytes)
@@ -127,10 +127,12 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
 
         text_summary = text_content[:600] + '...' if len(text_content) > 600 else text_content
 
-        # send_date = send_date.split(' (')[0]
-        # send_date = datetime.datetime.strptime(send_date, '%a, %d %b %Y %H:%M:%S %z')
-        # send_date = send_date.replace(tzinfo=None)
-        # send_date = send_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+        summary = ''
+        if bcc:
+            summary = "Sender: {}\nReceiver: {}\nBCC: {}\nBody:\n{}".format(sender, receiver, bcc, text_summary)
+        else:
+            summary = "Sender: {}\nReceiver: {}\nBody:\n{}".format(sender, receiver, text_summary)
+
         send_date = parse(send_date)
         body = {
             "doc_id": doc_id,
@@ -139,7 +141,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
             "link": gmail_url,
             "created_date": send_date,
             "modified_date": send_date,
-            "summary": "Sender: {}\nReceiver: {}\nBCC: {}\nBody:\n{}".format(sender, receiver, bcc, text_summary),
+            "summary": summary,
             "file_size": int(size),
             "plugin_instance_id": self.plugin_instance_id,
             "content": text_content
