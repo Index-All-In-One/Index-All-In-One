@@ -206,7 +206,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                         body = {
                             "doc_id": doc_id,
                             "doc_name": doc_name,
-                            "doc_type": 'Telegram',
+                            "doc_type": 'Telegram Message',
                             "link": link,
                             "created_date": created_date,
                             "modified_date": modified_date,

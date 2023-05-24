@@ -141,7 +141,6 @@ def search():
         if plugin_instance is not None:
             source_name = plugin_instance.source_name
             plugin_name = plugin_instance.plugin_name
-            app.logger.debug("source_name: %s, plugin_name: %s", source_name, plugin_name)
             search_results.append(
                 {
                     "doc_name": doc['doc_name'],
