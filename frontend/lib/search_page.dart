@@ -11,11 +11,12 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  Widget _searchResultsWidget = ListView();
   Widget _searchResultsCountWidget = const ListTile();
-  // init with empty widget to avoid take up space
-  Widget _searchResultsFieldNameWidget = const ListTile();
+  Widget _searchResultsWidget = ListView();
   bool _displayAsList = false;
+  Widget _searchResultsWidgetAsList = const ListTile();
+  Widget _searchResultsFieldNameWidget = const ListTile();
+  Widget _searchResultsWidgetAsTile = const ListTile();
 
   @override
   void initState() {
@@ -47,33 +48,50 @@ class _SearchPageState extends State<SearchPage> {
           Expanded(child: Container(child: _searchResultsWidget)),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _toggleView,
+        child: Icon(_displayAsList ? Icons.view_list : Icons.grid_view),
+      ),
     );
+  }
+
+  void _toggleView() {
+    setState(() {
+      _displayAsList = !_displayAsList;
+      if (_displayAsList) {
+        _searchResultsWidget = _searchResultsWidgetAsList;
+      } else {
+        _searchResultsWidget = _searchResultsWidgetAsTile;
+      }
+    });
   }
 
   void onSearchFunction(String query) {
     if (query.isNotEmpty) {
+      _searchResultsWidgetAsList = buildSearchResults(query);
+      _searchResultsWidgetAsTile = buildSearchResultsAsTiles(query);
       setState(() {
         _searchResultsCountWidget = buildSearchResultCountFromRequest(query);
+        _searchResultsFieldNameWidget = ListTile(
+          title: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            color: Colors.grey[200],
+            child: Row(
+                children: documentFieldKeys
+                    .map((key) => Expanded(
+                          child: Center(
+                              child: TextWithHover(
+                            text: documentFieldDisplayNames[key]!,
+                            maxLines: 1,
+                          )),
+                        ))
+                    .toList()),
+          ),
+        );
         if (_displayAsList) {
-          _searchResultsWidget = buildSearchResults(query);
-          _searchResultsFieldNameWidget = ListTile(
-            title: Container(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              color: Colors.grey[200],
-              child: Row(
-                  children: documentFieldKeys
-                      .map((key) => Expanded(
-                            child: Center(
-                                child: TextWithHover(
-                              text: documentFieldDisplayNames[key]!,
-                              maxLines: 1,
-                            )),
-                          ))
-                      .toList()),
-            ),
-          );
+          _searchResultsWidget = _searchResultsWidgetAsList;
         } else {
-          _searchResultsWidget = buildSearchResultsAsTiles(query);
+          _searchResultsWidget = _searchResultsWidgetAsTile;
         }
       });
     }
