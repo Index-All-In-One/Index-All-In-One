@@ -3,54 +3,56 @@ import 'package:clipboard/clipboard.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 import 'globals.dart' as globals;
 
-Future<String> fetchThumbnail(String url) async {
-  //Extract thumbnail from url
-  var response = await http.get(Uri.parse(url));
-  if (response.statusCode == 200) {
-    var contentType = response.headers['content-type'];
-    if (contentType != null && contentType.contains('image')) {
-      return url;
-    }
+Future<Image> loadImage(String imagePath, String defaultImagePath, double width,
+    double height) async {
+  try {
+    // Check if main image exists
+    await rootBundle.load(imagePath);
+    return Image.asset(
+      imagePath,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+    );
+  } catch (exception) {
+    // Default image will be used on error
+    return Image.asset(
+      defaultImagePath,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+    );
   }
-  return "";
 }
 
-class ThumbnailIcon extends StatefulWidget {
-  final String url;
+class PluginIcon extends StatefulWidget {
+  final String pluginName;
 
-  const ThumbnailIcon({required this.url, Key? key}) : super(key: key);
+  const PluginIcon({required this.pluginName, Key? key}) : super(key: key);
 
   @override
-  State<ThumbnailIcon> createState() => _ThumbnailIconState();
+  State<PluginIcon> createState() => _PluginIconState();
 }
 
-class _ThumbnailIconState extends State<ThumbnailIcon> {
-  late Future<String> _thumbnailUrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _thumbnailUrl = fetchThumbnail(widget.url);
-  }
-
+class _PluginIconState extends State<PluginIcon> {
+  final iconSize = 32.0;
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String>(
-      future: _thumbnailUrl,
-      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          return Icon(Icons.error);
+    return FutureBuilder(
+      future: loadImage('icons/${widget.pluginName}.png', 'icons/default.png',
+          iconSize, iconSize),
+      builder: (BuildContext context, AsyncSnapshot<Image> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return snapshot.data!;
         } else {
-          return Image.network(
-            snapshot.data!,
-            width: 24, // Adjust the width as needed
-            height: 24, // Adjust the height as needed
-            fit: BoxFit.cover,
+          return SizedBox(
+            width: iconSize,
+            height: iconSize,
+            child: const CircularProgressIndicator(),
           );
         }
       },
@@ -897,7 +899,7 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
               ),
             ),
             if (isToggling)
-              Center(
+              const Center(
                 child: CircularProgressIndicator(),
               ),
             Positioned.fill(

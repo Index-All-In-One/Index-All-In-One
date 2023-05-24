@@ -167,9 +167,8 @@ Widget buildSearchResultsAsTiles(String query) {
                 ? '${summary.substring(0, 400)}...'
                 : summary;
 
-            //Make tailing text smaller
             var taillingStyle = const TextStyle(
-                color: Colors.grey, fontStyle: FontStyle.italic, fontSize: 10);
+                color: Colors.grey, fontStyle: FontStyle.italic, fontSize: 12);
             return Container(
               margin:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -187,9 +186,17 @@ Widget buildSearchResultsAsTiles(String query) {
               child: ListTile(
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                // leading: TextWithHover(
-                //   text: singleQueryResult["source"],
-                // ),
+                leading: SizedBox(
+                  width: 60,
+                  child: Column(
+                    children: [
+                      PluginIcon(pluginName: singleQueryResult["plugin_name"]),
+                      TextWithHover(
+                        text: singleQueryResult["source"],
+                      ),
+                    ],
+                  ),
+                ),
                 title: TextWithHover(
                   text: singleQueryResult["doc_name"],
                   maxLines: 2,
@@ -216,9 +223,6 @@ Widget buildSearchResultsAsTiles(String query) {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    TextWithHover(
-                        text: "${singleQueryResult["source"]}",
-                        style: taillingStyle),
                     TextWithHover(
                         text: "${singleQueryResult["doc_type"]}",
                         style: taillingStyle),
