@@ -85,11 +85,14 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                 modified_date = modified_date_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
                 file_size = 0
-                summary = "Owner: {}, Last Modifying User: {}".format(file['owners'][0]['displayName'], file['lastModifyingUser']['displayName'])
 
                 content  = ""
                 if doc_type == 'text/plain':
-                    content = file.GetContentString()[:100]
+                    content = file.GetContentString()
+
+                content_summary = content[:600] + '...' if len(content) > 600 else content
+
+                summary = "Owner: {}, Last Modifying User: {}\nText Content:\n{}".format(file['owners'][0]['displayName'], file['lastModifyingUser']['displayName'], content_summary)
 
                 if doc_type == 'application/vnd.google-apps.folder':
                     doc_ids_r, docs_r = get_files_recursive(file['id'])
