@@ -148,3 +148,64 @@ Widget buildSearchResults(String query) {
         );
       });
 }
+
+Widget buildSearchResultsAsTiles(String query) {
+  return BuildFromHttpRequest(
+      httpRequest: () => sendSearchRequest(query),
+      apiErrorMessageName: "search",
+      builderUsingResponseBody: (responseBody) {
+        List<dynamic> queryResults = responseBody.cast<dynamic>();
+
+        return ListView.builder(
+          itemCount: queryResults.length,
+          itemBuilder: (BuildContext context, int index) {
+            //TODO type conversion error handling
+            Map<String, dynamic> singleQueryResult =
+                queryResults[index] as Map<String, dynamic>;
+            String summary = singleQueryResult["summary"];
+            String truncatedSummary = summary.length > 200
+                ? '${summary.substring(0, 400)}...'
+                : summary;
+
+            return Container(
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 5.0,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: ListTile(
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                title: Text(
+                  singleQueryResult["doc_name"],
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      CopyLinkIconWithHover(
+                        link: singleQueryResult["link"],
+                      ),
+                      LinkTextButtonWithHover(
+                        link: singleQueryResult["link"],
+                      ),
+                    ]),
+                    const SizedBox(height: 4.0),
+                    Text(truncatedSummary),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      });
+}

@@ -83,6 +83,54 @@ class CopyLinkIconWithHover extends StatelessWidget {
   }
 }
 
+class LinkTextButtonWithHover extends StatelessWidget {
+  final String link;
+
+  const LinkTextButtonWithHover({
+    super.key,
+    required this.link,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    String truncatedText =
+        link.length > 50 ? '${link.substring(0, 50)}...' : link;
+    return TextButtonWithHover(
+      hoverText: link,
+      text: truncatedText,
+      onPressed: () => launchUrl(Uri.parse(link), webOnlyWindowName: '_blank'),
+    );
+  }
+}
+
+class TextButtonWithHover extends StatelessWidget {
+  final String hoverText;
+  final String text;
+  final Function() onPressed;
+
+  const TextButtonWithHover({
+    super.key,
+    required this.hoverText,
+    required this.text,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: hoverText,
+      child: TextButton(
+        onPressed: onPressed,
+        child: Text(
+          text,
+          style:
+              const TextStyle(color: Colors.green, fontStyle: FontStyle.italic),
+        ),
+      ),
+    );
+  }
+}
+
 class LinkIconWithHover extends StatelessWidget {
   final String link;
 

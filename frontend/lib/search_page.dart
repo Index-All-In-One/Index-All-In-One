@@ -13,7 +13,9 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   Widget _searchResultsWidget = ListView();
   Widget _searchResultsCountWidget = const ListTile();
+  // init with empty widget to avoid take up space
   Widget _searchResultsFieldNameWidget = const ListTile();
+  bool _displayAsList = false;
 
   @override
   void initState() {
@@ -41,7 +43,7 @@ class _SearchPageState extends State<SearchPage> {
             onSearch: onSearchFunction,
           ),
           _searchResultsCountWidget,
-          _searchResultsFieldNameWidget,
+          if (_displayAsList) _searchResultsFieldNameWidget,
           Expanded(child: Container(child: _searchResultsWidget)),
         ],
       ),
@@ -51,24 +53,28 @@ class _SearchPageState extends State<SearchPage> {
   void onSearchFunction(String query) {
     if (query.isNotEmpty) {
       setState(() {
-        _searchResultsWidget = buildSearchResults(query);
         _searchResultsCountWidget = buildSearchResultCountFromRequest(query);
-        _searchResultsFieldNameWidget = ListTile(
-          title: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            color: Colors.grey[200],
-            child: Row(
-                children: documentFieldKeys
-                    .map((key) => Expanded(
-                          child: Center(
-                              child: TextWithHover(
-                            text: documentFieldDisplayNames[key]!,
-                            maxLines: 1,
-                          )),
-                        ))
-                    .toList()),
-          ),
-        );
+        if (_displayAsList) {
+          _searchResultsWidget = buildSearchResults(query);
+          _searchResultsFieldNameWidget = ListTile(
+            title: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              color: Colors.grey[200],
+              child: Row(
+                  children: documentFieldKeys
+                      .map((key) => Expanded(
+                            child: Center(
+                                child: TextWithHover(
+                              text: documentFieldDisplayNames[key]!,
+                              maxLines: 1,
+                            )),
+                          ))
+                      .toList()),
+            ),
+          );
+        } else {
+          _searchResultsWidget = buildSearchResultsAsTiles(query);
+        }
       });
     }
   }
