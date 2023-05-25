@@ -29,21 +29,36 @@ Widget buildSearchResultCount(int count) {
   );
 }
 
-Widget buildSearchResultCountFromQueryResults(List<dynamic>? queryResults) {
-  final int numResults = queryResults?.length ?? 0;
+Widget buildSearchResultCountFromQueryResults(
+    List<dynamic>? queryResults, Map<String, bool>? sourceFilter) {
+  int numResults = 0;
+  if (queryResults != null) {
+    if (sourceFilter != null) {
+      queryResults = queryResults
+          .where((element) => sourceFilter[element["source"]] == true)
+          .toList();
+    }
+    numResults = queryResults.length;
+  }
   return buildSearchResultCount(numResults);
 }
 
-Widget buildSearchResultsAsListUseQueryResults(List<dynamic>? queryResults) {
+Widget buildSearchResultsAsListUseQueryResults(
+    List<dynamic>? queryResults, Map<String, bool>? sourceFilter) {
   if (queryResults == null) {
     return const Text('An error occurred in http(s) request');
+  }
+  if (sourceFilter != null) {
+    queryResults = queryResults
+        .where((element) => sourceFilter[element["source"]] == true)
+        .toList();
   }
   return ListView.builder(
     itemCount: queryResults.length,
     itemBuilder: (BuildContext context, int index) {
       //TODO type conversion error handling
       Map<String, dynamic> singleQueryResult =
-          queryResults[index] as Map<String, dynamic>;
+          queryResults![index] as Map<String, dynamic>;
       return ListTile(
         title: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -135,16 +150,22 @@ Widget buildSearchResultsAsListUseQueryResults(List<dynamic>? queryResults) {
   );
 }
 
-Widget buildSaerchResultsAsTileUseQueryResults(List<dynamic>? queryResults) {
+Widget buildSearchResultsAsTileUseQueryResults(
+    List<dynamic>? queryResults, Map<String, bool>? sourceFilter) {
   if (queryResults == null) {
     return const Text('An error occurred in http(s) request');
+  }
+  if (sourceFilter != null) {
+    queryResults = queryResults
+        .where((element) => sourceFilter[element["source"]] == true)
+        .toList();
   }
   return ListView.builder(
     itemCount: queryResults.length,
     itemBuilder: (BuildContext context, int index) {
       //TODO type conversion error handling
       Map<String, dynamic> singleQueryResult =
-          queryResults[index] as Map<String, dynamic>;
+          queryResults![index] as Map<String, dynamic>;
       String summary = singleQueryResult["summary"];
       String truncatedSummary =
           summary.length > 400 ? '${summary.substring(0, 400)}...' : summary;

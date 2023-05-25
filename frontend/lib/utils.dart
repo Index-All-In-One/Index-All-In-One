@@ -7,6 +7,49 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 import 'globals.dart' as globals;
 
+class TextButtonWithToggle extends StatefulWidget {
+  final bool isSelected;
+  final VoidCallback onPressed;
+  final String label;
+
+  const TextButtonWithToggle({
+    super.key,
+    required this.isSelected,
+    required this.onPressed,
+    required this.label,
+  });
+
+  @override
+  State<TextButtonWithToggle> createState() => _TextButtonWithToggleState();
+}
+
+class _TextButtonWithToggleState extends State<TextButtonWithToggle> {
+  late bool _isSelected;
+
+  @override
+  void initState() {
+    super.initState();
+    _isSelected = widget.isSelected;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: () {
+        widget.onPressed();
+        setState(() {
+          _isSelected = !_isSelected;
+        });
+      },
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: _isSelected ? Colors.blue : Colors.grey,
+      ),
+      child: Text(widget.label),
+    );
+  }
+}
+
 Future<Image> loadImage(String imagePath, String defaultImagePath, double width,
     double height) async {
   try {

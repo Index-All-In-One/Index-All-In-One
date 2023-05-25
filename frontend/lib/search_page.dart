@@ -3,6 +3,7 @@ import 'search_bar.dart';
 import 'build_search_results.dart';
 import 'utils.dart';
 import 'apis.dart';
+import 'filter_utils.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -17,7 +18,8 @@ class _SearchPageState extends State<SearchPage> {
   bool _displayAsList = false;
   Widget _searchResultsWidgetAsList = const ListTile();
   Widget _searchResultsWidgetAsTile = const ListTile();
-  late List<dynamic>? _queryResults;
+  List<dynamic>? _queryResults;
+  Map<String, bool> _sourceFilters = {};
 
   final Widget _searchResultsFieldNameWidget = ListTile(
     title: Container(
@@ -64,7 +66,7 @@ class _SearchPageState extends State<SearchPage> {
         children: [
           MySearchBar(
             hintText: 'Search...',
-            onSearch: onSearchFunction,
+            onSearch: _onSearchFunction,
           ),
           _searchResultsCountWidget,
           if (_displayAsList) _searchResultsFieldNameWidget,
@@ -75,43 +77,111 @@ class _SearchPageState extends State<SearchPage> {
           )),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _toggleView,
-        child: Icon(_displayAsList ? Icons.view_list : Icons.grid_view),
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            bottom: 80.0,
+            right: 16.0,
+            child: FloatingActionButton(
+              heroTag: 'fab-view-toggle',
+              onPressed: _toggleView,
+              child: Icon(_displayAsList ? Icons.view_list : Icons.grid_view),
+            ),
+          ),
+          Positioned(
+              bottom: 16.0,
+              right: 16.0,
+              child: FloatingActionButton(
+                heroTag: 'fab-filter',
+                onPressed: () => _showFilterDialog(context),
+                child: const Icon(Icons.filter_list),
+              )),
+        ],
       ),
     );
+  }
+
+  void _showFilterDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            //align left
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Filter by source:"),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Wrap(children: [
+                  ..._sourceFilters.entries
+                      .map((entry) => Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 4, 8, 4),
+                            child: TextButtonWithToggle(
+                              isSelected: entry.value,
+                              onPressed: () => setState(() {
+                                _sourceFilters[entry.key] =
+                                    !(_sourceFilters[entry.key]!);
+                              }),
+                              label: entry.key,
+                            ),
+                          ))
+                      .toList(),
+                ]),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: ElevatedButton(
+                  onPressed: () {
+                    _updateSearchResultWithFilter(_sourceFilters);
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Apply"),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _updateSearchResultWithFilter(Map<String, bool>? sourceFilter) {
+    _searchResultsWidgetAsList =
+        buildSearchResultsAsListUseQueryResults(_queryResults, sourceFilter);
+    _searchResultsWidgetAsTile = Container(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child:
+          buildSearchResultsAsTileUseQueryResults(_queryResults, sourceFilter),
+    );
+
+    setState(() {
+      _searchResultsCountWidget =
+          buildSearchResultCountFromQueryResults(_queryResults, sourceFilter);
+      _searchResultsWidget = _displayAsList
+          ? _searchResultsWidgetAsList
+          : _searchResultsWidgetAsTile;
+    });
+  }
+
+  void _onSearchFunction(String query) async {
+    if (query.isNotEmpty) {
+      _queryResults = await getQueryResults(query);
+      _updateSearchResultWithFilter(null);
+
+      setState(() {
+        _sourceFilters = getSourceFilters(_queryResults);
+      });
+    }
   }
 
   void _toggleView() {
     setState(() {
       _displayAsList = !_displayAsList;
-      if (_displayAsList) {
-        _searchResultsWidget = _searchResultsWidgetAsList;
-      } else {
-        _searchResultsWidget = _searchResultsWidgetAsTile;
-      }
+      _searchResultsWidget = _displayAsList
+          ? _searchResultsWidgetAsList
+          : _searchResultsWidgetAsTile;
     });
-  }
-
-  void onSearchFunction(String query) async {
-    if (query.isNotEmpty) {
-      _queryResults = await getQueryResults(query);
-      _searchResultsWidgetAsList =
-          buildSearchResultsAsListUseQueryResults(_queryResults);
-      _searchResultsWidgetAsTile = Container(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        child: buildSaerchResultsAsTileUseQueryResults(_queryResults),
-      );
-
-      setState(() {
-        _searchResultsCountWidget =
-            buildSearchResultCountFromQueryResults(_queryResults);
-        if (_displayAsList) {
-          _searchResultsWidget = _searchResultsWidgetAsList;
-        } else {
-          _searchResultsWidget = _searchResultsWidgetAsTile;
-        }
-      });
-    }
   }
 }
