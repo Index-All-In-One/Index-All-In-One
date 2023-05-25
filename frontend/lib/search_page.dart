@@ -66,6 +66,8 @@ class _SearchPageState extends State<SearchPage> {
             MySearchBar(
               hintText: 'Search...',
               onSearch: _onSearchFunction,
+              iconAtRight: false,
+              outlineBorder: false,
             ),
             _searchResultsCountWidget,
             if (_displayAsList) _searchResultsFieldNameWidgetDisplay,
