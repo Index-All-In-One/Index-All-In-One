@@ -36,7 +36,6 @@ class _SearchPageState extends State<SearchPage> {
   Widget _searchResultsFieldNameWidgetDisplay = const ListTile();
 
   double screenWidth = 0;
-  double maxWidth = 500;
 
   @override
   void initState() {
@@ -46,7 +45,6 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     screenWidth = MediaQuery.of(context).size.width;
-    maxWidth = (screenWidth >= 1250) ? screenWidth * 0.5 : 625;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Index All In One'),
@@ -60,7 +58,7 @@ class _SearchPageState extends State<SearchPage> {
         ],
       ),
       body: SizedBox(
-        width: _displayAsList ? screenWidth : maxWidth,
+        width: getMaxWidth(),
         child: Column(
           children: [
             MySearchBar(
@@ -101,6 +99,12 @@ class _SearchPageState extends State<SearchPage> {
         ],
       ),
     );
+  }
+
+  double getMaxWidth() {
+    return _displayAsList
+        ? screenWidth
+        : ((screenWidth >= 1250) ? screenWidth * 0.6 : 750);
   }
 
   void _showFilterDialog(BuildContext context) {
@@ -153,7 +157,7 @@ class _SearchPageState extends State<SearchPage> {
     _searchResultsWidgetAsList =
         buildSearchResultsAsListUseQueryResults(_queryResults, sourceFilter);
     _searchResultsWidgetAsTile = Container(
-      constraints: BoxConstraints(maxWidth: maxWidth),
+      // constraints: BoxConstraints(maxWidth: getMaxWidth()),
       child:
           buildSearchResultsAsTileUseQueryResults(_queryResults, sourceFilter),
     );
