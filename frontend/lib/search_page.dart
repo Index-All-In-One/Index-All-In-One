@@ -22,21 +22,18 @@ class _SearchPageState extends State<SearchPage> {
   Map<String, bool> _sourceFilters = {};
 
   final Widget _searchResultsFieldNameWidget = ListTile(
-    title: Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      color: Colors.grey[200],
-      child: Row(
-          children: documentFieldKeys
-              .map((key) => Expanded(
-                    child: Center(
-                        child: TextWithHover(
-                      text: documentFieldDisplayNames[key]!,
-                      maxLines: 1,
-                    )),
-                  ))
-              .toList()),
-    ),
-  );
+      title: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          color: Colors.grey[200],
+          child: Row(
+              children: documentFieldKeys
+                  .map((key) => Expanded(
+                      child: Center(
+                          child: TextWithHover(
+                              text: documentFieldDisplayNames[key]!,
+                              maxLines: 1))))
+                  .toList())));
+  Widget _searchResultsFieldNameWidgetDisplay = const ListTile();
 
   double screenWidth = 0;
   double maxWidth = 500;
@@ -62,20 +59,23 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          MySearchBar(
-            hintText: 'Search...',
-            onSearch: _onSearchFunction,
-          ),
-          _searchResultsCountWidget,
-          if (_displayAsList) _searchResultsFieldNameWidget,
-          Expanded(
-              child: Container(
-            alignment: Alignment.topLeft,
-            child: _searchResultsWidget,
-          )),
-        ],
+      body: SizedBox(
+        width: _displayAsList ? screenWidth : maxWidth,
+        child: Column(
+          children: [
+            MySearchBar(
+              hintText: 'Search...',
+              onSearch: _onSearchFunction,
+            ),
+            _searchResultsCountWidget,
+            if (_displayAsList) _searchResultsFieldNameWidgetDisplay,
+            Expanded(
+                child: Container(
+              alignment: Alignment.topLeft,
+              child: _searchResultsWidget,
+            )),
+          ],
+        ),
       ),
       floatingActionButton: Stack(
         children: [
@@ -171,6 +171,7 @@ class _SearchPageState extends State<SearchPage> {
       _updateSearchResultWithFilter(null);
 
       setState(() {
+        _searchResultsFieldNameWidgetDisplay = _searchResultsFieldNameWidget;
         _sourceFilters = getSourceFilters(_queryResults);
       });
     }
