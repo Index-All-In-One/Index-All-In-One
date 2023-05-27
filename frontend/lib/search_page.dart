@@ -54,8 +54,7 @@ class _SearchPageState extends State<SearchPage> {
               padding: const EdgeInsets.only(right: 8.0),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(19.5),
-                child:
-                    Image.asset('logos/logo_1_512.png', height: 36, width: 36),
+                child: Image.asset('icons/logo-512.png', height: 36, width: 36),
               ),
             ),
             const Text('Index All In One'),
