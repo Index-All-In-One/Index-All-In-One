@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'utils.dart';
-
 Map<String, bool> getSourceFilters(List<dynamic>? queryResults) {
   if (queryResults == null) {
     return {};
