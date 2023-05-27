@@ -25,9 +25,34 @@ OpenSearch for search engine, Flutter for frontend UI, Python for integration pl
 Expected project Outcome:
 An app with a unified search framework suitable for running on home devices, integrating files and content from different sources to build and update an index.
 
-## Run in docker compose
+## Usage
+
+### Pre-requirements
 
 Make sure you have `flutter` installed.
+
+Default domain name is `localhost`. You can set `DOMAIN_NAME` in env to your domain name. For example:
+
+```bash
+export DOMAIN_NAME=example.com
+```
+
+Get ssl certificate and key for this domain and put them in `./frontend/docker-nginx/ssl_cert` dir, they should be named as `$DOMAIN_NAME-key.pem` and `$DOMAIN_NAME.pem`. For example:
+
+```bash
+./frontend/docker-nginx/ssl_cert/localhost.pem
+./frontend/docker-nginx/ssl_cert/localhost-key.pem
+```
+
+Default port is `8000` and listen on `127.0.0.1`. You can set `SERVER_URL` and `LOCAL_ADDR` in env to run it in different port or remote server. For example:
+
+```bash
+export SERVER_URL=https://example.com:8001
+export LOCAL_ADDR=0.0.0.0:8001
+```
+
+
+### Run in docker compose
 
 Run this command on project’s root dir to start docker compose (detached mode):
 
@@ -35,12 +60,27 @@ Run this command on project’s root dir to start docker compose (detached mode)
 ./scripts/run-docker-compose.sh run
 ```
 
-And then access flutter web at localhost:8000.
+And then access webpage at https://localhost:8000 (or https://<your_domain_and_port>).
 
-Or set `SERVER_URL` and `LOCAL_ADDR` in env to run it in different port or remote server.
-
-You can also use `logs` , `stop`, `clean` as operation in this command:
+You can also use `logs [service]` , `stop`, `clean` as operation in this command:
 
 ```bash
 ./scripts/run-docker-compose.sh <operation>
+```
+
+## Google OAuth
+
+To use plugin such as Google Drive (gdrive), you need to create a Google OAuth client ID and secret.
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. enable `Google Drive API` and `Google People API`
+3. Create your OAuth consent screen for this app
+4. Create a new OAuth client ID
+5. Select `Web application` as application type
+6. Add `https://<your_domain_and_port>/api/GOAuthCB` as authorized redirect URI
+
+Set `GOAUTH_CLIENT_ID` and `GOAUTH_CLIENT_SECRET` in env to use it. For example:
+```bash
+export GOAUTH_CLIENT_ID=aaabbb
+export GOAUTH_CLIENT_SECRET=cccddd
 ```
