@@ -13,11 +13,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Index All In One App',
+      title: 'Your all-in-one Search Engine!',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      // home: const GFG(),
       initialRoute: '/',
       routes: {
         '/': (context) => const SearchPage(),

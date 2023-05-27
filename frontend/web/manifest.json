@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A Unified Search Engine for all your needs",
+    "description": "A unified search engine for all your needs!",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
