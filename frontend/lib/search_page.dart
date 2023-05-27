@@ -47,7 +47,21 @@ class _SearchPageState extends State<SearchPage> {
     screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Index All In One'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(19.5),
+                child:
+                    Image.asset('logos/logo_1_512.png', height: 36, width: 36),
+              ),
+            ),
+            const Text('Index All In One'),
+          ],
+        ),
+        // centerTitle: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -57,24 +71,26 @@ class _SearchPageState extends State<SearchPage> {
           ),
         ],
       ),
-      body: SizedBox(
-        width: getMaxWidth(),
-        child: Column(
-          children: [
-            MySearchBar(
-              hintText: 'Search...',
-              onSearch: _onSearchFunction,
-              iconAtRight: false,
-              outlineBorder: false,
-            ),
-            _searchResultsCountWidget,
-            if (_displayAsList) _searchResultsFieldNameWidgetDisplay,
-            Expanded(
-                child: Container(
-              alignment: Alignment.topLeft,
-              child: _searchResultsWidget,
-            )),
-          ],
+      body: Center(
+        child: SizedBox(
+          width: getMaxWidth(),
+          child: Column(
+            children: [
+              MySearchBar(
+                hintText: 'Search...',
+                onSearch: _onSearchFunction,
+                iconAtRight: false,
+                outlineBorder: false,
+              ),
+              _searchResultsCountWidget,
+              if (_displayAsList) _searchResultsFieldNameWidgetDisplay,
+              Expanded(
+                  child: Container(
+                alignment: Alignment.center,
+                child: _searchResultsWidget,
+              )),
+            ],
+          ),
         ),
       ),
       floatingActionButton: Stack(
