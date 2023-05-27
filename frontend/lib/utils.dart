@@ -3,8 +3,105 @@ import 'package:clipboard/clipboard.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 import 'globals.dart' as globals;
+
+class TextButtonWithToggle extends StatefulWidget {
+  final bool isSelected;
+  final VoidCallback onPressed;
+  final String label;
+
+  const TextButtonWithToggle({
+    super.key,
+    required this.isSelected,
+    required this.onPressed,
+    required this.label,
+  });
+
+  @override
+  State<TextButtonWithToggle> createState() => _TextButtonWithToggleState();
+}
+
+class _TextButtonWithToggleState extends State<TextButtonWithToggle> {
+  late bool _isSelected;
+
+  @override
+  void initState() {
+    super.initState();
+    _isSelected = widget.isSelected;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: () {
+        widget.onPressed();
+        setState(() {
+          _isSelected = !_isSelected;
+        });
+      },
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: _isSelected ? Colors.blue : Colors.grey,
+      ),
+      child: Text(widget.label),
+    );
+  }
+}
+
+Future<Image> loadImage(String imagePath, String defaultImagePath, double width,
+    double height) async {
+  try {
+    // Check if main image exists
+    await rootBundle.load(imagePath);
+    return Image.asset(
+      imagePath,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+    );
+  } catch (exception) {
+    // Default image will be used on error
+    return Image.asset(
+      defaultImagePath,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+    );
+  }
+}
+
+class PluginIcon extends StatefulWidget {
+  final String pluginName;
+
+  const PluginIcon({required this.pluginName, Key? key}) : super(key: key);
+
+  @override
+  State<PluginIcon> createState() => _PluginIconState();
+}
+
+class _PluginIconState extends State<PluginIcon> {
+  final iconSize = 32.0;
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: loadImage('icons/${widget.pluginName}.png', 'icons/default.png',
+          iconSize, iconSize),
+      builder: (BuildContext context, AsyncSnapshot<Image> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return snapshot.data!;
+        } else {
+          return SizedBox(
+            width: iconSize,
+            height: iconSize,
+            child: const CircularProgressIndicator(),
+          );
+        }
+      },
+    );
+  }
+}
 
 Future<void> googleOAuth(String pluginInstanceID, String? pluginName,
     String scope, Function onError) async {
@@ -79,6 +176,68 @@ class CopyLinkIconWithHover extends StatelessWidget {
           clearAndShowSnackBarMsg(context, 'Link copied to clipboard');
         });
       },
+    );
+  }
+}
+
+class LinkTextButtonWithHover extends StatelessWidget {
+  final String link;
+  final int maxLines;
+
+  const LinkTextButtonWithHover({
+    super.key,
+    required this.link,
+    this.maxLines = 1,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    String truncatedText =
+        link.length > 60 ? '${link.substring(0, 60)}...' : link;
+    return TextButtonWithHover(
+      hoverText: link,
+      text: truncatedText,
+      maxLines: maxLines,
+      onPressed: () => launchUrl(Uri.parse(link), webOnlyWindowName: '_blank'),
+      style: const TextStyle(
+        color: Colors.green,
+        fontStyle: FontStyle.italic,
+      ),
+    );
+  }
+}
+
+class TextButtonWithHover extends StatelessWidget {
+  final String hoverText;
+  final String text;
+  final Function() onPressed;
+  final int maxLines;
+  final TextStyle? style;
+  final TextStyle? hoverStyle;
+
+  const TextButtonWithHover({
+    super.key,
+    required this.hoverText,
+    required this.text,
+    required this.onPressed,
+    this.maxLines = 1,
+    this.style,
+    this.hoverStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: hoverText,
+      child: TextButton(
+        onPressed: onPressed,
+        child: Text(
+          text,
+          maxLines: maxLines,
+          overflow: TextOverflow.ellipsis,
+          style: style,
+        ),
+      ),
     );
   }
 }
@@ -215,6 +374,7 @@ class TextWithHover extends StatelessWidget {
         text,
         maxLines: maxLines,
         overflow: TextOverflow.ellipsis,
+        style: style,
       ),
     );
   }
@@ -244,6 +404,7 @@ class TextWithDifferentHover extends StatelessWidget {
         text,
         maxLines: maxLines,
         overflow: TextOverflow.ellipsis,
+        style: style,
       ),
     );
   }
@@ -608,7 +769,7 @@ class _BuildFromHttpRequestState extends State<BuildFromHttpRequest> {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
             return const Center(
-              child: Text('An error occurred in http request'),
+              child: Text('An error occurred in http(s) request'),
             );
           }
 
@@ -788,7 +949,7 @@ class _ToggleSwitchState extends State<ToggleSwitch> {
               ),
             ),
             if (isToggling)
-              Center(
+              const Center(
                 child: CircularProgressIndicator(),
               ),
             Positioned.fill(
