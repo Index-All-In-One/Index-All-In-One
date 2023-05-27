@@ -84,7 +84,7 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
         # Iterate over all the dialogs and print the title and ID of each chat
         messages = []
         doc_ids = []
-        sender_cache = {}
+        sender_name_cache = {}
         logging.debug(f'Telegram plugin instance {self.plugin_instance_id} get_messages')
         async for dialog in self.client.iter_dialogs():
 
@@ -161,14 +161,18 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                                     link = "https://t.me/{}".format(dialog_public_name)
                                 else:
                                     link = "https://web.telegram.org/a/#-{}".format(dialog_id)
-
                         elif dialog.is_channel:
                             if dialog_public_name:
                                 link = "https://t.me/{}/{}".format(dialog_public_name, message_id)
                             else:
                                 link = "https://t.me/c/{}/{}".format(dialog_id, message_id)
                         else:
+                            # Private Chat
                             link = "https://web.telegram.org/a/#{}".format(dialog_id)
+                            # if dialog_public_name:
+                            #     link = "https://t.me/{}".format(dialog_public_name)
+                            # else:
+                            #     link = "https://web.telegram.org/a/#{}".format(dialog_id)
 
                         # created_date
                         created_date = message.date.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -179,31 +183,41 @@ use_ssl=True, verify_certs=False, ssl_assert_hostname=False, ssl_show_warn=False
                         # content
                         content = message.message
                         # summary
-                        sender_name = ""
-                        if dialog.is_channel or message.from_id is None:
-                            sender_name = ""
+
+                        sender = None
+                        sender_name = None
+                        if conv_type == 'Private Chat' and not message.out:
+                            sender_name = dialog_name
                         else:
-                            sender_id = message.from_id.user_id
-                            if sender_id not in sender_cache:
-                                sender = await message.get_sender()
-                                sender_cache[sender_id] = sender
-                                await asyncio.sleep(0.04)
-                            else:
-                                sender = sender_cache[sender_id]
-                            if sender is not None:
-                                sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
-                            else:
-                                sender_name = ""
+                            sender_id = message.from_id
+                            if sender_id is not None:
+                                sender_id_str = sender_id.stringify()
+                                sender_name = sender_name_cache.get(sender_id_str)
+                                if sender_name is None:
+                                    try:
+                                        sender = await self.client.get_entity(sender_id)
+                                        await asyncio.sleep(0.04)
+                                        if sender is not None:
+                                            sender_name = "{} {}".format(sender.first_name, sender.last_name if sender.last_name else "")
+                                            sender_name_cache[sender_id_str] = sender_name
+                                    except Exception as e:
+                                        continue
 
                         content_summary = content[:600] + '...' if len(content) > 600 else content
-                        summary = "Dialog: {}, Type: {}, Sender: {},\nMessage:\n{}".format(dialog_name, conv_type, sender_name, content_summary)
+
+                        # set 'Sender:' when sender_name is not None
+                        if sender_name:
+                            summary = "Type: {}, Sender: {}\nMessage:\n{}".format(conv_type, sender_name, content_summary)
+                        else:
+                            summary = "Type: {}\nMessage:\n{}".format(conv_type, content_summary)
+
                         # file_size
                         file_size = len(message.raw_text.encode('utf-8'))
 
                         body = {
                             "doc_id": doc_id,
                             "doc_name": doc_name,
-                            "doc_type": 'Telegram',
+                            "doc_type": 'Telegram Message',
                             "link": link,
                             "created_date": created_date,
                             "modified_date": modified_date,
